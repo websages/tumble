@@ -1,0 +1,5 @@
+    <div class="date-icon">
+        <div class="date-date"><!-- tmpl_var name="date" --></div>
+        <div class="date-day"><!-- tmpl_var name="day" --></div>
+        <div class="date-month"><!-- tmpl_var name="month" --></div>
+    </div>

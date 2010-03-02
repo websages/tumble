@@ -1,0 +1,4 @@
+    <div class="item">
+        <span class="quote"><!-- tmpl_var name="quote" --></span>
+        <span class="author"><!-- tmpl_var name="author" --></span>
+    </div>

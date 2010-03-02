@@ -1,0 +1,3 @@
+    <div class="item">
+        <span class="text"><!-- tmpl_var name="content" --></span>
+    </div>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0">
+    <channel>
+        <title>tumblefish.</title>
+        <link>http://tumble.loserfish.org/</link>
+        <description>tumblefish.</description>
+        <language>en-us</language>
+        <generator>lsrfsh v2.00</generator>
+
+        <managingEditor>scott@loserfish.org</managingEditor>
+        <copyright>http://creativecommons.org/licenses/by-sa/1.0</copyright>
+        <webMaster>scott@loserfish.org</webMaster>
+        <ttl>15</ttl>
+<!-- tmpl_var name="container" -->
+    </channel>
+</rss>

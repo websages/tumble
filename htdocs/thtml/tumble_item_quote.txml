@@ -1,0 +1,6 @@
+        <item>
+            <title><!-- tmpl_var name="quote" --></title>
+            <link>http://tumble.loserfish.org/</link>
+            <description>"<!-- tmpl_var name="quote" -->" --<!-- tmpl_var name="author" --></description>
+            <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
+        </item>

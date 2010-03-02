@@ -1,0 +1,6 @@
+        <item>
+            <title><!-- tmpl_var name="title" --></title>
+            <link><!-- tmpl_var name="url" --></link>
+            <description><!-- tmpl_var name="content" --></description>
+            <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
+        </item>
