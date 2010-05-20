@@ -6,7 +6,7 @@ use DBI;
 use strict;
 
 my $cgi = new CGI;
-my $dbh = DBI->connect( 'dbi:mysql:tumble', 'nobody' );
+my $dbh = DBI->connect( 'dbi:mysql:tumble:172.16.0.2', 'nobody' );
 
 if ( $cgi->param( 'quote' ) && $cgi->param( 'author' ) ) {
     my $quote  = $cgi->param( 'quote' );

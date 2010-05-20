@@ -33,6 +33,7 @@ sub setup {
     }
 
     $self->{'dbh'} = lsrfsh::MySQL->new(
+        host => '172.16.0.2',
         database => 'tumble',
         username => 'nobody'
     );

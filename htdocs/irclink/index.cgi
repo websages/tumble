@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use strict;
 
 my $cgi = new CGI;
-my $dbh = DBI->connect( 'dbi:mysql:tumble', 'nobody' );
+my $dbh = DBI->connect( 'dbi:mysql:tumble:172.16.0.2', 'nobody' );
 
 if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     my $user = $cgi->param( 'user' );
