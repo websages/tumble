@@ -1,6 +1,6 @@
         <item>
             <title><!-- tmpl_var name="title" --></title>
-            <link>http://tumble.loserfish.org/irclink/?<!-- tmpl_var name="ircLinkID" --></link>
+            <link>http://tumble.wcyd.org/irclink/?<!-- tmpl_var name="ircLinkID" --></link>
             <description><!-- tmpl_var name="content" --></description>
             <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
         </item>

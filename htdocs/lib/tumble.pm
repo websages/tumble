@@ -114,7 +114,7 @@ sub displayTumble {
                     }
 
                     $content =
-                        qq{<a href="http://tumble.loserfish.org/irclink/?} .
+                        qq{<a href="http://tumble.wcyd.org/irclink/?} .
                         $data->{$item}->{'ircLinkID'} .
                         qq{">} .
                         $data->{$item}->{'title'} .
@@ -187,7 +187,7 @@ sub displayTumble {
                                                                                             }
 
             my $co =
-                qq{<a href="http://tumble.loserfish.org/irclink/?} .
+                qq{<a href="http://tumble.wcyd.org/irclink/?} .
                 $hot->{$_}->{'ircLinkID'} .
                 qq{">} .
                 $hot->{$_}->{'title'} .

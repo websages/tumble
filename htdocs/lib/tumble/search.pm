@@ -63,7 +63,7 @@ sub displaySearch {
             } keys %{$raw}
         ) {
             my $link  =
-                qq{<a href="http://tumble.loserfish.org/irclink/?} .
+                qq{<a href="http://tumble.wcyd.org/irclink/?} .
                 $raw->{$item}->{'ircLinkID'} .
                 qq{">} .
                 $raw->{$item}->{'title'} .
@@ -113,7 +113,7 @@ sub displaySearch {
 
     map {
         my $co =
-            qq{<a href="http://tumble.loserfish.org/irclink/?} .
+            qq{<a href="http://tumble.wcyd.org/irclink/?} .
             $hot->{$_}->{'ircLinkID'} .
             qq{">} .
             $hot->{$_}->{'title'} .
