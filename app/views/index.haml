@@ -1,0 +1,33 @@
+!!! Strict
+%html
+  %head
+    %title tumblefish.
+    %script{:type => 'text/javascript', :src => "http://www.google-analytics.com/urgin.js"}
+    %script{:type => 'text/javascript'}
+      _uacct = "UA-161892-2";
+      urchinTracker();
+    %link{:rel => "stylesheet", :href => "/css/screen.css", :type => "text/css", :media=> "screen"}
+  %body
+    #page
+    #masthead
+      %a{:href => "/"}tumblefish.
+    #sidebar
+      .item
+        .header search it up
+        %form{:id => 'search-form', :method => 'get', :action => '/search'}
+          %input{ :type=> "text", :id => "search", :name => "search", :value => "", :size => "15"}
+      .item
+        .header last week's hot shit
+      .item
+        .header also
+        .sm
+          .link
+            %a{:href=>"/buttons/"}buttons
+        .sm
+          .link
+            %a{:href=>"/index.xml"}feed
+    #content
+      <!-- tmpl_var name="container" -->
+    #footer
+      <!-- tmpl_var name="nav_p" -->
+      <!-- tmpl_var name="nav_n" -->
