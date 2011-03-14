@@ -22,10 +22,17 @@ class Tumblelog
   def find(id)
     resp = RestClient.get @uri+"/#{id}?revs=true"
     data = JSON.parse(resp.body)
-    data[:timestamp] = Time.now.getutc.to_s
-    resp = RestClient.put @uri+"/#{id}", data.to_json, :content_type => 'application/json'
-    data[:clicks]=data['_revisions']['ids'].count.to_s
+    if data['type'] == 'link'
+      data[:timestamp] = Time.now.getutc.to_s
+      resp = RestClient.put @uri+"/#{id}", data.to_json, :content_type => 'application/json'
+      data[:clicks]=data['_revisions']['ids'].count.to_s
+    end
     JSON.parse(data.to_json)
+  end
+
+  def page(number=0)
+    resp = RestClient.get @uri+"/_design/items/_view/page?limit=10&skip=#{number}"
+    JSON.parse(resp.body)
   end
 
   def request(req)

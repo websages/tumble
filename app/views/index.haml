@@ -27,7 +27,19 @@
           .link
             %a{:href=>"/index.xml"}feed
     #content
-      <!-- tmpl_var name="container" -->
+      - @quotes.each do |i| 
+        .item
+          .quote
+            =i['quote']
+          .author 
+            =i['author']
+      - @links.each do |l|
+        .item
+          .link
+            %a{:href => "irclink/#{l['id']}" }
+              =l['title']
+          .author 
+            =l['author']
     #footer
       <!-- tmpl_var name="nav_p" -->
       <!-- tmpl_var name="nav_n" -->
