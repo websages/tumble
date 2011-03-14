@@ -9,11 +9,10 @@ Dir["models/**/*.rb"].each{|model|
 
 set :haml, :format => :html5
 
-t = Tumblelog.new('localhost', '5984', 'tumble')
+t = Tumblelog.new(ENV['DATABASE_URL'])
 
 get '/' do
-  @quotes = [ { 'author' => 'foo', 'quote' => 'baz'}, { 'author' => 'foo', 'quote' => 'baz'}, { 'author' => 'foo', 'quote' => 'baz'}]
-  @links =  [ { 'id' => 'e9e7e4e42e094db9b935450a12038c79','url' => 'http://www.google.com', 'author' => 'Aziz Shamim', 'title' => 'Google' }, { 'id' => 'e9e7e4e42e094db9b935450a12038c79','url' => 'http://www.google.com', 'author' => 'Aziz Shamim', 'title' => 'Google' } , { 'id' => 'e9e7e4e42e094db9b935450a12038c79','url' => 'http://www.google.com', 'author' => 'Aziz Shamim', 'title' => 'Google' }]
+  @items = t.page(1)
   haml :index
 end
 
@@ -47,10 +46,21 @@ get '/irclink/:id' do
   301
 end
 
-get %r{/page([\w]+)?} do
-  number = ( params[:captures] ? params[:captures].first : 0 )
+get %r{/page/?([\d]+)?} do
+  if params[:captures]
+    number = params[:captures].first
+  else
+    number = 0
+  end
   resp = t.page(number)
   body resp.to_json
   200
 end
+
+get '/:number' do
+  number = params[:number] || 0
+  @items = t.page(number)
+  haml :index
+end
+
 

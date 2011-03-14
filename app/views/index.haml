@@ -27,19 +27,18 @@
           .link
             %a{:href=>"/index.xml"}feed
     #content
-      - @quotes.each do |i| 
+      - @items.each do |i|
         .item
-          .quote
-            =i['quote']
-          .author 
+          -case i['type']
+          - when 'quote'
+            .quote
+              =i['quote']
+          - when 'link'
+            .link
+              %a{:href => "irclink/#{i['id']}" }
+                =i['title']
+          .author
             =i['author']
-      - @links.each do |l|
-        .item
-          .link
-            %a{:href => "irclink/#{l['id']}" }
-              =l['title']
-          .author 
-            =l['author']
     #footer
       <!-- tmpl_var name="nav_p" -->
       <!-- tmpl_var name="nav_n" -->

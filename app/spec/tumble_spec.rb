@@ -13,11 +13,18 @@ describe 'Tumble' do
         get '/'
         last_response.should be_ok
       end
-#      it 'should include quotes from the database'
-#      it 'should include links from the database'
-#      it 'should include fotos from phlicker'
-#      it 'should be able to search links, quotes, and photos'
+      it 'should include quotes from the database'
+      it 'should include links from the database'
+      it 'should include fotos from phlicker'
+      it 'should be able to search links, quotes, and photos'
+      it 'should be backwards compatible with the original cgi (specification)'
     end
+
+    describe 'setup' do
+      it 'should create a database if none is available'
+      it 'should install the design docs into the database'
+    end
+
 
     describe 'api' do
       describe '_page' do
@@ -25,11 +32,19 @@ describe 'Tumble' do
           get '/page'
           last_response.should be_ok
           j = JSON.parse(last_response.body)
-          j.should be_a(Hash)
-          j['rows'].should have(10).items
+          j.should be_an(Array)
+          j.should have(10).items
         end
 
-        it 'should skip items'
+        it 'should skip items' do
+          get '/page/0'
+          list1 = JSON.parse(last_response.body).collect {|i| i['_id']}.compact
+          get '/page/2'
+          list2 = JSON.parse(last_response.body).collect {|i| i['_id']}.compact
+          diff=list1&list2
+          diff.should have(0).items
+        end
+          
         it 'should return items sorted by date with newest first'
       end
 
@@ -72,10 +87,13 @@ describe 'Tumble' do
           diff.should eql(1)
         end
 
-#        it 'should be backwards compatible with the original cgi (specification)'
       end
 
       describe '_flickr' do
+        it 'should include photos from a configured flickr feed'
+        it 'should include the photo tag'
+        it 'should include the sender of the photo'
+        it 'should include a link to the photo on flickr'
       end
 
     end

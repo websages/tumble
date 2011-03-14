@@ -1,10 +1,14 @@
 
 configure :development do
-  set :database, 'sqlite://tmp/development.sqlite'
+  ENV['DATABASE_URL']='http://localhost:5984/tumble'
 end
 
 configure :test do
-  set :database, "sqlite::memory:"
+  ENV['DATABASE_URL']='http://localhost:5984/tumble_test'
+end
+
+configure :production do
+  ENV['DATABASE_URL']=''
 end
 
 # build the database
