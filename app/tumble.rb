@@ -3,16 +3,12 @@ require 'rest-client'
 require 'json/pure'
 require 'config/init'
 
-Dir["models/**/*.rb"].each{|model|
-  require model
-}
-
 set :haml, :format => :html5
 
-t = Tumblelog.new(ENV['DATABASE_URL'])
+t = TumbleLog.new(ENV['DATABASE_URL'])
 
 get '/' do
-  @items = t.page(1)
+  @items = t.page(0)
   haml :index
 end
 
@@ -20,6 +16,7 @@ post '/quote' do
   request.body.rewind  # in case someone already read it
   data = { :quote => params[:quote], :author => params[:author], :type => 'quote' }
   resp = t.post(data)
+  headers['Location']="/quote/#{resp['id']}"
   etag resp['rev'].to_s
   body "1"
   201
@@ -62,5 +59,4 @@ get '/:number' do
   @items = t.page(number)
   haml :index
 end
-
 

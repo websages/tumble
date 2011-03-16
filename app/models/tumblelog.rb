@@ -1,7 +1,7 @@
 require 'json/pure'
 require 'rest-client'
 
-class Tumblelog
+class TumbleLog
   def initialize(uri)
     @uri = uri
     @limit = 10

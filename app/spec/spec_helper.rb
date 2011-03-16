@@ -5,6 +5,7 @@ require 'rack/test'
 require 'ruby-debug'
 require 'rspec'
 require 'fakeweb'
+require 'nokogiri'
 
 # set the test environment
 set :environment, :test

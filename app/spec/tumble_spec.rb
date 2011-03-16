@@ -1,4 +1,4 @@
-describe 'Tumble' do
+describe 'TumbleLog' do
     include Rack::Test::Methods
 
     def app
@@ -13,6 +13,7 @@ describe 'Tumble' do
         get '/'
         last_response.should be_ok
       end
+
       it 'should include quotes from the database'
       it 'should include links from the database'
       it 'should include fotos from phlicker'
@@ -20,10 +21,10 @@ describe 'Tumble' do
       it 'should be backwards compatible with the original cgi (specification)'
     end
 
-    describe 'setup' do
-      it 'should create a database if none is available'
-      it 'should install the design docs into the database'
-    end
+#     describe 'setup' do
+#       it 'should create a database if none is available'
+#       it 'should install the design docs into the database'
+#     end
 
 
     describe 'api' do
@@ -45,7 +46,7 @@ describe 'Tumble' do
           diff.should have(0).items
         end
           
-        it 'should return items sorted by date with newest first'
+        #it 'should return items sorted by date with newest first'
       end
 
       describe '_quote' do
@@ -66,7 +67,9 @@ describe 'Tumble' do
 
       describe '_irclink' do
         it 'should accept a link' do
-          post "/irclink", {:user => 'Aziz Shamim', :url => 'http://www.google.com' }
+          testuri = 'http://www.google.com'
+          FakeWeb.register_uri(:head, testuri)
+          post "/irclink", {:user => 'Aziz Shamim', :url => testuri }
           last_response.status.should eql(201)
           last_response.headers['ETag'].should_not be_nil
           last_response.body.should_not be_empty
@@ -89,12 +92,12 @@ describe 'Tumble' do
 
       end
 
-      describe '_flickr' do
-        it 'should include photos from a configured flickr feed'
-        it 'should include the photo tag'
-        it 'should include the sender of the photo'
-        it 'should include a link to the photo on flickr'
-      end
+#       describe '_flickr' do
+#         it 'should include photos from a configured flickr feed'
+#         it 'should include the photo tag'
+#         it 'should include the sender of the photo'
+#         it 'should include a link to the photo on flickr'
+#       end
 
     end
 
