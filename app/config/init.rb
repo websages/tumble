@@ -4,7 +4,7 @@ configure :development do
 end
 
 configure :test do
-  ENV['DATABASE_URL']='http://localhost:5984/tumble_test'
+  ENV['DATABASE_URL']='http://localhost:5984/tumble'
 end
 
 configure :production do

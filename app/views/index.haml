@@ -35,10 +35,14 @@
               =i['quote']
           - when 'link'
             .link
-              %a{:href => "irclink/#{i['id']}" }
+              %a{:href => "irclink/#{i['_id']}" }
                 =i['title']
           .author
             =i['author']
     #footer
-      <!-- tmpl_var name="nav_p" -->
-      <!-- tmpl_var name="nav_n" -->
+      - if @prevpage >= 0
+        %a{:href => "/#{@prevpage}"}
+          %img{:src=>"/img/prev.jpg",:border=>"0"}
+      %a{:href => "/#{@nextpage}"}
+        %img{:src=>"/img/next.jpg",:border=>"0"}
+

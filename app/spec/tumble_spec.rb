@@ -5,8 +5,10 @@ describe 'TumbleLog' do
       @app ||= Sinatra::Application
     end
 
-    let(:quoteid) { 'e9e7e4e42e094db9b935450a12071c0f' }
-    let(:linkid)  { 'e9e7e4e42e094db9b935450a12071d72' }
+    FakeWeb.allow_net_connect = %r[^https?://localhost:5984]
+
+    let(:quoteid) { 'd150735ece7927beb570b830bd00414d' }
+    let(:linkid)  { 'd150735ece7927beb570b830bd00456a' }
 
     describe 'frontpage' do
       it 'should load the tracker for google analytics' do
@@ -14,18 +16,24 @@ describe 'TumbleLog' do
         last_response.should be_ok
       end
 
-      it 'should include quotes from the database'
-      it 'should include links from the database'
-      it 'should include fotos from phlicker'
-      it 'should be able to search links, quotes, and photos'
-      it 'should be backwards compatible with the original cgi (specification)'
+      it 'should allow a user to page forward and backward' do
+        get '/'
+        last_response.should be_ok
+        #last_response.body.should contain_prev_nav
+        #last_response.body.should_not contain_next_nav
+      end
+
+#       it 'should include quotes from the database'
+#       it 'should include links from the database'
+#       it 'should include fotos from phlicker'
+#       it 'should be able to search links, quotes, and photos'
+#       it 'should be backwards compatible with the original cgi (specification)'
     end
 
-#     describe 'setup' do
-#       it 'should create a database if none is available'
-#       it 'should install the design docs into the database'
-#     end
-
+#      describe 'setup' do
+#        it 'should create a database if none is available'
+#        it 'should install the design docs into the database'
+#      end
 
     describe 'api' do
       describe '_page' do
@@ -45,8 +53,7 @@ describe 'TumbleLog' do
           diff=list1&list2
           diff.should have(0).items
         end
-          
-        #it 'should return items sorted by date with newest first'
+
       end
 
       describe '_quote' do
@@ -68,7 +75,8 @@ describe 'TumbleLog' do
       describe '_irclink' do
         it 'should accept a link' do
           testuri = 'http://www.google.com'
-          FakeWeb.register_uri(:head, testuri)
+          FakeWeb.register_uri(:head, testuri, :status => [200, "OK"])
+          FakeWeb.register_uri(:get, testuri, :status => [200, "OK"], :body => 'spec/fixtures/google.html')
           post "/irclink", {:user => 'Aziz Shamim', :url => testuri }
           last_response.status.should eql(201)
           last_response.headers['ETag'].should_not be_nil

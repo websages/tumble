@@ -9,3 +9,7 @@ designs = [{
     }
   }
 ]
+
+designs.each { |designdoc|
+  # post designdoc to the database
+}

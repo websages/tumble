@@ -8,7 +8,10 @@ set :haml, :format => :html5
 t = TumbleLog.new(ENV['DATABASE_URL'])
 
 get '/' do
+  number = 0
   @items = t.page(0)
+  number == 0 ? @nextpage = nil : @nextpage = number.to_i - 1
+  @prevpage = number.to_i + 1
   haml :index
 end
 
@@ -57,6 +60,8 @@ end
 get '/:number' do
   number = params[:number] || 0
   @items = t.page(number)
+  number == 0 ? @nextpage = nil : @nextpage = number.to_i - 1
+  @prevpage = number.to_i + 1
   haml :index
 end
 

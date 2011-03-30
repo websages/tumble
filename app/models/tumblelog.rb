@@ -11,24 +11,28 @@ class TumbleLog
     data[:created_at] = Time.now.getutc.to_s
     if data[:url]
       data[:title] = link_title(data[:url]) || data[:url]
+      data[:clicks] = 0
     end
     resp = RestClient.post @uri, data.to_json, :content_type => 'application/json'
     JSON.parse(resp)
   end
 
   def find(id)
-    resp = RestClient.get @uri+"/#{id}?revs=true"
+    resp = RestClient.get @uri+"/#{id}"
     data = JSON.parse(resp.body)
     if data['type'] == 'link'
       data[:timestamp] = Time.now.getutc.to_s
+      clicks = data['clicks'].to_i + 1
+      data['clicks'] = clicks
       resp = RestClient.put @uri+"/#{id}", data.to_json, :content_type => 'application/json'
-      data[:clicks]=data['_revisions']['ids'].count.to_s
+      data['clicks'] = clicks.to_s
     end
     JSON.parse(data.to_json)
   end
 
   def page(number)
-    resp = RestClient.get @uri+"/_design/items/_view/page?limit=#{@limit}&skip=#{number*@limit}"
+    skip = number.to_i * @limit
+    resp = RestClient.get @uri+"/_design/items/_view/page?limit=#{@limit}&skip=#{skip}"
     JSON.parse(resp.body)['rows'].collect { |r| r['value'] }.compact
   end
 
