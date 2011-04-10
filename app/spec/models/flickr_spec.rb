@@ -6,7 +6,7 @@ describe Flickr do
   let(:key) {'e989f09213d48f7be061563511fd107e'}
   let(:secret) {'d31541f61b737aa3'}
   let(:user_id) { '30378931@N00' }
-  let(:database) { 'https://localhost:5984/tumble/'}
+  let(:database) { 'http://localhost:5984/tumble/'}
 
   before(:all) do
     @f = Flickr.new(user_id, key, secret, database )
@@ -15,7 +15,7 @@ describe Flickr do
   describe '_photos' do
     it 'should return the last update date' do
       FakeWeb.register_uri(:any,'http://api.flickr.com/services/feeds/photos_public.gne?id=30378931@N00', {'Last-Modified' => "Fri, 18 Mar 2011 00:32:08 GMT", :status => [200, "OK"]})
-      date = @f.lastseen
+      date = @f.last_update
       date.should be_a(Time)
     end
 
@@ -30,10 +30,5 @@ describe Flickr do
       @f.total.should_not be_nil
       @f.total.should be_an(Integer)
     end
-  end
-
-  describe '_metadata' do
-    it 'should store the last time we saw a change in the flickrstream and updated'
-    it 'should store the userid of the flickrstream'
   end
 end

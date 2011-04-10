@@ -100,6 +100,19 @@ describe 'TumbleLog' do
 
       end
 
+      describe '_photos' do
+        it 'should accept a photo' do
+          post '/image', 'file' => Rack::Test::UploadedFile.new('spec/fixtures/placekitten.jpg', 'image/jpeg')
+          last_response.status.should eql(201)
+          last_response.headers['ETag'].should_not be_nil
+          last_response.headers['Location'].should_not be_nil
+        end
+
+#         it 'should retrieve a photo'
+#         it 'should include metadata culled from exif information'
+#         it 'should include a caption'
+      end
+
 #       describe '_flickr' do
 #         it 'should include photos from a configured flickr feed'
 #         it 'should include the photo tag'

@@ -2,6 +2,7 @@ require 'sinatra'
 require 'rest-client'
 require 'json/pure'
 require 'config/init'
+require 'base64'
 
 set :haml, :format => :html5
 
@@ -17,8 +18,8 @@ end
 
 post '/quote' do
   request.body.rewind  # in case someone already read it
-  data = { :quote => params[:quote], :author => params[:author], :type => 'quote' }
-  resp = t.post(data)
+  data = { :quote => params[:quote], :author => params[:author] }
+  resp = t.post_quote(data)
   headers['Location']="/quote/#{resp['id']}"
   etag resp['rev'].to_s
   body "1"
@@ -32,8 +33,8 @@ end
 
 post '/irclink' do
   request.body.rewind
-  data = {:url => params[:url], :user => params[:user], :type => 'link' }
-  resp = t.post(data)
+  data = {:url => params[:url], :user => params[:user] }
+  resp = t.post_link(data)
   etag resp['rev'].to_s
   body resp['id'].to_s
   201
@@ -63,5 +64,15 @@ get '/:number' do
   number == 0 ? @nextpage = nil : @nextpage = number.to_i - 1
   @prevpage = number.to_i + 1
   haml :index
+end
+
+post '/image' do
+  file = params['file']
+  resp = t.post_image(file)
+
+ etag resp['rev'].to_s
+  body resp['id'].to_s
+  headers['Location']="/image/#{resp['id']}"
+  201
 end
 

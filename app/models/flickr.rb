@@ -1,7 +1,10 @@
-require 'nokogiri'
-
 class Flickr
+  require 'time'
+  require 'json/pure'
   attr_accessor :user_id
+
+  #httptime is
+  # Time.new.utc.strftime("%a, %m %b %Y %H:%M:%S GMT")
 
   def initialize(userid, key, secret, database_uri)
     @user_id =userid
@@ -24,11 +27,19 @@ class Flickr
       }.compact
   end
 
-  ##check if the data is newer than when we last saw it
-  def lastseen
+  def last_modified
     res = RestClient.head feeduri
     time = res.headers[:last_modified]
     Time.httpdate(time)
+  end
+
+  def last_update
+    begin
+      RestClient.get(@database+'/flickr') { |response, request, result|
+        time = JSON.parse(response)['last_update']
+        Time.httpdate(time)
+      }
+    end
   end
 
   def total
@@ -36,10 +47,10 @@ class Flickr
     res['person']['photos']['count']['_content']
   end
 
-  def new?
-    flickrdata = RestClient.get @database+'/flickr'
+  def update_db
+    data = {'user_id' => @user_id, 'stats' => {'last_update' => Time.now.httpdate } }
+    RestClient.put @database+'/flickr', data, :content_type => 'application/json'
   end
-
 
   private
   def flickr(method, options)
@@ -56,6 +67,9 @@ class Flickr
 
   def store(data)
     # store the photo data in the database
+    RestClient.post(@database, data, :content_type => 'application/json') { |response, request, result|
+      # something something
+    }
   end
 
   def get(date_from, date_to)

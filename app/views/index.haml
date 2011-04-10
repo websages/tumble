@@ -2,10 +2,16 @@
 %html
   %head
     %title tumblefish.
-    %script{:type => 'text/javascript', :src => "http://www.google-analytics.com/urgin.js"}
     %script{:type => 'text/javascript'}
-      _uacct = "UA-161892-2";
-      urchinTracker();
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-896541-4']);
+      _gaq.push(['_setDomainName', '.wcyd.org']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
     %link{:rel => "stylesheet", :href => "/css/screen.css", :type => "text/css", :media=> "screen"}
   %body
     #page
@@ -25,7 +31,7 @@
             %a{:href=>"/buttons/"}buttons
         .sm
           .link
-            %a{:href=>"/index.xml"}feed
+            %a{:href=>"/feed.xml"}feed
     #content
       - @items.each do |i|
         .item

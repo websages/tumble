@@ -7,13 +7,47 @@ class TumbleLog
     @limit = 10
   end
 
-  def post(data)
-    data[:created_at] = Time.now.getutc.to_s
-    if data[:url]
-      data[:title] = link_title(data[:url]) || data[:url]
-      data[:clicks] = 0
-    end
-    resp = RestClient.post @uri, data.to_json, :content_type => 'application/json'
+  #def post(data)
+  #  data[:created_at] = Time.now.getutc.to_s
+  #  if data[:url]
+  #    data[:title] = link_title(data[:url]) || data[:url]
+  #    data[:clicks] = 0
+  #  end
+  #  resp = post(data, 'application/json')
+  #  JSON.parse(resp)
+  #end
+  
+  def post_quote(doc)
+    doc[:created_at] = Time.now.getutc.to_s
+    doc[:type] = 'quote'
+
+    resp = post(doc)
+    JSON.parse(resp)
+  end
+
+  def post_link(doc)
+    doc[:created_at] = Time.now.getutc.to_s
+    doc[:title] = link_title(doc[:url]) || doc[:url]
+    doc[:clicks] = 0
+    doc[:type] = 'link'
+
+    resp = post(doc)
+    JSON.parse(resp)
+  end
+
+  def post_image(file)
+    tmpfile = file[:tempfile]
+    name = file[:filename]
+    type = file[:type]
+    length = tmpfile.length
+    data = Base64.encode64(tmpfile.read)
+    attachments = { "#{name}" => { :content_type => type , :length => length, :data => data } }
+
+    doc = Hash.new
+    doc[:type] = 'image'
+    doc[:attachments] = attachments
+
+    resp = post(doc)
     JSON.parse(resp)
   end
 
@@ -37,6 +71,10 @@ class TumbleLog
   end
 
   private
+  def post(data)
+    resp = RestClient.post @uri, data.to_json, :content_type => 'application/json'
+    resp
+  end
 
   def link_title(url)
     resp = RestClient.head url
