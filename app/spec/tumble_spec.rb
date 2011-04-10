@@ -9,6 +9,7 @@ describe 'TumbleLog' do
 
     let(:quoteid) { 'd150735ece7927beb570b830bd00414d' }
     let(:linkid)  { 'd150735ece7927beb570b830bd00456a' }
+    let(:imageid) { '0f7dcd57dbde61a4bf6775babe030721' }
 
     describe 'frontpage' do
       it 'should load the tracker for google analytics' do
@@ -108,7 +109,13 @@ describe 'TumbleLog' do
           last_response.headers['Location'].should_not be_nil
         end
 
-#         it 'should retrieve a photo'
+        it 'should retrieve a photo' do
+          get "/image/#{imageid}"
+          p last_response
+          last_response.status.should eql(200)
+          last_response.headers['ETag'].should_not be_nil
+          last_response.body.should_not be_empty
+        end
 #         it 'should include metadata culled from exif information'
 #         it 'should include a caption'
       end

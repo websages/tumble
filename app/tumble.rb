@@ -68,11 +68,19 @@ end
 
 post '/image' do
   file = params['file']
-  resp = t.post_image(file)
+  resp = t.image(file)
 
- etag resp['rev'].to_s
+  etag resp['rev'].to_s
   body resp['id'].to_s
   headers['Location']="/image/#{resp['id']}"
   201
 end
 
+get '/image/:id' do
+  resp = t.image(params['id'])
+  p resp
+  content_type resp['content_type']
+  etag resp['_rev'].to_s
+  headers['Location']="/image/#{resp['id']}"
+  200
+end

@@ -1,5 +1,6 @@
 require 'json/pure'
 require 'rest-client'
+require 'base64'
 
 class TumbleLog
   def initialize(uri)
@@ -7,26 +8,31 @@ class TumbleLog
     @limit = 10
   end
 
-  #def post(data)
-  #  data[:created_at] = Time.now.getutc.to_s
-  #  if data[:url]
-  #    data[:title] = link_title(data[:url]) || data[:url]
-  #    data[:clicks] = 0
-  #  end
-  #  resp = post(data, 'application/json')
-  #  JSON.parse(resp)
-  #end
-  
   def post_quote(doc)
-    doc[:created_at] = Time.now.getutc.to_s
     doc[:type] = 'quote'
 
     resp = post(doc)
     JSON.parse(resp)
   end
 
+  def image(ref)
+    if ref.class == String
+      resp = find(ref)
+      data = resp['attachments']
+      name = data.keys.first
+
+      data[name]['name'] = name
+      data[name]['_id'] = data['_id']
+      data[name]['_rev'] = data['_rev']
+      data[name]['data'] = Base64.decode64(data[name]['data'])
+      return data[name]
+    else
+      resp = post_image(ref)
+      return resp
+    end
+  end
+
   def post_link(doc)
-    doc[:created_at] = Time.now.getutc.to_s
     doc[:title] = link_title(doc[:url]) || doc[:url]
     doc[:clicks] = 0
     doc[:type] = 'link'
@@ -71,8 +77,9 @@ class TumbleLog
   end
 
   private
-  def post(data)
-    resp = RestClient.post @uri, data.to_json, :content_type => 'application/json'
+  def post(doc)
+    doc[:created_at] = Time.now.getutc.to_s
+    resp = RestClient.post @uri, doc.to_json, :content_type => 'application/json'
     resp
   end
 
@@ -83,6 +90,14 @@ class TumbleLog
       title = resp.match(/<title>([^<]*)/)[1]
     end
     title ? title : nil
+  end
+
+  def shortcode(longcode)
+    Base64.encode64(longcode)
+  end
+
+  def longcode(shortcode)
+    Base64.decode64(shortcode)
   end
 
 end
