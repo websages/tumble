@@ -78,9 +78,9 @@ end
 
 get '/image/:id' do
   resp = t.image(params['id'])
-  p resp
   content_type resp['content_type']
   etag resp['_rev'].to_s
   headers['Location']="/image/#{resp['id']}"
+  body resp['data']
   200
 end
