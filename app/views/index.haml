@@ -21,7 +21,7 @@
       .item
         .header search it up
         %form{:id => 'search-form', :method => 'get', :action => '/search'}
-          %input{ :type=> "text", :id => "search", :name => "search", :value => "", :size => "15"}
+          %input{ :type=> "text", :id => "search", :name => "search", :value => "", :size => "15"} 
       .item
         .header last week's hot shit
       .item
@@ -33,9 +33,12 @@
           .link
             %a{:href=>"/feed.xml"}feed
     #content
-      - @items.each do |i|
+      - for i in @items
         .item
           -case i['type']
+          - when 'image'
+            .image
+              %img{:src => "image/#{i['_id']}" }
           - when 'quote'
             .quote
               =i['quote']

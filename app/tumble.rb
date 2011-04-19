@@ -11,7 +11,7 @@ t = TumbleLog.new(ENV['DATABASE_URL'])
 get '/' do
   number = 0
   @items = t.page(0)
-  number == 0 ? @nextpage = nil : @nextpage = number.to_i - 1
+  number == 0 ? @nextpage = nil : @nextpage = number.to_i - 2
   @prevpage = number.to_i + 1
   haml :index
 end
@@ -27,8 +27,12 @@ post '/quote' do
 end
 
 get '/quote/:id' do
-  resp = t.find(params[:id])
-  resp.to_json
+  begin
+    resp = t.find(params[:id])
+    resp.to_json
+  rescue RestClient::ResourceNotFound
+    404
+  end
 end
 
 post '/irclink' do

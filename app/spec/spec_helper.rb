@@ -6,6 +6,7 @@ require 'ruby-debug'
 require 'rspec'
 require 'fakeweb'
 require 'nokogiri'
+require 'libxml'
 
 #require File.join(File.dirname(__FILE__), '/spec_matchers.rb'
 

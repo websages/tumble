@@ -9,7 +9,7 @@ class TumbleLog
   end
 
   def post_quote(doc)
-    doc[:type] = 'quote'
+    doc['type'] = 'quote'
 
     resp = post(doc)
     JSON.parse(resp)
@@ -35,7 +35,7 @@ class TumbleLog
   def post_link(doc)
     doc[:title] = link_title(doc[:url]) || doc[:url]
     doc[:clicks] = 0
-    doc[:type] = 'link'
+    doc['type'] = 'link'
 
     resp = post(doc)
     JSON.parse(resp)
@@ -50,7 +50,7 @@ class TumbleLog
     attachments = { "#{name}" => { :content_type => type , :length => length, :data => data } }
 
     doc = Hash.new
-    doc[:type] = 'image'
+    doc['type'] = 'image'
     doc[:attachments] = attachments
 
     resp = post(doc)

@@ -1,5 +1,7 @@
 describe 'TumbleLog' do
+
   include Rack::Test::Methods
+  require 'rspec/expectations'
 
   def app
     @app ||= Sinatra::Application
@@ -17,18 +19,26 @@ describe 'TumbleLog' do
       get '/'
       last_response.should be_ok
     end
+#    it 'should allow a user to page forward and backward'
+#    it 'should be able to search links, quotes, and photos'
 
-    it 'should allow a user to page forward and backward' do
-      get '/'
-      last_response.should be_ok
-      #last_response.body.should contain_prev_nav
-      #last_response.body.should_not contain_next_nav
+    describe '_items' do
+      matcher :include_div_class do |expected|
+        match do |actual|
+          b = Nokogiri::HTML::Document.parse(actual)
+          b.root.xpath(".//div[@class='#{expected}']").length > 0
+        end
+      end
+
+      before(:all) {
+        get '/'
+        @body = last_response.body
+      }
+
+      it { @body.should include_div_class('quote') } 
+      it { @body.should include_div_class('link') } 
+      it { @body.should include_div_class('image') } 
     end
-
-#       it 'should include quotes from the database'
-#       it 'should include links from the database'
-#       it 'should include fotos from phlicker'
-#       it 'should be able to search links, quotes, and photos'
 #       it 'should be backwards compatible with the original cgi (specification)'
   end
 

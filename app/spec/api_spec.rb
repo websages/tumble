@@ -15,11 +15,11 @@ describe 'TumbleLog' do
     # database teardown
   end
 
-  let(:quoteid) { 'd150735ece7927beb570b830bd00414d' }
-  let(:linkid)  { 'd150735ece7927beb570b830bd00456a' }
-  let(:imageid) { '0f7dcd57dbde61a4bf6775babe030721' }
-
   describe 'api' do
+    let(:quoteid) { '46fe6a76d6688715649a7f5dce006a3c' }
+    let(:linkid)  { '46fe6a76d6688715649a7f5dce006d8a' }
+    let(:imageid) { '46fe6a76d6688715649a7f5dce00798d' }
+
     describe '_page' do
       it 'should return 10 items at a time' do
         get '/page'
@@ -28,7 +28,6 @@ describe 'TumbleLog' do
         j.should be_an(Array)
         j.should have(10).items
       end
-
       it 'should skip items' do
         get '/page/0'
         list1 = JSON.parse(last_response.body).collect {|i| i['_id']}.compact
@@ -37,7 +36,6 @@ describe 'TumbleLog' do
         diff=list1&list2
         diff.should have(0).items
       end
-
     end
 
     describe '_quote' do
@@ -47,13 +45,15 @@ describe 'TumbleLog' do
         last_response.status.should eql(201)
         last_response.headers['ETag'].should_not be_nil
       end
-
       it 'should retrieve a quote' do
         get "/quote/#{quoteid}"
         last_response.should be_ok
         JSON.parse(last_response.body).should be_a(Hash)
       end
-
+      it 'should return a 404 on a bad quote' do
+        get '/quote/919191919'
+        last_response.status.should eql(404)
+      end
     end
 
     describe '_irclink' do
@@ -66,13 +66,11 @@ describe 'TumbleLog' do
         last_response.headers['ETag'].should_not be_nil
         last_response.body.should_not be_empty
       end
-
       it 'should redirect to the link' do
         get "/irclink/#{linkid}"
         last_response.status.should eql(301)
         last_response.headers['Location'].should_not be_nil
       end
-
       it 'should track how many times the link is clicked (redirected)' do
         get "/irclink/#{linkid}"
         pre_click = last_response.headers['clicks'].to_i
@@ -81,7 +79,6 @@ describe 'TumbleLog' do
         diff = post_click - pre_click
         diff.should eql(1)
       end
-
     end
 
     describe '_photos' do
@@ -91,14 +88,12 @@ describe 'TumbleLog' do
         last_response.headers['ETag'].should_not be_nil
         last_response.headers['Location'].should_not be_nil
       end
-
       it 'should retrieve a photo' do
         get "/image/#{imageid}"
         last_response.status.should eql(200)
         last_response.headers['ETag'].should_not be_nil
         last_response.body.should_not be_empty
       end
-
 #         it 'should include metadata culled from exif information'
 #         it 'should include a caption'
     end
