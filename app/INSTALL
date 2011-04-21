@@ -10,11 +10,14 @@ Requirements:
 * nokogiri
 * rest-client
 * sinatra
-* fakeweb
+* haml 
+
+
+== Testing
+* shotgun
 * rspec
 * rspec/core/rake_task
 * rspec/expectations
-* ruby-debug
+* fakeweb
 * rack/reloader
 * rack/test
-* libxml-ruby
