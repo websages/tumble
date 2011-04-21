@@ -10,7 +10,8 @@ Requirements:
 * nokogiri
 * rest-client
 * sinatra
-* haml 
+* haml
+* yaml
 
 
 == Testing
