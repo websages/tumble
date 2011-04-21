@@ -6,17 +6,10 @@ Requirements:
 
 ==Production
 * Ruby 1.8.7
-* base64
-* json/pure
+* json_pure
 * nokogiri
 * rest-client
-* rubygems
 * sinatra
-* time
-* tumble
-* uri
-* yaml
-
 * fakeweb
 * rspec
 * rspec/core/rake_task
@@ -24,3 +17,4 @@ Requirements:
 * ruby-debug
 * rack/reloader
 * rack/test
+* libxml-ruby
