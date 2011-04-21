@@ -1,0 +1,26 @@
+Requirements:
+
+
+* Couchbase: http://c3145442.r42.cf0.rackcdn.com/couchbase-server-community_x86_64_1.1.deb
+* Couchbase: http://c3145442.r42.cf0.rackcdn.com/couchbase-server-community_x86_64_1.1.rpm
+
+==Production
+* Ruby 1.8.7
+* base64
+* json/pure
+* nokogiri
+* rest-client
+* rubygems
+* sinatra
+* time
+* tumble
+* uri
+* yaml
+
+* fakeweb
+* rspec
+* rspec/core/rake_task
+* rspec/expectations
+* ruby-debug
+* rack/reloader
+* rack/test

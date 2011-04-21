@@ -3,8 +3,25 @@ task :default => [:spec]
 desc "Run those specs"
 task :spec do
   require 'rspec/core/rake_task'
+  ENV['RACK_ENV'] = 'test'
   RSpec::Core::RakeTask.new do |t|
     t.rspec_opts = ["-c", "-f documentation", "-r ./spec/spec_helper.rb"]
     t.pattern = 'spec/**/*_spec.rb'
   end
+end
+
+task :bin do
+  require 'rspec/core/rake_task'
+  ENV['RACK_ENV'] = 'test'
+  RSpec::Core::RakeTask.new do |s|
+    s.name = :bin
+    s.rspec_opts = ["-c", "-f documentation", "-r ./spec/spec_helper.rb"]
+    s.pattern = 'spec/000_setup_spec.rb'
+  end
+end
+
+task :shotgun do
+  ENV['RACK_ENV'] = 'development'
+  system "shotgun -E #{ENV['RACK_ENV']} -p 9393"
+  system "ruby bin/setup_sample_environment.rb"
 end

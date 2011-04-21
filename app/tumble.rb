@@ -22,7 +22,7 @@ post '/quote' do
   resp = t.post_quote(data)
   headers['Location']="/quote/#{resp['id']}"
   etag resp['rev'].to_s
-  body "1"
+  body resp['id'].to_s
   201
 end
 
