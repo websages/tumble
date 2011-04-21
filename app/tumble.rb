@@ -3,6 +3,8 @@ require 'rest-client'
 require 'json/pure'
 require 'config/init'
 require 'base64'
+require 'yaml'
+require 'haml'
 
 set :haml, :format => :html5
 
