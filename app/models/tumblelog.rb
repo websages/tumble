@@ -1,7 +1,3 @@
-require 'json/pure'
-require 'rest-client'
-require 'base64'
-
 class TumbleLog
   def initialize(uri)
     @uri = uri

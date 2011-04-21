@@ -39,8 +39,6 @@ def setup_test_environment(n)
   end
 end
 
-
-
 # set the test environment
 set :environment, :bintest
 set :run, false
