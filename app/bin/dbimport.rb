@@ -2,10 +2,12 @@
 
 require 'rubygems'
 require 'open-uri'
+require 'net/http'
 require 'mysql'
 require 'time'
 require 'date'
 require 'base64'
+require 'yaml'
 require 'progressbar'
 require File.join(File.dirname(__FILE__), "../lib", 'tumble.rb')
 
@@ -23,7 +25,8 @@ def import_quotes()
     @quote = TumbleLog::Quote.new(
       :created_at => time_cleanup(row[0]),
       :quote      => row[1],
-      :author     => row[2]
+      :author     => row[2],
+      :type       => 'link'
     )
     @quote.save
     pbar.inc
@@ -40,12 +43,60 @@ def import_links()
       :user       => row[1],
       :title      => row[2],
       :url        => row[3],
-      :clicks     => row[4]
+      :clicks     => row[4],
+      :type       => 'quote'
     )
     @link.save
     pbar.inc
   end
   pbar.finish
+end
+
+def cache_images() 
+  dir = "/tmp/imgcache/"
+  logfile = dir + 'error.log'
+  Dir::mkdir(dir) unless FileTest.directory?(dir)
+  
+  log = File.open(logfile, 'w') 
+    
+  query = SDB.query("SELECT timestamp, title, link, url, md5sum, imageID FROM image")
+  pbar = ProgressBar.new("Cache", query.num_rows)
+  query.each do |row|
+    value = {
+      'timestamp' => row[0],
+      'title'     => row[1],
+      'link'      => row[2],
+      'url'       => row[3],
+      'md5sum'    => row[4],
+      'imageID'   => row[5]
+    }    
+    # Try to not download the file again. 
+    # Need to change to MD5 Sum
+    #next unless (File.exist?("#{value['imageID']}.jpg") and )) 
+    
+    #if File.exist?("#{value['imageID']}.yml") do
+      
+    #end
+    
+    # Also don't grab dailykitten shit. 
+    next unless value['url'].include? "flickr"
+    
+    begin
+      File.open(dir + value['imageID'] + '.jpg', 'w') { |output| 
+        open(value['url']) { |input| output.write(input.read) }
+      }
+      File.open(dir + value['imageID'] + '.yml', 'w') { |yaml|
+        yaml.write(YAML::dump(value))
+      }
+    rescue => e
+      log.write e.message + "\n" 
+      log.write e.backtrace + "\n"
+      log.write value['url'] + "\n"
+    end
+    pbar.inc
+  end
+  
+  log.close 
 end
 
 def import_images()
@@ -63,7 +114,14 @@ def import_images()
 
     @image = TumbleLog::Image.new(
       :created_at => time_cleanup(row[0]),
-      :attachments => { "#{name}" => { :content_type => type , :length => length, :data => data } }
+      :type       => 'image',
+      :attachments => { 
+        "#{name}" => { 
+          :content_type => type , 
+          :length       => length, 
+          :data         => data
+        } 
+      }
     )
     @image.save
 
@@ -79,9 +137,10 @@ SDB.options(Mysql::SET_CHARSET_NAME, 'utf8')
 SDB.real_connect(MYSQL[:ip], MYSQL[:username], MYSQL[:password], MYSQL[:database])
 SDB.query("SET NAMES utf8")
 
-import_quotes()
-import_links()
-import_images()
+#import_quotes()
+#import_links()
+#import_images()
+cache_images()
 
 SDB.close if SDB
 

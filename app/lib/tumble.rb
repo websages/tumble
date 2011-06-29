@@ -10,7 +10,7 @@ module TumbleLog
   class Link < CouchRest::Model::Base
     use_database COUCH
   
-    property :type, :default => 'link'
+#    property :type, :default => 'link'
     property :created_at, :default => Time.new.utc.strftime("%a, %m %b %Y %H:%M:%S GMT")
     property :title
     property :url
@@ -21,7 +21,7 @@ module TumbleLog
   class Quote < CouchRest::Model::Base
     use_database COUCH
  
-    property :type, :default => 'quote'
+#    property :type, :default => 'quote'
     property :created_at, :default => Time.new.utc.strftime("%a, %m %b %Y %H:%M:%S GMT")
     property :quote
     property :author
@@ -30,7 +30,7 @@ module TumbleLog
   class Image < CouchRest::Model::Base
     use_database COUCH
   
-    property :type, :default => 'image'
+#    property :type, :default => 'image'
     property :created_at, :default => Time.new.utc.strftime("%a, %m %b %Y %H:%M:%S GMT")
     property :attachments
   end
