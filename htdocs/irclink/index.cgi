@@ -16,7 +16,7 @@ if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     my $agent = LWP::UserAgent->new();
     $agent->agent( 'Mozilla/5.0' );
 
-    unless ( $agent->head( $url )->{'_rc'} eq '200' ) {
+    unless ( $agent->get( $url )->{'_rc'} eq '200' ) {
         print "Content-type: text/plain\n\n";
         print '0';
         exit( 0 );
