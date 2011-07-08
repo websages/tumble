@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ ! -h /srv/www ]; then
+   (cd /srv; ln -s /opt/www www)
+fi
+if [ ! -h /etc/apache2/sites-available/tumble.wcyd.org.conf ]; then
+   (cd /etc/apache2/sites-available; ln -s /srv/www/tumble.wcyd.org/conf/tumble.wcyd.org.conf tumble.wcyd.org.conf)
+fi
+if [ ! -h /etc/apache2/sites-enabled/tumble.wcyd.org.conf ]; then
+   (cd /etc/apache2/sites-enabled; ln -s /srv/www/tumble.wcyd.org/conf/tumble.wcyd.org.conf tumble.wcyd.org.conf)
+fi
