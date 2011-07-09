@@ -1,0 +1,21 @@
+odin:
+  domain: "root@odin.websages.com"
+  deploy_to: "/opt/www/tumble.wcyd.org"
+  repository: "gitosis@odin.websages.com:tumble.wcyd.org.git"
+  branch: "master"
+  post_deploy_script: bin/enable
+  post_setup_script: bin/enable
+freyr:
+  domain: "root@freyr.websages.com"
+  deploy_to: "/opt/www/tumble.wcyd.org"
+  repository: "gitosis@freyr.websages.com:tumble.wcyd.org.git"
+  branch: "master"
+  post_deploy_script: bin/enable
+  post_setup_script: bin/enable
+thor:
+  domain: "root@thor.websages.com"
+  deploy_to: "/opt/www/tumble.wcyd.org"
+  repository: "gitosis@odin.websages.com:tumble.wcyd.org.git"
+  branch: "master"
+  post_deploy_script: bin/enable
+  post_setup_script: bin/enable
