@@ -25,3 +25,9 @@ task :shotgun do
   system "shotgun -E #{ENV['RACK_ENV']} -p 9393"
   system "ruby bin/setup_sample_environment.rb"
 end
+
+task :dbimport do
+  ENV['RACK_ENV'] = 'development'
+  ENV['DATABASE_URL']='http://localhost:5984/tumble_dev'
+  system "ruby bin/dbimport.rb"
+end
