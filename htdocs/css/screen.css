@@ -76,8 +76,7 @@ body {
 .item img {
     padding: 3px;
     background: #bbb;
-    height: 100px; 
-    width: 200px; 
+    width: 400px; 
     overflow: hidden;
 }
 
