@@ -76,6 +76,9 @@ body {
 .item img {
     padding: 3px;
     background: #bbb;
+    height: 100px; 
+    width: 200px; 
+    overflow: hidden;
 }
 
 .author {
