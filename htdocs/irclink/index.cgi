@@ -20,7 +20,7 @@ if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     if($response->{'_rc'} eq "302"){
         print STDERR "Redirect: ".$response->{'_headers'}->{'location'}."\n";
         $url = $response->{'_headers'}->{'location'};
-        $redir_response = $agent->get($url);
+        my $redir_response = $agent->get($url);
         if($redir_response->{'_rc'} ne "200"){
             print STDERR "Redirect got ".$redir_response->{'_rc'}."\n";
             print "Content-type: text/plain\n\n";
