@@ -16,7 +16,18 @@ if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     my $agent = LWP::UserAgent->new();
     $agent->agent( 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.17) Gecko/20110422 Ubuntu/8.04 (hardy) Firefox/3.6.17' );
 
-    unless ( $agent->get( $url )->{'_rc'} eq '200' ) {
+    my $response = $agent->get( $url );
+    if($response->{'_rc'} eq "302"){
+        print STDERR "Redirect: ".$response->{'_headers'}->{'location'}."\n";
+        $url = $response->{'_headers'}->{'location'};
+        $redir_response = $agent->get($url);
+        if($redir_response->{'_rc'} ne "200"){
+            print STDERR "Redirect got ".$redir_response->{'_rc'}."\n";
+            print "Content-type: text/plain\n\n";
+            print '0';
+            exit( 0 );
+        }
+    }elsif( $response->{'_rc'} ne "200"){
         print "Content-type: text/plain\n\n";
         print '0';
         exit( 0 );
