@@ -23,8 +23,8 @@ XML::Twig->new(
 )->parse( $content );
 
 my $dbh = DBI->connect(
-    'dbi:mysql:tumble:172.16.0.2',
-    'nobody'
+    'dbi:mysql:tumble:tumbledb.vpn.websages.com',
+    'tumble'
 ) || die( $DBI::errstr );
 
 

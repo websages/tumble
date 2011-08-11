@@ -33,9 +33,9 @@ sub setup {
     }
 
     $self->{'dbh'} = lsrfsh::MySQL->new(
-        host => '172.16.0.2',
+        host => 'tumbledb.vpn.websages.com',
         database => 'tumble',
-        username => 'nobody'
+        username => 'tumble'
     );
 
     $self->start_mode( 'displayTumble' );
