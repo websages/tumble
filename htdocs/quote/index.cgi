@@ -13,6 +13,7 @@ if ( $cgi->param( 'quote' ) && $cgi->param( 'author' ) ) {
     my $author = $cgi->param( 'author' );
 
     $quote=uri_unescape($quote);
+    $author=uri_unescape($author);
 
     my $sth = $dbh->prepare( qq{
         INSERT INTO quote (
