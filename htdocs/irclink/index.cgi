@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use strict;
 
 my $cgi = new CGI;
-my $dbh = DBI->connect( 'dbi:mysql:tumble:tumbledb.vpn.websages.com', 'tumble' );
+my $dbh = DBI->connect( 'dbi:mysql:tumble:localhost', 'tumble' );
 
 if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     my $user = $cgi->param( 'user' );

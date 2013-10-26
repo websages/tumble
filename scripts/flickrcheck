@@ -25,7 +25,7 @@ XML::Twig->new(
 )->parse( $content );
 
 my $dbh = DBI->connect(
-    'dbi:mysql:tumble:tumbledb.vpn.websages.com',
+    'dbi:mysql:tumble:localhost',
     'tumble'
 ) || die( $DBI::errstr );
 

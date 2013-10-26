@@ -32,7 +32,7 @@ sub setup {
     }
 
     $self->{'dbh'} = lsrfsh::MySQL->new(
-        host => 'tumbledb.vpn.websages.com',
+        host => 'localhost',
         database => 'tumble',
         username => 'tumble'
     );
@@ -63,7 +63,7 @@ sub displaySearch {
             } keys %{$raw}
         ) {
             my $link  =
-                qq{<a href="http://tumble.wcyd.org/irclink/?} .
+                qq{<a href="http://tumble.stahnkage.com/irclink/?} .
                 $raw->{$item}->{'ircLinkID'} .
                 qq{">} .
                 $raw->{$item}->{'title'} .
@@ -113,7 +113,7 @@ sub displaySearch {
 
     map {
         my $co =
-            qq{<a href="http://tumble.wcyd.org/irclink/?} .
+            qq{<a href="http://tumble.stahnkage.com/irclink/?} .
             $hot->{$_}->{'ircLinkID'} .
             qq{">} .
             $hot->{$_}->{'title'} .

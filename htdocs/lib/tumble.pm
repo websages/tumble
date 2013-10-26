@@ -33,7 +33,7 @@ sub setup {
     }
 
     $self->{'dbh'} = lsrfsh::MySQL->new(
-        host => 'tumbledb.vpn.websages.com',
+        host => 'localhost',
         database => 'tumble',
         username => 'tumble'
     );
@@ -114,7 +114,7 @@ sub displayTumble {
                     }
 
                     $content =
-                        qq{<a href="http://tumble.wcyd.org/irclink/?} .
+                        qq{<a href="http://tumble.stahnkage.com/irclink/?} .
                         $data->{$item}->{'ircLinkID'} .
                         qq{">} .
                         $data->{$item}->{'title'} .
@@ -187,7 +187,7 @@ sub displayTumble {
                                                                                             }
 
             my $co =
-                qq{<a href="http://tumble.wcyd.org/irclink/?} .
+                qq{<a href="http://tumble.stahnkage.com/irclink/?} .
                 $hot->{$_}->{'ircLinkID'} .
                 qq{">} .
                 $hot->{$_}->{'title'} .

@@ -6,7 +6,7 @@ use URI::Escape;
 use strict;
 
 my $cgi = new CGI;
-my $dbh = DBI->connect( 'dbi:mysql:tumble:tumbledb.vpn.websages.com', 'tumble' );
+my $dbh = DBI->connect( 'dbi:mysql:tumble:localhost', 'tumble' );
 
 if ( $cgi->param( 'quote' ) && $cgi->param( 'author' ) ) {
     my $quote  = $cgi->param( 'quote' );
