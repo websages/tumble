@@ -1,0 +1,37 @@
+CREATE TABLE `image` (
+  `imageID` int(16) NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `title` varchar(255) NOT NULL DEFAULT '',
+  `link` varchar(255) NOT NULL DEFAULT '',
+  `url` text NOT NULL,
+  `md5sum` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`imageID`),
+  KEY `imageID` (`imageID`),
+  KEY `imgindex` (`imageID`)
+) ENGINE=MyISAM AUTO_INCREMENT=7767 DEFAULT CHARSET=latin1;
+
+
+CREATE TABLE `ircLink` (
+  `ircLinkID` int(16) NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `user` varchar(9) NOT NULL DEFAULT '',
+  `title` varchar(255) NOT NULL DEFAULT '',
+  `url` text NOT NULL,
+  `clicks` int(16) NOT NULL,
+  PRIMARY KEY (`ircLinkID`),
+  KEY `ircLinkID` (`ircLinkID`),
+  KEY `ircindex` (`ircLinkID`),
+  FULLTEXT KEY `title` (`title`,`url`)
+) ENGINE=MyISAM AUTO_INCREMENT=30520 DEFAULT CHARSET=latin1;
+
+
+CREATE TABLE `quote` (
+  `quoteID` int(16) NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `quote` varchar(255) NOT NULL DEFAULT '',
+  `author` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`quoteID`),
+  KEY `imageID` (`quoteID`),
+  KEY `quoteindex` (`quoteID`)
+) ENGINE=MyISAM AUTO_INCREMENT=4778 DEFAULT CHARSET=latin1;
+
