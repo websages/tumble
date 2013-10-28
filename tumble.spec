@@ -7,6 +7,7 @@ Group:		Internet/Applications
 License:	ASL 2.0
 URL:		http://tumble.wcyd.org
 Source0:	%{name}-%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-%(id -un)
 
 Requires:      perl(DBD::mysql)
 Requires:      httpd mod_perl
