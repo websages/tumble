@@ -1,6 +1,7 @@
 
 PKGNAME=tumble
-TMPDIR:=$(shell mktemp -d -u -p . -t rpmbuild-XXXXXXX)
+TMP_PATTERN:=$(shell mktemp -d -u -p . -t rpmbuild-XXXXXXX)
+TMPDIR=$(shell pwd)/$(TMP_PATTERN)
 TAR_TMP_DIR:=$(shell mktemp -d -u -t tarball-XXXXXXX)
 
 DATADIR=$(DESTDIR)/srv/www/$(PKGNAME)
@@ -44,11 +45,21 @@ srpm: tarball
 	@mkdir -p $(MAKE_DIRS)
 	cp -f $(TARBALL) $(TMPDIR)/SOURCES
 	cp -f $(SPEC_FILE) $(TMPDIR)/SPECS
-	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/$(SPEC_FILE)
+	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/SPECS/$(SPEC_FILE)
 	@wait
-	$(RPMBUILD) $(RPM_DEFINES) -bs $(TMPDIR)/$(SPEC_FILE)
-	@mv -f SRPMS/* .
-	@rm -rf BUILD SRPMS RPMS SOURCES SPECS
+	$(RPMBUILD) $(RPM_DEFINES) -bs $(TMPDIR)/SPECS/$(SPEC_FILE)
+	@mv -f $(TMPDIR)/SRPMS/* .
+	@rm -rf $(TMPDIR)
+
+rpm: tarball
+	@mkdir -p $(MAKE_DIRS)
+	cp -f $(TARBALL) $(TMPDIR)/SOURCES
+	cp -f $(SPEC_FILE) $(TMPDIR)/SPECS
+	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/SPECS/$(SPEC_FILE)
+	@wait
+	$(RPMBUILD) $(RPM_DEFINES) -ba $(TMPDIR)/SPECS/$(SPEC_FILE)
+	@mv -f $(TMPDIR)/RPMS/noarch/* .
+	@rm -rf $(TMPDIR)
 
 tempdir:
 	echo $(TMPDIR)
