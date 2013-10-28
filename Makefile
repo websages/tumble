@@ -1,7 +1,7 @@
 
 PKGNAME=tumble
-TARDIR=/tmp
 TMPDIR:=$(shell mktemp -d -u -p . -t rpmbuild-XXXXXXX)
+TAR_TMP_DIR:=$(shell mktemp -d -u -t tarball-XXXXXXX)
 DATADIR=$(DESTDIR)/srv/www/$(PKGNAME)
 CONFDIR=$(DESTDIR)/etc/
 APACHE_DIR=$(CONFDIR)/httpd/conf.d
@@ -18,9 +18,11 @@ install:
 	#install -p -m644 $(PKGNAME).conf $(APACHE_DIR)
 
 tarball:
-	mkdir -p $(TARDIR)
-	cd ..; tar pczf $(TARDIR)/$(TARBALL) $(PKGNAME)
-	mv $(TARDIR)/$(TARBALL) .
+	mkdir -p $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
+	cd ..; cp -pr $(PKGNAME)/* $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
+	cd $(TAR_TMP_DIR); tar pczf $(TARBALL)  $(PKGNAME)-$(VERSION)
+	mv $(TAR_TMP_DIR)/$(TARBALL) .
+	rm -rf $(TAR_TMP_DIR)
 
 uninstall:
 	rm -rf $(DATADIR)
@@ -29,7 +31,7 @@ uninstall:
 clean:
 	rm -f $(TARBALL)  *.rpm
 	rm -rf BUILD SRPMS RPMS SPECS SOURCES
-	rm -rf ./rpmbuild-*
+	rm -rf ./rpmbuild-* ./tarball-*
 
 
 srpm: tarball
