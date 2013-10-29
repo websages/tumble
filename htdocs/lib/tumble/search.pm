@@ -31,11 +31,7 @@ sub setup {
         /rss|xml/ && do { $self->header_props( -type => 'text/xml' ); };
     }
 
-    $self->{'dbh'} = lsrfsh::MySQL->new(
-        host => 'localhost',
-        database => 'tumble',
-        username => 'tumble'
-    );
+    $self->{'dbh'} = lsrfsh::MySQL->new( config => 'config.yaml' );
 
     $self->start_mode( 'displaySearch' );
 

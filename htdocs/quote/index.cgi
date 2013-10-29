@@ -1,4 +1,9 @@
 #!/usr/local/bin/perl -w
+
+BEGIN { unshift @INC, '../lib'; }
+
+use lsrfsh::MySQL;
+
 use CGI;
 use DBI;
 use URI::Escape;
@@ -6,7 +11,7 @@ use URI::Escape;
 use strict;
 
 my $cgi = new CGI;
-my $dbh = DBI->connect( 'dbi:mysql:tumble:localhost', 'tumble' );
+my $dbh = lsrfsh::MySQL->new( config => '../config.yaml' );
 
 if ( $cgi->param( 'quote' ) && $cgi->param( 'author' ) ) {
     my $quote  = $cgi->param( 'quote' );

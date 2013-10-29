@@ -11,6 +11,7 @@ our @ISA     = qw( lsrfsh );
 our $VERSION = 1.00;
 
 use DBI;
+use YAML qw( LoadFile );
 
 
 
@@ -21,18 +22,27 @@ sub new {
     my ( $arg );
     %{$arg} = @_;
 
+    my ( $config );
+
+    if ( $arg->{'config'} ) {
+      $config = LoadFile( $arg->{'config'} );
+    }
+    else {
+      $config = LoadFile( 'config.yaml' );
+    }
+
     map {
-        die "You did not specify a $_.\n" unless $arg->{$_};
+        die "You did not specify a $_.\n" unless $config->{$_};
     } qw( database username );
 
-    $arg->{'db'}  = 'dbi:mysql:' . $arg->{'database'};
-    $arg->{'db'} .= ';host='     . $arg->{'host'} if $arg->{'host'};
+    $config->{'db'}  = 'dbi:mysql:' . $config->{'database'};
+    $config->{'db'} .= ';host='     . $config->{'host'} if $config->{'host'};
 
     # Bind to the mySQL database via DBI.
     $self->{'dbi'} = DBI->connect(
-        $arg->{'db'},
-        $arg->{'username'},
-        $arg->{'password'}
+        $config->{'db'},
+        $config->{'username'},
+        $config->{'password'}
     ) || die "Can't connect: $DBI::errstr\n";
 
     return $self;
