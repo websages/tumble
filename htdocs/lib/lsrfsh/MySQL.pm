@@ -107,6 +107,6 @@ sub disconnect { $self->{'dbi'} && $self->{'dbi'}->disconnect(); }
 
 # Pass-through DBI functions.
 sub prepare { return( shift->{'dbi'}->prepare( @_ ) ); }
-sub selectrow_array { return( shift->['dbi'}->selectrow_array( @_ ) ); }
+sub selectrow_array { return( shift->{'dbi'}->selectrow_array( @_ ) ); }
 
 1;
