@@ -39,8 +39,8 @@ done
 %files
 %doc sql README.md
 /srv/www/%{name}
-%{_sysconfdir}/cron.hourly/*
-%{_sysconfdir}/httpd/conf.d/*
+%config(noreplace)%{_sysconfdir}/cron.hourly/*
+%config(noreplace)%{_sysconfdir}/httpd/conf.d/*
 
 
 %changelog
