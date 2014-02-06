@@ -36,7 +36,7 @@ done
 
 
 %files
-%doc  TODO migrations
+%doc sql README.md
 /srv/www/%{name}
 %{_sysconfdir}/cron.hourly/*
 %{_sysconfdir}/httpd/conf.d/*
