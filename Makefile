@@ -38,7 +38,7 @@ uninstall:
 clean:
 	rm -f $(TARBALL)  *.rpm
 	rm -rf BUILD SRPMS RPMS SPECS SOURCES
-	rm -rf ./rpmbuild-* ./tarball-*
+	rm -rf ./rpmbuild-* ./tarball-* ./tumble*gz
 
 
 srpm: tarball
