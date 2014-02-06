@@ -1,3 +1,3 @@
-CREATE USER 'tumble'@'localhost' IDENTIFIED BY 'tumble';
+CREATE USER 'tumble'@'localhost';
 create database tumble;
 GRANT ALL ON tumble.* TO 'tumble'@'localhost';
