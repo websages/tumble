@@ -1,7 +1,0 @@
-  perl-mysql mysql-server
-  mod_perl
-  perl-CGI-Application
-  perl-LWP-UserAgent-Determined
-  httpd
-  
-create database

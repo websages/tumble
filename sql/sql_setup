@@ -1,0 +1,3 @@
+CREATE USER 'tumble'@'localhost' IDENTIFIED BY 'tumble';
+create database tumble;
+GRANT ALL ON tumble.* TO 'tumble'@'localhost';
