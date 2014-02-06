@@ -9,6 +9,9 @@ use XML::Twig;
 use strict;
 
 
+# until you have your own flickr feed, let's just exit 1
+exit 1;
+
 
 my $content = get(
     'http://www.flickr.com/services/feeds/photos_public.gne?id=30378931@N00&format=rss_200'
