@@ -1,12 +1,17 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 use CGI;
+
+use YAML qw( LoadFile );
 
 use strict;
 
 my $cgi = new CGI;
 
 my $user = $cgi->param( 'user' );
+
+my $config = LoadFile( '../config.yaml' );
+my $url = $config->{'baseurl'};
 
 if ( $user ) {
     print "Content-type: text/html\n\n";
@@ -26,7 +31,7 @@ if ( $user ) {
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
     </script>
-    <link rel="stylesheet" href="http://tumble.stahnkage.com/css/screen.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="http://$url/css/screen.css" type="text/css" media="screen" />
 </head>
 
 <body>
@@ -49,7 +54,7 @@ if ( $user ) {
         <div class="tumble_item_ircLink">
             <div class="tumble_item_top"></div>
             <span class="tumble_item_ircLink_title">);
-    print qq(Drag this link: <a href="javascript:location.href='http://tumble.stahnkage.com/irclink/?user=$user&source=web&url='+encodeURIComponent(location.href)" onclick="window.alert('No clicky! Drag this link to your Bookmarks toolbar or menu, or right-click it and choose Bookmark This Link...');return false;">post to tumblefish!</a> up to your Bookmarks toolbar or menu.);
+    print qq(Drag this link: <a href="javascript:location.href='http://$url/irclink/?user=$user&source=web&url='+encodeURIComponent(location.href)" onclick="window.alert('No clicky! Drag this link to your Bookmarks toolbar or menu, or right-click it and choose Bookmark This Link...');return false;">post to tumblefish!</a> up to your Bookmarks toolbar or menu.);
     print qq(</span>
             <div class="tumble_item_bottom"></div>
         <div>

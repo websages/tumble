@@ -19,10 +19,11 @@ VERSION=$(shell git describe | sed -e 's/-/\./g')
 TARBALL=$(PKGNAME)-$(VERSION).tar.gz
 
 install:
-	mkdir -p {$(DATADIR),$(CONFDIR),$(APACHE_DIR),$(CRON_DIR)}
+	#mkdir -p {$(DATADIR),$(CONFDIR),$(APACHE_DIR),$(CRON_DIR)}
+	mkdir -p {$(DATADIR),$(CONFDIR),$(APACHE_DIR)}
 	install -p -m644 conf/$(PKGNAME).conf $(APACHE_DIR)
 	cp -pr htdocs $(DATADIR)
-	cp -pr scripts/* $(CRON_DIR)
+#	cp -pr scripts/* $(CRON_DIR)
 
 tarball:
 	mkdir -p $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
