@@ -9,6 +9,8 @@ use DBI;
 use strict;
 use warnings;
 
+my $CONFIG = LoadFile( 'config.yaml' );
+
 
 
 sub setup {
@@ -59,7 +61,7 @@ sub displaySearch {
             } keys %{$raw}
         ) {
             my $link  =
-                qq{<a href="http://tumble.stahnkage.com/irclink/?} .
+                '<a href="http://'  .  $tumble::search::CONFIG{'baseurl'} . '/irclink/?' .
                 $raw->{$item}->{'ircLinkID'} .
                 qq{">} .
                 $raw->{$item}->{'title'} .
@@ -109,7 +111,7 @@ sub displaySearch {
 
     map {
         my $co =
-            qq{<a href="http://tumble.stahnkage.com/irclink/?} .
+            qq{<a href="http://' .  $tumble::serach::CONFIG{'baseurl'} .  qq{/irclink/?} .
             $hot->{$_}->{'ircLinkID'} .
             qq{">} .
             $hot->{$_}->{'title'} .
