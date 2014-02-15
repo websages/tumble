@@ -2,5 +2,5 @@
 host: 'localhost'
 database: 'tumble'
 username: 'tumble'
-baseurl:  'tumble.delivery.puppetlabs.net'
+baseurl: 'tumble.delivery.puppetlabs.net'
 

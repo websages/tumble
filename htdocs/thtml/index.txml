@@ -2,7 +2,7 @@
 <rss version="2.0">
     <channel>
         <title>tumblefish.</title>
-        <link>http://tumble.stahnkage.com/</link>
+        <link>http://<!-- tmpl_var name="baseurl"  --></link>
         <description>tumblefish.</description>
         <language>en-us</language>
         <generator>lsrfsh v2.00</generator>

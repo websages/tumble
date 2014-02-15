@@ -1,6 +1,6 @@
         <item>
             <title><!-- tmpl_var name="quote" --></title>
-            <link>http://tumble.stahnkage.com/</link>
+            <link>http://<!-- tmpl_var name="baseurl" -->/</link>
             <description>"<!-- tmpl_var name="quote" -->" --<!-- tmpl_var name="author" --></description>
             <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
         </item>

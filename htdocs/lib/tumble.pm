@@ -115,7 +115,7 @@ sub displayTumble {
                     }
 
                     $content =
-                        '<a href=http://' . $tumble::CONFIG{'baseurl'} . 
+                        '<a href="http://' . $CONFIG->{'baseurl'} .
                         qq{/irclink/?} .
                         $data->{$item}->{'ircLinkID'} .
                         qq{">} .
@@ -134,7 +134,9 @@ sub displayTumble {
         $c .= $self->wrap(
             wrapper => 'tumble_item_' . $data->{$item}->{'type'},
             author  => $data->{$item}->{'user'},
+	    baseurl => $CONFIG->{'baseurl'},
             content => $content,
+
             %{$data->{$item}}
         );
     }
@@ -189,7 +191,7 @@ sub displayTumble {
                                                                                             }
 
             my $co =
-                '<a href=http://' . $tumble::CONFIG{'baseurl'} .  qq{/irclink/?} .
+                '<a href="http://' . $CONFIG->{'baseurl'} .  qq{/irclink/?} .
                 $hot->{$_}->{'ircLinkID'} .
                 qq{">} .
                 $hot->{$_}->{'title'} .
@@ -206,6 +208,7 @@ sub displayTumble {
             hot       => $h,
             nav_p     => $nav->{'p'},
             nav_n     => $nav->{'n'},
+	    baseurl => $CONFIG->{'baseurl'},
             container => $c
         );
     }
@@ -214,6 +217,7 @@ sub displayTumble {
             wrapper   => 'index',
             nav_p     => $nav->{'p'},
             nav_n     => $nav->{'n'},
+	    baseurl => $CONFIG->{'baseurl'},
             container => $c
         );
     }
