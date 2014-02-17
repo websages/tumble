@@ -1,5 +1,7 @@
 # Tumble
 
+The canonical installation of tumble is found at [http://tumble.wcyd.org](http://tumble.wcyd.org).
+
 ## History
 
 Tumble was a "Wouldn't it be cool?" project handed to [Scott Schnedier](https://github.com/sschneid) back in 2004. The idea was to create a website similar to a tumbleblog. Obviously, eventually tumblr ccame along and the rest was history.
