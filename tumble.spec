@@ -12,6 +12,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-%(id -un)
 Requires:      perl(DBD::mysql)
 Requires:      httpd mod_perl
 Requires:      perl-CGI-Application
+Requires:      perl-Crypt-SSLeay
 # Only when running on localhost, but that's what's hard-coded for now.
 Requires:      mysql-server
 BuildArch:     noarch
