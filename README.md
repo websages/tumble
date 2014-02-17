@@ -2,7 +2,7 @@
 
 ## History
 
-Tumble was a "Wouldn't it be cool?" project handed to Scott Schnedier (https://github.com/sschneid) back in 2004. The idea was to create a website similar to a tumbleblog. Obviously, eventually tumblr ccame along and the rest was history.
+Tumble was a "Wouldn't it be cool?" project handed to [Scott Schnedier](https://github.com/sschneid) back in 2004. The idea was to create a website similar to a tumbleblog. Obviously, eventually tumblr ccame along and the rest was history.
 
 ## Deployment
 
@@ -28,6 +28,8 @@ If you are not on EL, things should still work. Just `make install` or package i
      chkconfig mysqld on
      mysql < sql_setup
      mysql -u tumble tumble < migrations
+     chkconfig httpd on
+     service httpd start
 ```
 
 ## Bugs
