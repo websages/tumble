@@ -8,13 +8,11 @@ use DBI;
 use POSIX qw( strftime );
 
 use YAML qw( LoadFile );
-#use Data::Dumper;
 
 use strict;
 use warnings;
 
 my $CONFIG = LoadFile( 'config.yaml' );
-#print Dumper $CONFIG;
 
 
 sub setup {
