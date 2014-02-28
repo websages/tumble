@@ -33,6 +33,7 @@ sub setup {
 
     for ( $self->{'arg'}->{'dtype'} ) {
         /rss|xml/ && do { $self->header_props( -type => 'text/xml' ); };
+        /html/    && do { $self->header_props( -type => 'text/html; charset=UTF-8' ); };
     }
 
     $self->{'dbh'} = lsrfsh::MySQL->new( config => 'config.yaml' );
