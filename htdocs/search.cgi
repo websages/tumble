@@ -1,6 +1,6 @@
-#!/usr/local/bin/perl -wT
+#!/usr/bin/perl -wT
 
-BEGIN { unshift @INC, './lib'; } 
+BEGIN { unshift @INC, './lib'; }
 
 use strict;
 
