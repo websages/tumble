@@ -1,3 +1,4 @@
+-- Migration 001
 CREATE TABLE IF NOT EXISTS `image` (
   `imageID` int(16) NOT NULL AUTO_INCREMENT,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -35,3 +36,5 @@ CREATE TABLE IF NOT EXISTS `quote` (
   KEY `quoteindex` (`quoteID`)
 ) ENGINE=MyISAM AUTO_INCREMENT=4778 DEFAULT CHARSET=latin1;
 
+-- Migration 002
+alter table ircLink add column content_type varchar(40);
