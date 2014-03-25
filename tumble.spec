@@ -39,8 +39,20 @@ done
 
 %files
 %doc sql README.md
-/srv/www/%{name}
+/srv/www/%{name}/htdocs/2202
+/srv/www/%{name}/htdocs/*.png
+/srv/www/%{name}/htdocs/buttons
+/srv/www/%{name}/htdocs/css
+/srv/www/%{name}/htdocs/favicon.ico
+/srv/www/%{name}/htdocs/img
+/srv/www/%{name}/htdocs/index.cgi
+/srv/www/%{name}/htdocs/irclink
+/srv/www/%{name}/htdocs/lib
+/srv/www/%{name}/htdocs/quote
+/srv/www/%{name}/htdocs/search.cgi
+/srv/www/%{name}/htdocs/thtml
 #%config(noreplace)%{_sysconfdir}/cron.hourly/*
+%config(noreplace) /srv/www/%{name}/htdocs/config.yaml
 %config(noreplace)%{_sysconfdir}/httpd/conf.d/*
 
 
