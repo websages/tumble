@@ -113,12 +113,18 @@ sub displayTumble {
                         }
                     }
 
+                    my $link_filler =  $data->{$item}->{'title'};
+
+                    if (($data->{$item}->{'content_type'} =~ /image/) and ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
+                      $link_filler =  '<img src="' .  $data->{$item}->{'url'} . '">';
+                    }
+
                     $content =
                         '<a href="http://' . $CONFIG->{'baseurl'} .
                         qq{/irclink/?} .
                         $data->{$item}->{'ircLinkID'} .
                         qq{">} .
-                        $data->{$item}->{'title'} .
+                        $link_filler  .
                         qq{</a>}
                 };
 

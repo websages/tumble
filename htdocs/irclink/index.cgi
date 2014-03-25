@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 BEGIN { unshift @INC, '../lib'; }
 
@@ -39,17 +39,25 @@ if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
 
     my $title = $agent->get( $url )->title();
 
+    my $content_type;
+    if ($response->{'_headers'}->{'content-type'} =~ /image/)
+    {
+        $content_type = 'image';
+    } else {
+        $content_type = 0;
+    }
+
     $title ||= $url;
 
     my $sth = $dbh->prepare( qq{
         INSERT INTO ircLink (
-            user, title, url
+            user, title, url, content_type
         ) VALUES (
-            ?, ?, ?
+            ?, ?, ?, ?
         )
     } );
 
-    $sth->execute( $user, $title, $url );
+    $sth->execute( $user, $title, $url, $content_type );
 
     if ( $cgi->param( 'source' ) eq 'irc' ) {
         print "Content-type: text/plain\n\n";
