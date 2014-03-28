@@ -1,0 +1,14 @@
+Source: tumble
+Section: web
+Priority: optional
+Maintainer: Michael Stahnke  <stahnma@websages.com>
+Build-Depends: cdbs, debhelper (>> 7)
+Build-Depends-Indep: perl
+Standards-Version: 3.8.4
+Homepage: http://github.com/websages/tumble
+
+Package: tumble
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, libcrypt-ssleay-perl, apache2, libapache2-mod-perl2, libdbd-mysql-perl, libcgi-application-perl
+Description: Web application used by websages.
+  A classic tumblelog written in Perl in something like 2004.
