@@ -6,11 +6,8 @@ TAR_TMP_DIR:=$(shell mktemp -d -u -t tarball-XXXXXXX)
 
 DATADIR=$(DESTDIR)/srv/www/$(PKGNAME)
 CONFDIR=$(DESTDIR)/etc/
-APACHE_DIR=$(CONFDIR)/httpd/conf.d
 CRON_DIR=$(CONFDIR)/cron.hourly
-
 SPEC_FILE=$(PKGNAME).spec
-
 
 RPMBUILD := $(shell if test -f /usr/bin/rpmbuild ; then echo /usr/bin/rpmbuild ; else echo "x" ; fi)
 RPM_DEFINES = --define "_specdir $(TMPDIR)/SPECS" --define "_rpmdir $(TMPDIR)/RPMS" --define "_sourcedir $(TMPDIR)/SOURCES" --define "_srcrpmdir $(TMPDIR)/SRPMS" --define "_builddir $(TMPDIR)/BUILD"
@@ -18,9 +15,17 @@ MAKE_DIRS= $(TMPDIR)/SPECS $(TMPDIR)/SOURCES $(TMPDIR)/BUILD $(TMPDIR)/SRPMS $(T
 VERSION=$(shell git describe | sed -e 's/-/\./g')
 TARBALL=$(PKGNAME)-$(VERSION).tar.gz
 
+DEBIAN :=$(shell test -f "/etc/debian_version" && echo 'debian' || echo 'x')
+
+ifeq ($(DEBIAN), debian)
+APACHE_DIR=$(CONFDIR)apache2/sites-available/
+else
+APACHE_DIR=$(CONFDIR)httpd/conf.d
+endif
+
 install:
 	#mkdir -p {$(DATADIR),$(CONFDIR),$(APACHE_DIR),$(CRON_DIR)}
-	mkdir -p {$(DATADIR),$(CONFDIR),$(APACHE_DIR)}
+	mkdir -p $(DATADIR) $(CONFDIR) $(APACHE_DIR)
 	install -p -m644 conf/$(PKGNAME).conf $(APACHE_DIR)
 	cp -pr htdocs $(DATADIR)
 #	cp -pr scripts/* $(CRON_DIR)
@@ -38,6 +43,7 @@ uninstall:
 
 clean:
 	rm -f $(TARBALL)  *.rpm
+	rm -rf debian/changelog debian/tumble* debian/tmp debian/files
 	rm -rf BUILD SRPMS RPMS SPECS SOURCES
 	rm -rf ./rpmbuild-* ./tarball-* ./tumble*gz
 
@@ -51,6 +57,11 @@ srpm: tarball
 	$(RPMBUILD) $(RPM_DEFINES) -bs $(TMPDIR)/SPECS/$(SPEC_FILE)
 	@mv -f $(TMPDIR)/SRPMS/* .
 	@rm -rf $(TMPDIR)
+
+deb:
+	sed -e 's/==VERSION==/$(VERSION)/g' debian/changelog.in > debian/changelog
+	@wait
+	dpkg-buildpackage
 
 rpm: tarball
 	@mkdir -p $(MAKE_DIRS)

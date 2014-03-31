@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/buildcore.mk
+
+
+binary-install/tumble::
+	env DESTDIR=$(CURDIR)/debian/$(cdbs_curpkg) make install
+#	for file in `find $(CURDIR)/debian/tmp -type f`; do; echo $$file ; sed -i -e '1s,^#!.*perl,#!%{_bindir}/perl,' $$file; done
+
+binary-post-install/tumble::
+	bash $(CURDIR)/debian/fixshebang.sh \
+	 '$(CURDIR)/debian/$(cdbs_curpkg)/srv/www'
+
+
+clean::
