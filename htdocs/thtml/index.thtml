@@ -50,6 +50,7 @@
     <div id="footer">
         <!-- tmpl_var name="nav_p" -->
         <!-- tmpl_var name="nav_n" -->
+         <br><br> Source Code Available on <a href=http://github.com/websages/tumble>Github</a>.
     </div>
 
     </div>
