@@ -24,16 +24,12 @@ APACHE_DIR=$(CONFDIR)httpd/conf.d
 endif
 
 install:
-	mkdir -p $(DATADIR) $(CONFDIR) $(APACHE_DIR)
-	mkdir -p $(CONFDIR)/$(PKGNAME)
+	mkdir -p $(DATADIR) $(APACHE_DIR) $(CONFDIR)/$(PKGNAME)
 	install -p -m644 htdocs/config.yaml $(CONFDIR)/$(PKGNAME)
-	install -p -m644 conf/$(PKGNAME).conf $(APACHE_DIR)
 	cp -pr htdocs $(DATADIR)
-	rm $(DATADIR)/htdocs/config.yaml
-	cd $(DATADIR);  ln -s ../../../../etc/tumble/config.yaml .
 #	cp -pr scripts/* $(CRON_DIR)
 
-tarball:
+tarball: clean
 	mkdir -p $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
 	cd ..; cp -pr $(PKGNAME)/* $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
 	cd $(TAR_TMP_DIR); tar pczf $(TARBALL)  $(PKGNAME)-$(VERSION)
@@ -66,7 +62,7 @@ deb:
 	@wait
 	dpkg-buildpackage
 
-rpm: tarball
+rpm: clean tarball
 	@mkdir -p $(MAKE_DIRS)
 	cp -f $(TARBALL) $(TMPDIR)/SOURCES
 	cp -f $(SPEC_FILE) $(TMPDIR)/SPECS
