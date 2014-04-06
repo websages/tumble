@@ -24,10 +24,13 @@ APACHE_DIR=$(CONFDIR)httpd/conf.d
 endif
 
 install:
-	#mkdir -p {$(DATADIR),$(CONFDIR),$(APACHE_DIR),$(CRON_DIR)}
 	mkdir -p $(DATADIR) $(CONFDIR) $(APACHE_DIR)
+	mkdir -p $(CONFDIR)/$(PKGNAME)
+	install -p -m644 htdocs/config.yaml $(CONFDIR)/$(PKGNAME)
 	install -p -m644 conf/$(PKGNAME).conf $(APACHE_DIR)
 	cp -pr htdocs $(DATADIR)
+	rm $(DATADIR)/htdocs/config.yaml
+	cd $(DATADIR);  ln -s ../../../../etc/tumble/config.yaml .
 #	cp -pr scripts/* $(CRON_DIR)
 
 tarball:
@@ -43,9 +46,9 @@ uninstall:
 
 clean:
 	rm -f $(TARBALL)  *.rpm
-	rm -rf debian/changelog debian/tumble* debian/tmp debian/files
+	rm -rf debian/changelog debian/$(PKGNAME)* debian/tmp debian/files
 	rm -rf BUILD SRPMS RPMS SPECS SOURCES
-	rm -rf ./rpmbuild-* ./tarball-* ./tumble*gz
+	rm -rf ./rpmbuild-* ./tarball-* ./$(PKGNAME)*gz
 
 
 srpm: tarball

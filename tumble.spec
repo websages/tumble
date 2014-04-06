@@ -54,6 +54,8 @@ done
 #%config(noreplace)%{_sysconfdir}/cron.hourly/*
 %config(noreplace) /srv/www/%{name}/htdocs/config.yaml
 %config(noreplace)%{_sysconfdir}/httpd/conf.d/*
+%dir %{_sysconfdir}/tumble
+%config(noreplace)%{_sysconfdir}/tumble/*
 
 
 %changelog
