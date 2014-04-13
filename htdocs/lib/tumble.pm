@@ -121,12 +121,14 @@ sub displayTumble {
                     }
 
                     if ($data->{$item}->{'url'} =~ /twitter/) {
-                      $ENV{PATH} = "/usr/local/bin";
-                      my $l = $data->{$item}->{'url'};
-                      $link_filler = `/usr/local/bin/twit-link ${l}`;
-                      if ($? != 0) {
-                        $link_filler =  $data->{$item}->{'title'};
-                      }
+                      use LWP::Simple;
+                      use JSON;
+                      my @parts = split('/' , $data->{$item}->{'url'});
+                      my $id = $parts[-1];
+                      my $tw_uri = "https://api.twitter.com/1/statuses/oembed.json?id=" . $id;
+                      my $tw_j = get( $tw_uri );
+                      my $stuff = from_json($tw_j);
+                      $link_filler = $stuff->{'html'};
                     }
 
                     $content =
