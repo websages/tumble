@@ -124,6 +124,9 @@ sub displayTumble {
                       $ENV{PATH} = "/usr/local/bin";
                       my $l = $data->{$item}->{'url'};
                       $link_filler = `/usr/local/bin/twit-link ${l}`;
+                      if ($? != 0) {
+                        $link_filler =  $data->{$item}->{'title'};
+                      }
                     }
 
                     $content =
