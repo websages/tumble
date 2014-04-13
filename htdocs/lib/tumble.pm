@@ -130,6 +130,7 @@ sub displayTumble {
                       next if $#parts > 6;
                       my $tw_uri = "https://api.twitter.com/1/statuses/oembed.json?id=" . $id;
                       my $tw_j = get( $tw_uri );
+                      next unless $tw_j;
                       my $stuff = from_json($tw_j);
                       $link_filler = $stuff->{'html'};
                     }
