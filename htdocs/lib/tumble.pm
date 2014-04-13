@@ -126,6 +126,7 @@ sub displayTumble {
                       my @parts = split('/' , $data->{$item}->{'url'});
                       my $id = $parts[-1];
                       # This is so URIs like id/photos/1 don't try to call json
+                      next if $id !~ /[0-9]+/;
                       next if $#parts > 6;
                       my $tw_uri = "https://api.twitter.com/1/statuses/oembed.json?id=" . $id;
                       my $tw_j = get( $tw_uri );
