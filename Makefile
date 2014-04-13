@@ -23,11 +23,18 @@ else
 APACHE_DIR=$(CONFDIR)httpd/conf.d
 endif
 
+
+build:
+	go build -o scripts/twit-link scripts/twit-link.go
+
+
 install:
 	mkdir -p $(DATADIR) $(APACHE_DIR) $(CONFDIR)/$(PKGNAME)
 	install -p -m644 htdocs/config.yaml $(CONFDIR)/$(PKGNAME)
 	cp -pr htdocs $(DATADIR)
-#	cp -pr scripts/* $(CRON_DIR)
+	mkdir -p $(DESTDIR)/usr/local/bin
+	go build -o scripts/twit-link scripts/twit-link.go
+	cp -pr scripts/twit-link $(DESTDIR)/usr/local/bin
 
 tarball: clean
 	mkdir -p $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
@@ -42,6 +49,7 @@ uninstall:
 
 clean:
 	rm -f $(TARBALL)  *.rpm
+	rm -f scripts/twit-link twit-link
 	rm -rf debian/changelog debian/$(PKGNAME)* debian/tmp debian/files
 	rm -rf BUILD SRPMS RPMS SPECS SOURCES
 	rm -rf ./rpmbuild-* ./tarball-* ./$(PKGNAME)*gz
@@ -69,7 +77,7 @@ rpm: clean tarball
 	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/SPECS/$(SPEC_FILE)
 	@wait
 	$(RPMBUILD) $(RPM_DEFINES) -ba $(TMPDIR)/SPECS/$(SPEC_FILE)
-	@mv -f $(TMPDIR)/RPMS/noarch/* .
+	@mv -f $(TMPDIR)/RPMS/x86_64/* .
 	@rm -rf $(TMPDIR)
 
 tempdir:

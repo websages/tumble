@@ -115,8 +115,15 @@ sub displayTumble {
 
                     my $link_filler =  $data->{$item}->{'title'};
 
+                    # fall back to normal linking of images if they could be nsfw
                     if (($data->{$item}->{'content_type'} =~ /image/) and ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
                       $link_filler =  '<img src="' .  $data->{$item}->{'url'} . '">';
+                    }
+
+                    if ($data->{$item}->{'url'} =~ /twitter/) {
+                      $ENV{PATH} = "/usr/local/bin";
+                      my $l = $data->{$item}->{'url'};
+                      $link_filler = `/usr/local/bin/twit-link ${l}`;
                     }
 
                     $content =
@@ -126,6 +133,7 @@ sub displayTumble {
                         qq{">} .
                         $link_filler  .
                         qq{</a>}
+
                 };
 
                 /image/ && do {

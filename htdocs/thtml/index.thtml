@@ -15,6 +15,9 @@
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
 
+
+ <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+     </head>
     </script>
 
     <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
@@ -50,7 +53,7 @@
     <div id="footer">
         <!-- tmpl_var name="nav_p" -->
         <!-- tmpl_var name="nav_n" -->
-         <br><br> Source Code Available on <a href=http://github.com/websages/tumble>Github</a>.
+        <br><br> Source Code Available on <a href=http://github.com/websages/tumble>Github</a>.
     </div>
 
     </div>

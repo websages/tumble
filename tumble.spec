@@ -16,8 +16,8 @@ Requires:      perl-CGI-Application
 Requires:      perl-Crypt-SSLeay
 # Only when running on localhost, but that's what's hard-coded for now.
 Requires:      mysql-server
-BuildArch:     noarch
 BuildRequires: httpd
+BuildRequires: golang
 
 %description
 A classic tumblelog written in Perl in something like 2004.
@@ -67,6 +67,7 @@ fi
 /srv/www/%{name}/htdocs/search.cgi
 /srv/www/%{name}/htdocs/thtml
 /srv/www/%{name}/htdocs/config.yaml
+/usr/local/bin/*
 #%config(noreplace)%{_sysconfdir}/cron.hourly/*
 
 
