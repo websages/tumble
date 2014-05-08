@@ -163,7 +163,7 @@ sub displayTumble {
         );
     }
 
-    $c =~ s/\&/\&amp;/g;
+    $c =~ s/\&/\&amp;/g if $c;
 
     my ( $nav );
 
