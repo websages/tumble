@@ -3,6 +3,7 @@ package tumble::search;
 use base 'CGI::Application';
 
 use lsrfsh::MySQL;
+use YAML qw( LoadFile );
 
 use DBI;
 
@@ -61,7 +62,7 @@ sub displaySearch {
             } keys %{$raw}
         ) {
             my $link  =
-                '<a href="http://'  .  $tumble::search::CONFIG{'baseurl'} . '/irclink/?' .
+                '<a href="http://'  .  $CONFIG->{'baseurl'} . '/irclink/?' .
                 $raw->{$item}->{'ircLinkID'} .
                 qq{">} .
                 $raw->{$item}->{'title'} .
@@ -111,7 +112,7 @@ sub displaySearch {
 
     map {
         my $co =
-            qq{<a href="http://' .  $tumble::serach::CONFIG{'baseurl'} .  qq{/irclink/?} .
+            "<a href=\"http://" .  $CONFIG->{'baseurl'} .  qq{/irclink/?} .
             $hot->{$_}->{'ircLinkID'} .
             qq{">} .
             $hot->{$_}->{'title'} .
