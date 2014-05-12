@@ -25,7 +25,7 @@ endif
 
 
 build:
-	go build -o scripts/twit-link scripts/twit-link.go
+	#go build -o scripts/twit-link scripts/twit-link.go
 
 
 install:
@@ -33,8 +33,8 @@ install:
 	install -p -m644 htdocs/config.yaml $(CONFDIR)/$(PKGNAME)
 	cp -pr htdocs $(DATADIR)
 	mkdir -p $(DESTDIR)/usr/local/bin
-	go build -o scripts/twit-link scripts/twit-link.go
-	cp -pr scripts/twit-link $(DESTDIR)/usr/local/bin
+	#go build -o scripts/twit-link scripts/twit-link.go
+	#cp -pr scripts/twit-link $(DESTDIR)/usr/local/bin
 
 tarball: clean
 	mkdir -p $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
@@ -77,7 +77,7 @@ rpm: clean tarball
 	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/SPECS/$(SPEC_FILE)
 	@wait
 	$(RPMBUILD) $(RPM_DEFINES) -ba $(TMPDIR)/SPECS/$(SPEC_FILE)
-	@mv -f $(TMPDIR)/RPMS/x86_64/* .
+	@mv -f $(TMPDIR)/RPMS/noarch/* .
 	@rm -rf $(TMPDIR)
 
 tempdir:
