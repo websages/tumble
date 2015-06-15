@@ -1,6 +1,7 @@
         <item>
             <title><!-- tmpl_var name="quote" --></title>
             <link>http://<!-- tmpl_var name="baseurl" -->/</link>
+            <guid>tumble-<!-- tmpl_var name="ircLinkID" --></guid>
             <description>"<!-- tmpl_var name="quote" -->" --<!-- tmpl_var name="author" --></description>
             <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
         </item>

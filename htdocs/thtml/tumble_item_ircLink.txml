@@ -1,6 +1,7 @@
         <item>
             <title><!-- tmpl_var name="title" --></title>
             <link>http://<!-- tmpl_var name="baseurl" -->/irclink/?<!-- tmpl_var name="ircLinkID" --></link>
+            <guid>tumble-<!-- tmpl_var name="ircLinkID" --></guid>
             <description><!-- tmpl_var name="content" --></description>
             <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
         </item>
