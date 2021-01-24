@@ -16,9 +16,10 @@ my $dbh = lsrfsh::MySQL->new( config => '../config.yaml' );
 if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     my $user = $cgi->param( 'user' );
     my $url  = $cgi->param( 'url' );
+    my $agentString = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:84.0) Gecko/20100101 Firefox/84.0';
 
     my $agent = LWP::UserAgent->new();
-    $agent->agent( 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.2.17) Gecko/20110422 Ubuntu/8.04 (hardy) Firefox/3.6.17' );
+    $agent->agent( $agentString );
 
     my $response = $agent->get( $url );
     if($response->{'_rc'} eq "302"){
