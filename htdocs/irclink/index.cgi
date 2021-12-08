@@ -18,7 +18,10 @@ if ( $cgi->param( 'user' ) && $cgi->param( 'url' ) ) {
     my $url  = $cgi->param( 'url' );
     my $agentString = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:84.0) Gecko/20100101 Firefox/84.0';
 
-    my $agent = LWP::UserAgent->new();
+    my $agent = LWP::UserAgent->new(
+        ssl_opts => { verify_hostname => 0 },
+        protocols_allowed => ['https', 'http'],
+    );
     $agent->agent( $agentString );
 
     my $response = $agent->get( $url );
