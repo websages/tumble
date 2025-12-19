@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -240,15 +241,19 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Tumble Roast</h1>
-        <p class="subtitle">A 2004-era tumbleblog that somehow predates Tumblr and outlived it too.<br>15 years of commits. 15 years of mass casualties.<br><strong style="color: #ff6b35;">Every link is real. We couldn't make this up.</strong></p>
+        <p class="subtitle">A 2004-era tumbleblog that somehow predates Tumblr and outlived it too.<br>15 years of
+            commits. 15 years of mass casualties.<br><strong style="color: #ff6b35;">Every link is real. We couldn't
+                make this up.</strong></p>
 
         <!-- 2021 ERA -->
         <div class="era-header">💀 The 2021 Era: Security Is Optional 💀</div>
 
-        <p style="text-align: center; color: #888; margin-bottom: 30px;">After <span class="burn">4 years of mass silence</span> (2016-2020), someone finally shows up... to actively make things worse.</p>
+        <p style="text-align: center; color: #888; margin-bottom: 30px;">After <span class="burn">4 years of mass
+                silence</span> (2016-2020), someone finally shows up... to actively make things worse.</p>
 
         <div class="roast-item">
             <h2><a href="https://github.com/websages/tumble/commit/83e9bfc">"TLS is a nice-to-have"</a></h2>
@@ -259,8 +264,11 @@
 
     TLS is a nice-to-have.</code></pre>
             <pre><code>ssl_opts => { verify_hostname => 0 }</code></pre>
-            <p>The commit message that launched a thousand security audits. <span class="burn">TLS is a nice-to-have.</span> Just like seatbelts. Or parachutes. Or not shitting where you eat.</p>
-            <p>Bonus: The branch was named <code>disable-verify-hostanme</code>. They typo'd "hostname" in the branch name, and it's <a href="https://github.com/websages/tumble/commit/8b0d787">immortalized in the merge commit</a>.</p>
+            <p>The commit message that launched a thousand security audits. <span class="burn">TLS is a
+                    nice-to-have.</span> Just like seatbelts. Or parachutes. Or not shitting where you eat.</p>
+            <p>Bonus: The branch was named <code>disable-verify-hostanme</code>. They typo'd "hostname" in the branch
+                name, and it's <a href="https://github.com/websages/tumble/commit/8b0d787">immortalized in the merge
+                    commit</a>.</p>
         </div>
 
         <div class="roast-item">
@@ -270,8 +278,11 @@
                       Gecko/20110422 Ubuntu/8.04 (hardy) Firefox/3.6.17' );
 +    $agent->agent( 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:84.0)
                       Gecko/20100101 Firefox/84.0' );</code></pre>
-            <p>For <span class="burn">10 years</span> (2011-2021), production traffic pretended to be Firefox 3.6 on <span class="burn">Ubuntu 8.04 Hardy Heron</span> &mdash; an OS released in 2008 and EOL'd in 2013.</p>
-            <p>The original was added to bypass "bots forbidden" errors. Nothing says "I'm a real human" like a user agent from an OS that predates the Obama administration.</p>
+            <p>For <span class="burn">10 years</span> (2011-2021), production traffic pretended to be Firefox 3.6 on
+                <span class="burn">Ubuntu 8.04 Hardy Heron</span> &mdash; an OS released in 2008 and EOL'd in 2013.
+            </p>
+            <p>The original was added to bypass "bots forbidden" errors. Nothing says "I'm a real human" like a user
+                agent from an OS that predates the Obama administration.</p>
         </div>
 
         <!-- 2013 ERA -->
@@ -283,12 +294,17 @@
             <pre><code>commit 9198b74
 
     standings rewrite</code></pre>
-            <p>The commit message doesn't tell the whole story. At <span class="burn">1:59 AM</span>, James White posted in chat:</p>
-            <div style="background: #1a1a2e; border-left: 3px solid #7289da; padding: 15px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;">
-                <p style="color: #7289da; font-size: 0.85em; margin-bottom: 8px;"><strong>jameswhite</strong> &nbsp; 1:59 AM</p>
-                <p style="color: #dcddde; margin: 0;">"I rewrote our perl irc bot so it would support google chat, xmpp, irc and then I drank <span class="burn">8 pints of stone 13 anniversary ale</span> and a shot jaegermeister"</p>
+            <p>The commit message doesn't tell the whole story. James White has stated in a chat session:</p>
+            <div
+                style="background: #1a1a2e; border-left: 3px solid #7289da; padding: 15px 20px; margin: 20px 0; border-radius: 0 6px 6px 0;">
+                <p style="color: #7289da; font-size: 0.85em; margin-bottom: 8px;"><strong>jameswhite</strong> &nbsp;
+                    1:59 AM</p>
+                <p style="color: #dcddde; margin: 0;">"I rewrote our perl irc bot so it would support google chat, xmpp,
+                    irc and then I drank <span class="burn">8 pints of stone 13 anniversary ale</span> and a shot
+                    jaegermeister"</p>
             </div>
-            <p>Stone 13th Anniversary Ale is <span class="burn">9.5% ABV</span>. Eight pints is roughly 10 standard drinks. Plus Jäger. At 2 AM. After shipping a multi-protocol bot rewrite.</p>
+            <p>Stone 13th Anniversary Ale is <span class="burn">9.5% ABV</span>. Eight pints is roughly 10 standard
+                drinks. Plus Jäger. At 2 AM. After shipping a multi-protocol bot rewrite.</p>
             <p><strong>The Aftermath:</strong></p>
             <ul style="color: #aaa; margin-left: 20px;">
                 <li>Made it away from the table</li>
@@ -315,8 +331,12 @@
 
 07:09  c187c59  "Remove golang dep - back to perl"
                   (rewrites it in 6 lines of Perl)</code></pre>
-            <p>The commit message reads: <em>"Since freyr is on squeeze, golang isn't readily available. <span class="burn">Oh well.</span>"</em></p>
-            <p>39 minutes. That's how long the Go rewrite lasted before the team said "Oh well" and went back to Perl. The Go binary is still in <span class="file-ref"><a href="https://github.com/websages/tumble/blob/production/scripts/twit-link.go">scripts/twit-link.go</a></span>, forever unused.</p>
+            <p>The commit message reads: <em>"Since freyr is on squeeze, golang isn't readily available. <span
+                        class="burn">Oh well.</span>"</em></p>
+            <p>39 minutes. That's how long the Go rewrite lasted before the team said "Oh well" and went back to Perl.
+                The Go binary is still in <span class="file-ref"><a
+                        href="https://github.com/websages/tumble/blob/production/scripts/twit-link.go">scripts/twit-link.go</a></span>,
+                forever unused.</p>
         </div>
 
         <div class="roast-item">
@@ -327,8 +347,12 @@
     Remove ruby thing that never worked
 
  32 files changed, 1485 deletions(-)</code></pre>
-            <p>Three years of work (2011-2014). 32 files. CouchDB integration. A full test suite. All summarized with: <span class="burn">"that never worked."</span></p>
-            <p>The Ruby app included models, specs, views, and a Rakefile. It had more infrastructure than some Y Combinator startups. Three years of someone's life. Gone. Reduced to atoms. <span class="burn">Press F to pay respects.</span></p>
+            <p>Three years of work (2011-2014). 32 files. CouchDB integration. A full test suite. All summarized with:
+                <span class="burn">"that never worked."</span>
+            </p>
+            <p>The Ruby app included models, specs, views, and a Rakefile. It had more infrastructure than some Y
+                Combinator startups. Three years of someone's life. Gone. Reduced to atoms. <span class="burn">Press F
+                    to pay respects.</span></p>
         </div>
 
         <div class="roast-item">
@@ -336,43 +360,54 @@
             <p class="timeline">February 5, 2014</p>
             <pre><code>-sub selectrow_array { return( shift->['dbi'}->selectrow_array( @_ ) ); }
 +sub selectrow_array { return( shift->{'dbi'}->selectrow_array( @_ ) ); }</code></pre>
-            <p>Scott used <code>['dbi'}</code> instead of <code>{'dbi'}</code>. Mismatched brackets in Perl &mdash; a square bracket opening with a curly brace closing.</p>
+            <p>Scott used <code>['dbi'}</code> instead of <code>{'dbi'}</code>. Mismatched brackets in Perl &mdash; a
+                square bracket opening with a curly brace closing.</p>
             <p>The commit message: "Fix Scott's typo". <span class="burn">Scott knows what he did.</span></p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/lib/tumble.pm#L123">The Twitter API v1 Fossil</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/lib/tumble.pm#L123">The Twitter API
+                    v1 Fossil</a></h2>
             <p class="timeline">Still in production code</p>
             <pre><code>my $tw_uri = "https://api.twitter.com/1/statuses/oembed.json?id=" . $id;</code></pre>
-            <p>Twitter API v1 was deprecated in 2012 and fully killed in 2013. This code has been dead for <span class="burn">over a decade</span> but still runs on every page load, silently failing.</p>
+            <p>Twitter API v1 was deprecated in 2012 and fully killed in 2013. This code has been dead for <span
+                    class="burn">over a decade</span> but still runs on every page load, silently failing.</p>
             <p>The <code>next unless $tw_j;</code> line catches the failure. No logging. No alerting. Just vibes.</p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/lib/tumble/search.pm#L47">The Unicorn Placeholder</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/lib/tumble/search.pm#L47">The Unicorn
+                    Placeholder</a></h2>
             <p class="timeline">Still in production code</p>
             <pre><code>my $string = 'unicorn';
 return unless $string;</code></pre>
-            <p>Someone set a variable to <code>'unicorn'</code> and then immediately checks if it exists. It's never used for anything else. This is placeholder code that was <span class="burn">never finished</span> and has been running in production for over a decade.</p>
+            <p>Someone set a variable to <code>'unicorn'</code> and then immediately checks if it exists. It's never
+                used for anything else. This is placeholder code that was <span class="burn">never finished</span> and
+                has been running in production for over a decade.</p>
             <p>The unicorn is eternal. The unicorn does nothing.</p>
         </div>
 
         <!-- PRODUCTION CODE GEMS -->
         <div class="era-header">🤬 Production Code: Say What You Mean 🤬</div>
 
-        <p style="text-align: center; color: #888; margin-bottom: 30px;">These are in the actual codebase. Serving actual users. Right now. Today.</p>
+        <p style="text-align: center; color: #888; margin-bottom: 30px;">These are in the actual codebase. Serving
+            actual users. Right now. Today.</p>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi#L69">The Greg Buchanan Clause</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi#L69">The Greg
+                    Buchanan Clause</a></h2>
             <p class="timeline">In production since 2010</p>
             <pre><code>&lt;span&gt;PPS - If your name is Greg Buchanan and you just
 read the above postscript, you can suck my ass.&lt;/span&gt;</code></pre>
-            <p>This is in <span class="file-ref"><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi">htdocs/buttons/button.cgi</a></span>. A <span class="burn">customer-facing page</span>. For 15 years.</p>
+            <p>This is in <span class="file-ref"><a
+                        href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi">htdocs/buttons/button.cgi</a></span>.
+                A <span class="burn">customer-facing page</span>. For 15 years.</p>
             <p>Greg, if you're out there: they haven't forgotten.</p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/lib/tumble/search.pm#L90">The Helpful Search Error</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/lib/tumble/search.pm#L90">The Helpful
+                    Search Error</a></h2>
             <p class="timeline">Still in production</p>
             <pre><code>Your search for '$search' did not return any results.
 Perhaps the following tips can help aid you on your quest:
@@ -382,12 +417,15 @@ Perhaps the following tips can help aid you on your quest:
         Stop blaming scott.
     &lt;li&gt;Try not to be such a fucking idiot.
 &lt;/ul&gt;</code></pre>
-            <p>When your search returns no results, the app helpfully suggests you <span class="burn">"Try not to be such a fucking idiot."</span></p>
-            <p>Customer service excellence. Somebody shipped this. Somebody reviewed this. Somebody said "yes, this is fine." <span class="burn">Incredible.</span></p>
+            <p>When your search returns no results, the app helpfully suggests you <span class="burn">"Try not to be
+                    such a fucking idiot."</span></p>
+            <p>Customer service excellence. Somebody shipped this. Somebody reviewed this. Somebody said "yes, this is
+                fine." <span class="burn">Incredible.</span></p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/scripts/kittencheck">The Daily Kitten Infrastructure</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/scripts/kittencheck">The Daily Kitten
+                    Infrastructure</a></h2>
             <p class="timeline">Critical production system</p>
             <pre><code>my $content = get( 'http://dailykitten.com/feed/' );
 
@@ -398,11 +436,13 @@ XML::Twig->new(
         }
     }
 )->parse( $content );</code></pre>
-            <p>Production infrastructure that depends on <code>dailykitten.com</code> staying online. This man scraped cat RSS feeds and called it a feature. <span class="burn">Absolute legend.</span></p>
+            <p>Production infrastructure that depends on <code>dailykitten.com</code> staying online. This man scraped
+                cat RSS feeds and called it a feature. <span class="burn">Absolute legend.</span></p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/scripts/flickrcheck#L13">The Disabled Script</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/scripts/flickrcheck#L13">The Disabled
+                    Script</a></h2>
             <pre><code>#!/usr/bin/perl
 
 # until you have your own flickr feed, let's just exit 1
@@ -412,39 +452,49 @@ exit 1;
 my $content = get(
     'http://www.flickr.com/services/feeds/...'
 );</code></pre>
-            <p>Line 13: <code>exit 1;</code>. The entire script is disabled. But the 60+ lines of Flickr integration code below it remain, waiting patiently for a day that will never come.</p>
+            <p>Line 13: <code>exit 1;</code>. The entire script is disabled. But the 60+ lines of Flickr integration
+                code below it remain, waiting patiently for a day that will never come.</p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/irclink/index.cgi#L127">The SQL Injection Special</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/irclink/index.cgi#L127">The SQL
+                    Injection Special</a></h2>
             <p class="timeline">Still in production</p>
             <pre><code>my $url = $dbh->selectrow_array( qq{
     SELECT url FROM ircLink
     WHERE ircLinkID = '$id'
 } );</code></pre>
-            <p>Raw string interpolation in a SQL query. The <code>$id</code> comes directly from <code>$ENV{'QUERY_STRING'}</code>. This is a <span class="burn">textbook SQL injection vulnerability</span> that's been live for 15 years.</p>
+            <p>Raw string interpolation in a SQL query. The <code>$id</code> comes directly from
+                <code>$ENV{'QUERY_STRING'}</code>. This is a <span class="burn">textbook SQL injection
+                    vulnerability</span> that's been live for 15 years.
+            </p>
             <p>Bobby Tables would be proud.</p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi#L51">"How do I install this crap??"</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi#L51">"How do I
+                    install this crap??"</a></h2>
             <p class="timeline">Customer-facing since 2010</p>
             <pre><code>&lt;span class="tumble_item_quote_quote"&gt;So how do I install this crap??&lt;/span&gt;</code></pre>
-            <p>The sample text on a user-facing help page. Nothing says "professional software" like calling your own product <span class="burn">"crap"</span> in the UI.</p>
+            <p>The sample text on a user-facing help page. Nothing says "professional software" like calling your own
+                product <span class="burn">"crap"</span> in the UI.</p>
         </div>
 
         <div class="roast-item">
-            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi#L63">"MSIE sucks. Stop using it."</a></h2>
+            <h2><a href="https://github.com/websages/tumble/blob/production/htdocs/buttons/button.cgi#L63">"MSIE sucks.
+                    Stop using it."</a></h2>
             <p class="timeline">Customer-facing since 2010</p>
             <pre><code>&lt;span&gt;PS - Unfortunately, tumblebuttons don't work with
 Microsoft Internet Explorer. MSIE sucks. Stop using it.&lt;/span&gt;</code></pre>
-            <p>Public browser shaming on a customer-facing page. To be fair, it was IE. But still &mdash; <span class="burn">in production</span>.</p>
+            <p>Public browser shaming on a customer-facing page. To be fair, it was IE. But still &mdash; <span
+                    class="burn">in production</span>.</p>
         </div>
 
         <!-- ORIGIN STORY -->
         <div class="era-header">🦕 2010: The Origin Story 🦕</div>
 
-        <p style="text-align: center; color: #888; margin-bottom: 30px;">Where it all began. Where it all went wrong.</p>
+        <p style="text-align: center; color: #888; margin-bottom: 30px;">Where it all began. Where it all went wrong.
+        </p>
 
         <div class="roast-item">
             <h2><a href="https://github.com/websages/tumble/commit/b53cd47">Initial Git Insert</a></h2>
@@ -454,7 +504,8 @@ Author: James White &lt;whitejs@websages.com&gt;
 Date:   Tue Mar 2 12:07:59 2010 -0600
 
     initial git insert for tumble.wcyd.org</code></pre>
-            <p>"git insert." <span class="burn">INSERT.</span> This isn't SQL, James. Did you learn git that morning from a man at a bus stop?</p>
+            <p>"git insert." <span class="burn">INSERT.</span> This isn't SQL, James. Did you learn git that morning
+                from a man at a bus stop?</p>
         </div>
 
         <div class="roast-item">
@@ -464,7 +515,9 @@ Date:   Tue Mar 2 12:07:59 2010 -0600
 schnesa
 fapestniegd
 /var/www/sites/tumble.loserfish.org/htdocs/thtml/tumble_item_top5.thtml</code></pre>
-            <p>James committed a vim swap file containing his server's hostname. He doxxed his dev box AND immortalized his vim session. This <code>.swp</code> haunted the repo for 4 years until <a href="https://github.com/websages/tumble/commit/5299713">someone finally noticed</a>.</p>
+            <p>James committed a vim swap file containing his server's hostname. He doxxed his dev box AND immortalized
+                his vim session. This <code>.swp</code> haunted the repo for 4 years until <a
+                    href="https://github.com/websages/tumble/commit/5299713">someone finally noticed</a>.</p>
         </div>
 
         <div class="roast-item">
@@ -473,43 +526,51 @@ fapestniegd
             <pre><code>commit f04b1b2
 
     hard-coding the new db server in the 5 places it's buried, ugh</code></pre>
-            <p>The database connection string was hardcoded in 5 different files. The commit message's trailing "ugh" conveys the exact energy of maintaining this codebase.</p>
+            <p>The database connection string was hardcoded in 5 different files. The commit message's trailing "ugh"
+                conveys the exact energy of maintaining this codebase.</p>
         </div>
 
         <div class="roast-item">
             <h2>The Binary Situation</h2>
             <p class="timeline">March 2, 2010</p>
             <pre><code>+ htdocs/2202/2202.swf    | Bin 0 -> 1113251 bytes</code></pre>
-            <p>A 1.1MB Flash file. Raw-dogged straight into git. Steve Jobs had already killed Flash by this point, but James said <span class="burn">"not on my watch."</span></p>
+            <p>A 1.1MB Flash file. Raw-dogged straight into git. Steve Jobs had already killed Flash by this point, but
+                James said <span class="burn">"not on my watch."</span></p>
         </div>
 
         <!-- HALL OF FAME -->
         <div class="hall-of-fame">
             <h2>🏆 Commit Message Hall of Fame 🏆</h2>
-            <p style="text-align: center; color: #888; margin-bottom: 20px;">Messages that will echo through eternity. Click any hash to witness the horror yourself.</p>
+            <p style="text-align: center; color: #888; margin-bottom: 20px;">Messages that will echo through eternity.
+                Click any hash to witness the horror yourself.</p>
 
             <div class="commit">
-                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/816923c">816923c</a></span> - <span class="commit-msg">"in the middele of breaking shit"</span>
+                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/816923c">816923c</a></span>
+                - <span class="commit-msg">"in the middele of breaking shit"</span>
                 <p class="commit-note">Note the typo in "middele" for extra authenticity. Committed on a Sunday.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/deaece6">deaece6</a></span> - <span class="commit-msg">"nonworking commit to work around"</span>
+                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/deaece6">deaece6</a></span>
+                - <span class="commit-msg">"nonworking commit to work around"</span>
                 <p class="commit-note">The commit that admits its own defeat in the message.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/951b050">951b050</a></span> - <span class="commit-msg">"fixed the libraries again..."</span>
+                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/951b050">951b050</a></span>
+                - <span class="commit-msg">"fixed the libraries again..."</span>
                 <p class="commit-note">That trailing ellipsis conveys volumes of resignation.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/078ea9a">078ea9a</a></span> - <span class="commit-msg">"pictures work!"</span>
+                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/078ea9a">078ea9a</a></span>
+                - <span class="commit-msg">"pictures work!"</span>
                 <p class="commit-note">The exclamation point of someone who wasn't sure it would.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/4ab33c9">4ab33c9</a></span> - <span class="commit-msg">"changing the useragent because of 'bots forbidden' errors"</span>
+                <span class="commit-hash"><a href="https://github.com/websages/tumble/commit/4ab33c9">4ab33c9</a></span>
+                - <span class="commit-msg">"changing the useragent because of 'bots forbidden' errors"</span>
                 <p class="commit-note">The beginning of the decade-long Ubuntu Hardy masquerade.</p>
             </div>
         </div>
@@ -517,30 +578,40 @@ fapestniegd
         <!-- CONTRIBUTORS -->
         <div class="hall-of-fame">
             <h2>🎭 The Cast of Characters 🎭</h2>
-            <p style="text-align: center; color: #888; margin-bottom: 20px;">The architects of this disaster. The legends. The warnings.</p>
+            <p style="text-align: center; color: #888; margin-bottom: 20px;">The architects of this disaster. The
+                legends. The warnings.</p>
 
             <div class="commit">
-                <span class="commit-msg" style="color: #f7931e;">Michael Stahnke</span> - <span style="color: #7ee787;">57 commits</span>
-                <p class="commit-note">The hero who tried to clean up everyone else's mess. Deleted the Ruby thing, tried Go for 39 minutes, fixed Scott's typo. Carried the team in 2014.</p>
+                <span class="commit-msg" style="color: #f7931e;">Michael Stahnke</span> - <span
+                    style="color: #7ee787;">57 commits</span>
+                <p class="commit-note">The hero who tried to clean up everyone else's mess. Deleted the Ruby thing,
+                    tried Go for 39 minutes, fixed Scott's typo. Carried the team in 2014.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-msg" style="color: #f7931e;">James White</span> - <span style="color: #7ee787;">13 commits</span>
-                <p class="commit-note">The origin. The "git insert." The man who committed a vim swap file and a 1.1MB Flash binary. Patient zero.</p>
+                <span class="commit-msg" style="color: #f7931e;">James White</span> - <span style="color: #7ee787;">13
+                    commits</span>
+                <p class="commit-note">The origin. The "git insert." The man who committed a vim swap file and a 1.1MB
+                    Flash binary. Patient zero.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-msg" style="color: #f7931e;">Aziz Shamim</span> - <span style="color: #7ee787;">12 commits</span>
-                <p class="commit-note">Architect of the Ruby rewrite that never worked. Author of "in the middele of breaking shit" and "nonworking commit to work around."</p>
+                <span class="commit-msg" style="color: #f7931e;">Aziz Shamim</span> - <span style="color: #7ee787;">12
+                    commits</span>
+                <p class="commit-note">Architect of the Ruby rewrite that never worked. Author of "in the middele of
+                    breaking shit" and "nonworking commit to work around."</p>
             </div>
 
             <div class="commit">
-                <span class="commit-msg" style="color: #f7931e;">Stephen Yeargin</span> - <span style="color: #7ee787;">6 commits</span>
-                <p class="commit-note">Emerged from 4 years of silence to declare "TLS is a nice-to-have." Typo'd "hostname" as "hostanme" in a branch name.</p>
+                <span class="commit-msg" style="color: #f7931e;">Stephen Yeargin</span> - <span
+                    style="color: #7ee787;">6 commits</span>
+                <p class="commit-note">Emerged from 4 years of silence to declare "TLS is a nice-to-have." Typo'd
+                    "hostname" as "hostanme" in a branch name.</p>
             </div>
 
             <div class="commit">
-                <span class="commit-msg" style="color: #f7931e;">Scott Schneider</span> - <span style="color: #7ee787;">4 commits</span>
+                <span class="commit-msg" style="color: #f7931e;">Scott Schneider</span> - <span
+                    style="color: #7ee787;">4 commits</span>
                 <p class="commit-note">Made the typo. You know the one. <code>['dbi'}</code>. Never forget.</p>
             </div>
         </div>
@@ -555,9 +626,12 @@ fapestniegd
                     <span style="color: #7ee787;">2010</span> ████░░░░░░ Origin story, Flash files, swap files<br>
                     <span style="color: #7ee787;">2011</span> ████████░░ Ruby rewrite attempt begins<br>
                     <span style="color: #888;">2012</span> ░░░░░░░░░░ <span style="color: #666;">(2 commits)</span><br>
-                    <span style="color: #f7931e;">2013</span> ██░░░░░░░░ James rewrites bot after 8 Stone 13s + Jäger<br>
-                    <span style="color: #7ee787;">2014</span> ██████████ Michael's heroic cleanup, Go experiment, Ruby deletion<br>
-                    <span style="color: #7ee787;">2015</span> ░░░░░░░░░░ <span style="color: #666;">(2 commits)</span><br>
+                    <span style="color: #f7931e;">2013</span> ██░░░░░░░░ James rewrites bot after 8 Stone 13s +
+                    Jäger<br>
+                    <span style="color: #7ee787;">2014</span> ██████████ Michael's heroic cleanup, Go experiment, Ruby
+                    deletion<br>
+                    <span style="color: #7ee787;">2015</span> ░░░░░░░░░░ <span style="color: #666;">(2
+                        commits)</span><br>
                     <span style="color: #ff6b35;">2016</span> ░░░░░░░░░░ <span style="color: #666;">nothing</span><br>
                     <span style="color: #ff6b35;">2017</span> ░░░░░░░░░░ <span style="color: #666;">nothing</span><br>
                     <span style="color: #ff6b35;">2018</span> ░░░░░░░░░░ <span style="color: #666;">nothing</span><br>
@@ -569,12 +643,15 @@ fapestniegd
                     <span style="color: #ff6b35;">2024</span> ░░░░░░░░░░ <span style="color: #666;">nothing</span><br>
                     <span style="color: #79c0ff;">2025</span> █░░░░░░░░░ This roast
                 </p>
-                <p style="margin-top: 20px; font-style: italic;">Pattern: years of silence, then someone shows up to make security worse.</p>
+                <p style="margin-top: 20px; font-style: italic;">Pattern: years of silence, then someone shows up to
+                    make security worse.</p>
             </div>
         </div>
 
         <p class="epic-quote">
-            "I've seen things you people wouldn't believe. Swap files committed on repos off the shoulder of Orion. I watched kitten feeds glitter in the dark near the Tannh&auml;user Gate. All those moments will be lost in time, like tears in rain... Time to <code>git push</code>."
+            "I've seen things you people wouldn't believe. Swap files committed on repos off the shoulder of Orion. I
+            watched kitten feeds glitter in the dark near the Tannh&auml;user Gate. All those moments will be lost in
+            time, like tears in rain... Time to <code>git push</code>."
         </p>
 
         <footer>
@@ -584,4 +661,5 @@ fapestniegd
         </footer>
     </div>
 </body>
+
 </html>
