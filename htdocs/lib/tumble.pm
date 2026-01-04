@@ -8,6 +8,7 @@ use DBI;
 use POSIX qw( strftime );
 
 use YAML qw( LoadFile );
+use HTML::Entities;
 
 use strict;
 use warnings;
@@ -113,11 +114,125 @@ sub displayTumble {
                         }
                     }
 
-                    my $link_filler =  $data->{$item}->{'title'};
+                    # Escape title to prevent XSS - it will be replaced with HTML for images/previews if needed
+                    my $link_filler = encode_entities($data->{$item}->{'title'});
+                    # Default link goes through irclink for stats tracking (clicks, views, etc.)
+                    my $link_url = 'http://' . $CONFIG->{'baseurl'} . qq{/irclink/?} . $data->{$item}->{'ircLinkID'};
+                    my $is_apple_photos = 0;
+                    my $apple_photos_url = '';
 
+                    # Detect Apple Photos shared links (e.g., https://www.icloud.com/photos/#/icloudlinks/...)
+                    # These links need special handling because they're not direct image URLs
+                    if ($data->{$item}->{'url'} =~ /icloud\.com\/photos.*icloudlinks/i) {
+                        $is_apple_photos = 1;
+                        $apple_photos_url = $data->{$item}->{'url'};
+                    }
+
+                    # For Apple Photos links, fetch the page to extract the actual image URL or OpenGraph data
+                    # This allows us to render images inline instead of requiring users to click through
+                    if ($is_apple_photos && $data->{$item}->{'user'} !~ /nsfw|otd/) {
+                      use LWP::UserAgent;
+                      # Set up HTTP client with appropriate user agent to avoid being blocked
+                      my $ua = LWP::UserAgent->new(
+                          ssl_opts => { verify_hostname => 0 },
+                          timeout => 5
+                      );
+                      $ua->agent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+                      my $response = $ua->get($apple_photos_url);
+                      if ($response->is_success) {
+                          my $html = $response->content;
+                          my $is_album = 0;
+                          my $og_image = '';
+                          my $og_title = '';
+                          my $og_description = '';
+
+                          # Check for OpenGraph meta tags - these indicate an album or shared collection
+                          # Single photos typically don't have OpenGraph tags, albums do
+                          # Use more strict regex to prevent XSS: match content attribute value until closing quote
+                          # The pattern ensures we only capture the value between quotes, stopping at the first quote
+                          if ($html =~ /<meta\s+property=["']og:image["']\s+content=["']([^"']*)["']/i) {
+                              $og_image = $1;
+                              $is_album = 1;
+                          }
+                          if ($html =~ /<meta\s+property=["']og:title["']\s+content=["']([^"']*)["']/i) {
+                              $og_title = $1;
+                          }
+                          if ($html =~ /<meta\s+property=["']og:description["']\s+content=["']([^"']*)["']/i) {
+                              $og_description = $1;
+                          }
+
+                          # Sanitize all OpenGraph values immediately after extraction to prevent XSS
+                          # These values come from untrusted remote HTML and must be treated as unsafe
+                          # For URLs (og_image): escape for HTML attribute context (escapes &, <, >, ")
+                          # For text (og_title, og_description): escape all HTML entities
+                          my $escaped_og_image = $og_image ? encode_entities($og_image) : '';
+                          my $escaped_og_title = $og_title ? encode_entities($og_title) : '';
+                          my $escaped_og_description = $og_description ? encode_entities($og_description) : '';
+
+                          # Handle albums: render a rich preview card with image, title, and description
+                          # This gives users a better sense of what's in the album before clicking
+                          if ($is_album && $og_image) {
+                              my $preview_html = '<div style="border: 1px solid #ddd; border-radius: 4px; padding: 10px; max-width: 500px; background: #f9f9f9;">';
+                              if ($escaped_og_image) {
+                                  my $escaped_og_title_alt = $escaped_og_title || encode_entities('Apple Photos album');
+                                  $preview_html .= '<img src="' . $escaped_og_image . '" style="max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 8px;" alt="' . $escaped_og_title_alt . '">';
+                              }
+                              if ($escaped_og_title) {
+                                  # Already HTML-escaped, safe to use in text content
+                                  $preview_html .= '<div style="font-weight: bold; margin-bottom: 4px;">' . $escaped_og_title . '</div>';
+                              }
+                              if ($escaped_og_description) {
+                                  # Already HTML-escaped, safe to use in text content
+                                  $preview_html .= '<div style="font-size: 0.9em; color: #666;">' . $escaped_og_description . '</div>';
+                              }
+                              $preview_html .= '</div>';
+                              $link_filler = $preview_html;
+                          } else {
+                              # Handle single photos: extract the direct image URL from the page HTML
+                              # We try multiple patterns because Apple's HTML structure may vary
+                              my $img_url = '';
+                              # Pattern 1: Look for <img> tags with image file extensions
+                              if ($html =~ /<img[^>]+src=["']([^"']+\.(jpg|jpeg|png|gif|webp))["']/i) {
+                                  $img_url = $1;
+                                  # Convert relative URLs to absolute
+                                  if ($img_url !~ /^https?:/) {
+                                      $img_url = 'https://www.icloud.com' . $img_url if $img_url =~ /^\//;
+                                  }
+                              }
+                              # Pattern 2: Look for image URLs in JSON data structures
+                              elsif ($html =~ /"url":"([^"]+\.(jpg|jpeg|png|gif|webp))"/i) {
+                                  $img_url = $1;
+                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
+                              }
+                              # Pattern 3: Look for downloadURL in JSON (often contains the full image URL)
+                              elsif ($html =~ /"downloadURL":"([^"]+)"/i) {
+                                  $img_url = $1;
+                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
+                              }
+
+                              if ($img_url) {
+                                  # Successfully extracted image URL - render it inline
+                                  # The image will be wrapped in an irclink anchor below for stats tracking
+                                  my $escaped_img_url = encode_entities($img_url, '<>"');
+                                  $link_filler = '<img src="' . $escaped_img_url . '" alt="Apple Photos image">';
+                              } else {
+                                  # Couldn't extract image URL - fall back to showing the title as a link
+                                  # This maintains functionality even if Apple changes their page structure
+                                  $link_filler = encode_entities($data->{$item}->{'title'});
+                              }
+                          }
+                      } else {
+                          # HTTP request failed - log error and fall back to default link display
+                          my $status = $response->status_line;
+                          my $error_msg = $response->message || 'Unknown error';
+                          print STDERR "Failed to fetch Apple Photos URL: $apple_photos_url - Status: $status ($error_msg)\n";
+                          # $link_filler already contains the escaped title from initialization, so no action needed
+                      }
+                    }
                     # fall back to normal linking of images if they could be nsfw
-                    if (($data->{$item}->{'content_type'} =~ /image/) and ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
-                      $link_filler =  '<img src="' .  $data->{$item}->{'url'} . '">';
+                    elsif (($data->{$item}->{'content_type'} =~ /image/) and ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
+                      my $escaped_url = encode_entities($data->{$item}->{'url'}, '<>"');
+                      $link_filler =  '<img src="' .  $escaped_url . '">';
                     }
 
                     if ($data->{$item}->{'url'} =~ /twitter/) {
@@ -135,20 +250,22 @@ sub displayTumble {
                       $link_filler = $stuff->{'html'};
                     }
 
+                    # Wrap all content in an irclink anchor for stats tracking
+                    # The irclink endpoint increments click/view counters, then redirects to the original URL
+                    # This preserves analytics while still allowing users to access the original content
+                    my $escaped_link_url = encode_entities($link_url, '<>"');
                     $content =
-                        '<a href="http://' . $CONFIG->{'baseurl'} .
-                        qq{/irclink/?} .
-                        $data->{$item}->{'ircLinkID'} .
-                        qq{">} .
+                        '<a href="' . $escaped_link_url . qq{">} .
                         $link_filler  .
-                        qq{</a>}
+                        qq{</a>};
 
                 };
 
                 /image/ && do {
+                    my $escaped_url = encode_entities($data->{$item}->{'url'}, '<>"');
                     $content =
                         qq{<img src="} .
-                        $data->{$item}->{'url'} .
+                        $escaped_url .
                         qq{" alt="image" />};
                 };
         }
@@ -212,11 +329,12 @@ sub displayTumble {
             }
                                                                                             }
 
+            my $escaped_title = encode_entities($hot->{$_}->{'title'});
             my $co =
                 '<a href="http://' . $CONFIG->{'baseurl'} .  qq{/irclink/?} .
                 $hot->{$_}->{'ircLinkID'} .
                 qq{">} .
-                $hot->{$_}->{'title'} .
+                $escaped_title .
                 qq{</a>};
 
             $h .= $self->wrap(
@@ -224,7 +342,7 @@ sub displayTumble {
                 content => $co
             );
         } keys %{$hot};
-    
+
         return $self->wrap(
             wrapper   => 'index',
             hot       => $h,
