@@ -232,49 +232,81 @@ sub displayTumble {
                                   return 0;
                               };
                               
+                              # Helper function to unescape JSON strings
+                              my $unescape_json = sub {
+                                  my $str = shift;
+                                  $str =~ s/\\\//\//g;  # Unescape slashes
+                                  $str =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
+                                  $str =~ s/\\(.)/$1/g;  # Unescape other escape sequences
+                                  return $str;
+                              };
+                              
+                              # Extract all script tag contents for deeper searching
+                              my @script_contents = ();
+                              while ($html =~ /<script[^>]*>(.*?)<\/script>/gis) {
+                                  push @script_contents, $1;
+                              }
+                              my $all_scripts = join "\n", @script_contents;
+                              print STDERR "Extracted " . scalar(@script_contents) . " script tags for analysis\n";
+                              
                               # Pattern 1: Look for downloadURL in JSON (highest priority - most reliable)
-                              if ($html =~ /"downloadURL"\s*:\s*"([^"]+)"/i) {
-                                  $img_url = $1;
-                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
-                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
-                                  unless ($is_logo_or_icon->($img_url)) {
-                                      print STDERR "Found image via Pattern 1 (downloadURL): $img_url\n";
-                                  } else {
-                                      $img_url = '';
+                              # Search in both full HTML and script tags
+                              foreach my $search_text ($html, $all_scripts) {
+                                  if ($search_text =~ /"downloadURL"\s*:\s*"((?:[^"\\]|\\.)+)"/i) {
+                                      $img_url = $unescape_json->($1);
+                                      unless ($is_logo_or_icon->($img_url)) {
+                                          print STDERR "Found image via Pattern 1 (downloadURL): $img_url\n";
+                                          last;
+                                      } else {
+                                          $img_url = '';
+                                      }
                                   }
                               }
                               
                               # Pattern 2: Look for iCloud CDN URLs (cvws.icloud-content.com - these are actual photos)
-                              if (!$img_url && $html =~ /(https?:\/\/[^"'\s<>]*icloud-content\.com[^"'\s<>]+\.(jpg|jpeg|png|gif|webp))/i) {
-                                  $img_url = $1;
-                                  unless ($is_logo_or_icon->($img_url)) {
-                                      print STDERR "Found image via Pattern 2 (iCloud CDN): $img_url\n";
-                                  } else {
-                                      $img_url = '';
+                              if (!$img_url) {
+                                  foreach my $search_text ($html, $all_scripts) {
+                                      if ($search_text =~ /(https?:\/\/[^"'\s<>]*icloud-content\.com[^"'\s<>]+\.(jpg|jpeg|png|gif|webp))/i) {
+                                          $img_url = $1;
+                                          unless ($is_logo_or_icon->($img_url)) {
+                                              print STDERR "Found image via Pattern 2 (iCloud CDN): $img_url\n";
+                                              last;
+                                          } else {
+                                              $img_url = '';
+                                          }
+                                      }
                                   }
                               }
                               
-                              # Pattern 3: Look for image URLs in JSON data structures with photo-specific field names
-                              if (!$img_url && $html =~ /"(?:photoUrl|imageUrl|previewUrl|thumbnailUrl)"\s*:\s*"([^"]+\.(jpg|jpeg|png|gif|webp))"/i) {
-                                  $img_url = $1;
-                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
-                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
-                                  unless ($is_logo_or_icon->($img_url)) {
-                                      print STDERR "Found image via Pattern 3 (JSON photo field): $img_url\n";
-                                  } else {
-                                      $img_url = '';
+                              # Pattern 3: Look for photoUrl, imageUrl, or similar fields in JSON
+                              if (!$img_url) {
+                                  foreach my $search_text ($html, $all_scripts) {
+                                      if ($search_text =~ /"(?:photoUrl|imageUrl|previewUrl|thumbnailUrl|originalUrl|fullSizeUrl)"\s*:\s*"((?:[^"\\]|\\.)+\.(jpg|jpeg|png|gif|webp))"/i) {
+                                          $img_url = $unescape_json->($1);
+                                          unless ($is_logo_or_icon->($img_url)) {
+                                              print STDERR "Found image via Pattern 3 (JSON photo field): $img_url\n";
+                                              last;
+                                          } else {
+                                              $img_url = '';
+                                          }
+                                      }
                                   }
                               }
                               
-                              # Pattern 4: Look in script tags for JSON data with downloadURL or photo URLs
-                              if (!$img_url && $html =~ /<script[^>]*>.*?"(?:downloadURL|photoUrl|imageUrl)"\s*:\s*"([^"]+)"/is) {
-                                  $img_url = $1;
-                                  $img_url =~ s/\\\//\//g;
-                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;
-                                  unless ($is_logo_or_icon->($img_url)) {
-                                      print STDERR "Found image via Pattern 4 (script tag JSON): $img_url\n";
-                                  } else {
-                                      $img_url = '';
+                              # Pattern 4: Look for any URL field in JSON objects that might contain image URLs
+                              # This is more aggressive - look for any "url" field with image extensions
+                              if (!$img_url) {
+                                  foreach my $search_text ($html, $all_scripts) {
+                                      # Look for url fields that are likely photos (not logos)
+                                      if ($search_text =~ /"url"\s*:\s*"((?:[^"\\]|\\.)*icloud-content\.com(?:[^"\\]|\\.)+\.(jpg|jpeg|png|gif|webp))"/i) {
+                                          $img_url = $unescape_json->($1);
+                                          unless ($is_logo_or_icon->($img_url)) {
+                                              print STDERR "Found image via Pattern 4 (url field with CDN): $img_url\n";
+                                              last;
+                                          } else {
+                                              $img_url = '';
+                                          }
+                                      }
                                   }
                               }
                               
@@ -297,6 +329,11 @@ sub displayTumble {
                                   # Only accept base64 if it's reasonably large (likely a photo, not an icon)
                                   $img_url = "data:image/$1;base64,$2";
                                   print STDERR "Found image via Pattern 6 (base64 data URL)\n";
+                              }
+                              
+                              # Pattern 7: Debug - dump a sample of script content if still not found
+                              if (!$img_url) {
+                                  print STDERR "No image URL found. Sample script content (first 1000 chars): " . substr($all_scripts, 0, 1000) . "\n";
                               }
 
                               if ($img_url) {
