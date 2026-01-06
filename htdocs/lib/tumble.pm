@@ -9,6 +9,7 @@ use POSIX qw( strftime );
 
 use YAML qw( LoadFile );
 use HTML::Entities;
+use LWP::UserAgent;
 
 use strict;
 use warnings;
@@ -108,7 +109,7 @@ sub displayTumble {
 
         for ( $data->{$item}->{'type'} ) {
                 /ircLink/ && do {
-                    if ( $data->{$item}->{'title'} =~ /^(http:\/\/.*)/ ) {
+                    if ( defined($data->{$item}->{'title'}) && $data->{$item}->{'title'} =~ /^(http:\/\/.*)/ ) {
                         if ( length( $1 ) > 40 ) {
                             $data->{$item}->{'title'} = substr( $1, 0, 40 ) . '...';
                         }
@@ -123,7 +124,10 @@ sub displayTumble {
 
                     # Detect Apple Photos shared links (e.g., https://www.icloud.com/photos/#/icloudlinks/...)
                     # These links need special handling because they're not direct image URLs
-                    if ($data->{$item}->{'url'} =~ /icloud\.com\/photos.*icloudlinks/i) {
+                    # Match various iCloud Photos URL formats: photos, sharedalbum, or any photos-related path
+                    if (defined($data->{$item}->{'url'}) &&
+                        ($data->{$item}->{'url'} =~ /icloud\.com.*photos/i ||
+                         $data->{$item}->{'url'} =~ /icloud\.com.*sharedalbum/i)) {
                         $is_apple_photos = 1;
                         $apple_photos_url = $data->{$item}->{'url'};
                     }
@@ -131,20 +135,23 @@ sub displayTumble {
                     # For Apple Photos links, fetch the page to extract the actual image URL or OpenGraph data
                     # This allows us to render images inline instead of requiring users to click through
                     if ($is_apple_photos && $data->{$item}->{'user'} !~ /nsfw|otd/) {
-                      use LWP::UserAgent;
                       # Set up HTTP client with appropriate user agent to avoid being blocked
                       my $ua = LWP::UserAgent->new(
                           ssl_opts => { verify_hostname => 0 },
-                          timeout => 5
+                          timeout => 10
                       );
-                      $ua->agent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+                      $ua->agent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+                      print STDERR "Fetching Apple Photos URL: $apple_photos_url\n";
                       my $response = $ua->get($apple_photos_url);
+                      print STDERR "Response status: " . $response->status_line . "\n";
                       if ($response->is_success) {
                           my $html = $response->content;
                           my $is_album = 0;
                           my $og_image = '';
                           my $og_title = '';
                           my $og_description = '';
+
+                          print STDERR "Successfully fetched HTML, length: " . length($html) . "\n";
 
                           # Check for OpenGraph meta tags - these indicate an album or shared collection
                           # Single photos typically don't have OpenGraph tags, albums do
@@ -153,12 +160,15 @@ sub displayTumble {
                           if ($html =~ /<meta\s+property=["']og:image["']\s+content=["']([^"']*)["']/i) {
                               $og_image = $1;
                               $is_album = 1;
+                              print STDERR "Found OpenGraph image: $og_image\n";
                           }
                           if ($html =~ /<meta\s+property=["']og:title["']\s+content=["']([^"']*)["']/i) {
                               $og_title = $1;
+                              print STDERR "Found OpenGraph title: $og_title\n";
                           }
                           if ($html =~ /<meta\s+property=["']og:description["']\s+content=["']([^"']*)["']/i) {
                               $og_description = $1;
+                              print STDERR "Found OpenGraph description: $og_description\n";
                           }
 
                           # Sanitize all OpenGraph values immediately after extraction to prevent XSS
@@ -213,11 +223,13 @@ sub displayTumble {
                               if ($img_url) {
                                   # Successfully extracted image URL - render it inline
                                   # The image will be wrapped in an irclink anchor below for stats tracking
+                                  print STDERR "Extracted image URL: $img_url\n";
                                   my $escaped_img_url = encode_entities($img_url, '<>"');
-                                  $link_filler = '<img src="' . $escaped_img_url . '" alt="Apple Photos image">';
+                                  $link_filler = '<img src="' . $escaped_img_url . '" alt="Apple Photos image" style="max-width: 100%; height: auto;">';
                               } else {
                                   # Couldn't extract image URL - fall back to showing the title as a link
                                   # This maintains functionality even if Apple changes their page structure
+                                  print STDERR "Could not extract image URL from HTML\n";
                                   $link_filler = encode_entities($data->{$item}->{'title'});
                               }
                           }
@@ -230,12 +242,15 @@ sub displayTumble {
                       }
                     }
                     # fall back to normal linking of images if they could be nsfw
-                    elsif (($data->{$item}->{'content_type'} =~ /image/) and ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
+                    elsif (defined($data->{$item}->{'content_type'}) &&
+                           defined($data->{$item}->{'user'}) &&
+                           ($data->{$item}->{'content_type'} =~ /image/) &&
+                           ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
                       my $escaped_url = encode_entities($data->{$item}->{'url'}, '<>"');
                       $link_filler =  '<img src="' .  $escaped_url . '">';
                     }
 
-                    if ($data->{$item}->{'url'} =~ /twitter/) {
+                    if (defined($data->{$item}->{'url'}) && $data->{$item}->{'url'} =~ /twitter/) {
                       use LWP::Simple;
                       use JSON;
                       my @parts = split('/' , $data->{$item}->{'url'});
