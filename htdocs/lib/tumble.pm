@@ -185,12 +185,22 @@ sub displayTumble {
                           # These values come from untrusted remote HTML and must be treated as unsafe
                           # For URLs (og_image): escape for HTML attribute context (escapes &, <, >, ")
                           # For text (og_title, og_description): escape all HTML entities
+                          
+                          # Filter out OpenGraph images that are just logos/icons - not actual photos
+                          if ($og_image && ($og_image =~ /(?:logo|icon|favicon|icloud_logo)/i || 
+                              $og_image !~ /icloud-content\.com/i)) {
+                              print STDERR "Skipping OpenGraph image (appears to be logo/icon): $og_image\n";
+                              $og_image = '';
+                              $is_album = 0;
+                          }
+                          
                           my $escaped_og_image = $og_image ? encode_entities($og_image) : '';
                           my $escaped_og_title = $og_title ? encode_entities($og_title) : '';
                           my $escaped_og_description = $og_description ? encode_entities($og_description) : '';
 
                           # Handle albums: render a rich preview card with image, title, and description
                           # This gives users a better sense of what's in the album before clicking
+                          # Only use OpenGraph if we have a valid photo URL (not a logo)
                           if ($is_album && $og_image) {
                               my $preview_html = '<div style="border: 1px solid #ddd; border-radius: 4px; padding: 10px; max-width: 500px; background: #f9f9f9;">';
                               if ($escaped_og_image) {
@@ -213,50 +223,80 @@ sub displayTumble {
                               # Apple Photos pages are JS-heavy, so URLs may be in JSON/script tags
                               my $img_url = '';
                               
-                              # Pattern 1: Look for <img> tags with image file extensions
-                              if ($html =~ /<img[^>]+src=["']([^"']+\.(jpg|jpeg|png|gif|webp))["']/i) {
+                              # Helper function to check if URL is likely a logo/icon (not a photo)
+                              my $is_logo_or_icon = sub {
+                                  my $url = shift;
+                                  return 1 if $url =~ /(?:logo|icon|favicon|sprite|button|badge)/i;
+                                  return 1 if $url =~ /icloud_logo/i;
+                                  return 1 if $url =~ /\.(js|css|html|json|svg)$/i;
+                                  return 0;
+                              };
+                              
+                              # Pattern 1: Look for downloadURL in JSON (highest priority - most reliable)
+                              if ($html =~ /"downloadURL"\s*:\s*"([^"]+)"/i) {
+                                  $img_url = $1;
+                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
+                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
+                                  unless ($is_logo_or_icon->($img_url)) {
+                                      print STDERR "Found image via Pattern 1 (downloadURL): $img_url\n";
+                                  } else {
+                                      $img_url = '';
+                                  }
+                              }
+                              
+                              # Pattern 2: Look for iCloud CDN URLs (cvws.icloud-content.com - these are actual photos)
+                              if (!$img_url && $html =~ /(https?:\/\/[^"'\s<>]*icloud-content\.com[^"'\s<>]+\.(jpg|jpeg|png|gif|webp))/i) {
+                                  $img_url = $1;
+                                  unless ($is_logo_or_icon->($img_url)) {
+                                      print STDERR "Found image via Pattern 2 (iCloud CDN): $img_url\n";
+                                  } else {
+                                      $img_url = '';
+                                  }
+                              }
+                              
+                              # Pattern 3: Look for image URLs in JSON data structures with photo-specific field names
+                              if (!$img_url && $html =~ /"(?:photoUrl|imageUrl|previewUrl|thumbnailUrl)"\s*:\s*"([^"]+\.(jpg|jpeg|png|gif|webp))"/i) {
+                                  $img_url = $1;
+                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
+                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
+                                  unless ($is_logo_or_icon->($img_url)) {
+                                      print STDERR "Found image via Pattern 3 (JSON photo field): $img_url\n";
+                                  } else {
+                                      $img_url = '';
+                                  }
+                              }
+                              
+                              # Pattern 4: Look in script tags for JSON data with downloadURL or photo URLs
+                              if (!$img_url && $html =~ /<script[^>]*>.*?"(?:downloadURL|photoUrl|imageUrl)"\s*:\s*"([^"]+)"/is) {
+                                  $img_url = $1;
+                                  $img_url =~ s/\\\//\//g;
+                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;
+                                  unless ($is_logo_or_icon->($img_url)) {
+                                      print STDERR "Found image via Pattern 4 (script tag JSON): $img_url\n";
+                                  } else {
+                                      $img_url = '';
+                                  }
+                              }
+                              
+                              # Pattern 5: Look for <img> tags but skip logos/icons
+                              if (!$img_url && $html =~ /<img[^>]+src=["']([^"']+\.(jpg|jpeg|png|gif|webp))["']/i) {
                                   $img_url = $1;
                                   # Convert relative URLs to absolute
                                   if ($img_url !~ /^https?:/) {
                                       $img_url = 'https://www.icloud.com' . $img_url if $img_url =~ /^\//;
                                   }
-                                  print STDERR "Found image via Pattern 1 (img tag): $img_url\n";
-                              }
-                              # Pattern 2: Look for downloadURL in JSON (often contains the full image URL)
-                              elsif ($html =~ /"downloadURL"\s*:\s*"([^"]+)"/i) {
-                                  $img_url = $1;
-                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
-                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
-                                  print STDERR "Found image via Pattern 2 (downloadURL): $img_url\n";
-                              }
-                              # Pattern 3: Look for image URLs in JSON data structures with various field names
-                              elsif ($html =~ /"(?:url|imageUrl|photoUrl|thumbnailUrl|previewUrl)"\s*:\s*"([^"]+\.(jpg|jpeg|png|gif|webp))"/i) {
-                                  $img_url = $1;
-                                  $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
-                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
-                                  print STDERR "Found image via Pattern 3 (JSON url field): $img_url\n";
-                              }
-                              # Pattern 4: Look for iCloud CDN URLs (cvws.icloud-content.com or similar)
-                              elsif ($html =~ /(https?:\/\/[^"'\s<>]+\.(jpg|jpeg|png|gif|webp))/i) {
-                                  $img_url = $1;
-                                  # Filter out common non-image URLs
-                                  unless ($img_url =~ /\.(js|css|html|json)/i) {
-                                      print STDERR "Found image via Pattern 4 (direct URL): $img_url\n";
+                                  unless ($is_logo_or_icon->($img_url)) {
+                                      print STDERR "Found image via Pattern 5 (img tag): $img_url\n";
                                   } else {
                                       $img_url = '';
                                   }
                               }
-                              # Pattern 5: Look for base64 data URLs (less common but possible)
-                              elsif ($html =~ /data:image\/(jpeg|jpg|png|gif|webp);base64,([A-Za-z0-9+\/]+={0,2})/i) {
+                              
+                              # Pattern 6: Look for base64 data URLs (less common but possible)
+                              if (!$img_url && $html =~ /data:image\/(jpeg|jpg|png|gif|webp);base64,([A-Za-z0-9+\/]{100,}={0,2})/i) {
+                                  # Only accept base64 if it's reasonably large (likely a photo, not an icon)
                                   $img_url = "data:image/$1;base64,$2";
-                                  print STDERR "Found image via Pattern 5 (base64 data URL)\n";
-                              }
-                              # Pattern 6: Look in script tags for JSON data
-                              elsif ($html =~ /<script[^>]*>.*?"(?:downloadURL|url|imageUrl)"\s*:\s*"([^"]+)"/is) {
-                                  $img_url = $1;
-                                  $img_url =~ s/\\\//\//g;
-                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;
-                                  print STDERR "Found image via Pattern 6 (script tag JSON): $img_url\n";
+                                  print STDERR "Found image via Pattern 6 (base64 data URL)\n";
                               }
 
                               if ($img_url) {
