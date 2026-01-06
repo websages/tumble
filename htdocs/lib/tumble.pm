@@ -170,6 +170,16 @@ sub displayTumble {
                               $og_description = $1;
                               print STDERR "Found OpenGraph description: $og_description\n";
                           }
+                          
+                          # Debug: Check if any meta tags exist at all
+                          my $meta_count = () = $html =~ /<meta/gi;
+                          print STDERR "Found $meta_count meta tags in HTML\n";
+                          if ($meta_count > 0 && !$og_image) {
+                              # Try to find any og: tags to see what's there
+                              if ($html =~ /<meta[^>]*property=["']og:([^"']+)["'][^>]*>/i) {
+                                  print STDERR "Found OpenGraph property (but not image): og:$1\n";
+                              }
+                          }
 
                           # Sanitize all OpenGraph values immediately after extraction to prevent XSS
                           # These values come from untrusted remote HTML and must be treated as unsafe
@@ -200,7 +210,9 @@ sub displayTumble {
                           } else {
                               # Handle single photos: extract the direct image URL from the page HTML
                               # We try multiple patterns because Apple's HTML structure may vary
+                              # Apple Photos pages are JS-heavy, so URLs may be in JSON/script tags
                               my $img_url = '';
+                              
                               # Pattern 1: Look for <img> tags with image file extensions
                               if ($html =~ /<img[^>]+src=["']([^"']+\.(jpg|jpeg|png|gif|webp))["']/i) {
                                   $img_url = $1;
@@ -208,16 +220,43 @@ sub displayTumble {
                                   if ($img_url !~ /^https?:/) {
                                       $img_url = 'https://www.icloud.com' . $img_url if $img_url =~ /^\//;
                                   }
+                                  print STDERR "Found image via Pattern 1 (img tag): $img_url\n";
                               }
-                              # Pattern 2: Look for image URLs in JSON data structures
-                              elsif ($html =~ /"url":"([^"]+\.(jpg|jpeg|png|gif|webp))"/i) {
+                              # Pattern 2: Look for downloadURL in JSON (often contains the full image URL)
+                              elsif ($html =~ /"downloadURL"\s*:\s*"([^"]+)"/i) {
                                   $img_url = $1;
                                   $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
+                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
+                                  print STDERR "Found image via Pattern 2 (downloadURL): $img_url\n";
                               }
-                              # Pattern 3: Look for downloadURL in JSON (often contains the full image URL)
-                              elsif ($html =~ /"downloadURL":"([^"]+)"/i) {
+                              # Pattern 3: Look for image URLs in JSON data structures with various field names
+                              elsif ($html =~ /"(?:url|imageUrl|photoUrl|thumbnailUrl|previewUrl)"\s*:\s*"([^"]+\.(jpg|jpeg|png|gif|webp))"/i) {
                                   $img_url = $1;
                                   $img_url =~ s/\\\//\//g;  # Unescape JSON-encoded slashes
+                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;  # Unescape Unicode
+                                  print STDERR "Found image via Pattern 3 (JSON url field): $img_url\n";
+                              }
+                              # Pattern 4: Look for iCloud CDN URLs (cvws.icloud-content.com or similar)
+                              elsif ($html =~ /(https?:\/\/[^"'\s<>]+\.(jpg|jpeg|png|gif|webp))/i) {
+                                  $img_url = $1;
+                                  # Filter out common non-image URLs
+                                  unless ($img_url =~ /\.(js|css|html|json)/i) {
+                                      print STDERR "Found image via Pattern 4 (direct URL): $img_url\n";
+                                  } else {
+                                      $img_url = '';
+                                  }
+                              }
+                              # Pattern 5: Look for base64 data URLs (less common but possible)
+                              elsif ($html =~ /data:image\/(jpeg|jpg|png|gif|webp);base64,([A-Za-z0-9+\/]+={0,2})/i) {
+                                  $img_url = "data:image/$1;base64,$2";
+                                  print STDERR "Found image via Pattern 5 (base64 data URL)\n";
+                              }
+                              # Pattern 6: Look in script tags for JSON data
+                              elsif ($html =~ /<script[^>]*>.*?"(?:downloadURL|url|imageUrl)"\s*:\s*"([^"]+)"/is) {
+                                  $img_url = $1;
+                                  $img_url =~ s/\\\//\//g;
+                                  $img_url =~ s/\\u([0-9a-fA-F]{4})/chr(hex($1))/eg;
+                                  print STDERR "Found image via Pattern 6 (script tag JSON): $img_url\n";
                               }
 
                               if ($img_url) {
@@ -229,7 +268,7 @@ sub displayTumble {
                               } else {
                                   # Couldn't extract image URL - fall back to showing the title as a link
                                   # This maintains functionality even if Apple changes their page structure
-                                  print STDERR "Could not extract image URL from HTML\n";
+                                  print STDERR "Could not extract image URL from HTML. Sample HTML (first 500 chars): " . substr($html, 0, 500) . "\n";
                                   $link_filler = encode_entities($data->{$item}->{'title'});
                               }
                           }
