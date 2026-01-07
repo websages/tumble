@@ -1,4 +1,5 @@
-    <div class="item">
+    <div class="item" data-url="<!-- tmpl_var name="url" -->" data-content-type="<!-- tmpl_var name="content_type" -->" data-irc-link-id="<!-- tmpl_var name="ircLinkID" -->">
         <span class="link"><!-- tmpl_var name="content" --></span>
         <span class="author"><!-- tmpl_var name="author" --></span>
+        <div class="og-preview" id="og-preview-<!-- tmpl_var name="ircLinkID" -->"></div>
     </div>
