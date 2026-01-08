@@ -32,6 +32,11 @@
         return;
       }
       
+      // Skip OG preview for YouTube links (they're embedded directly)
+      if (url.match(/youtube\.com|youtu\.be/i)) {
+        return;
+      }
+
       // Ensure URL has protocol
       if (!url.match(/^https?:\/\//)) {
         url = 'http://' + url;
