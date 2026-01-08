@@ -18,6 +18,109 @@
   </script>
   <!-- Twitter Cards -->
   <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  
+  <!-- Open Graph Preview Loader -->
+  <script type="text/javascript">
+  (function() {
+    function loadOGPreview(item) {
+      var url = item.getAttribute('data-url');
+      var contentType = item.getAttribute('data-content-type');
+      var previewDiv = item.querySelector('.og-preview');
+      
+      // Only load preview for non-image content (text/html)
+      if (!url || (contentType && contentType.match(/image/))) {
+        return;
+      }
+      
+      // Ensure URL has protocol
+      if (!url.match(/^https?:\/\//)) {
+        url = 'http://' + url;
+      }
+      
+      // Create preview endpoint URL
+      var previewUrl = '/ogpreview.cgi?url=' + encodeURIComponent(url);
+      
+      // Load preview asynchronously
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', previewUrl, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          try {
+            var data = JSON.parse(xhr.responseText);
+            if (data.error) {
+              return;
+            }
+            
+            // Use Open Graph image, Twitter image, or nothing
+            var imageUrl = data.image || data.twitter_image || null;
+            // Use Open Graph title, Twitter title, or fallback title
+            var title = data.title || data.twitter_title || null;
+            // Use Open Graph description, Twitter description, or fallback description
+            var description = data.description || data.twitter_description || null;
+            
+            // Only show preview if we have at least an image, title, or description
+            if (!imageUrl && !title && !description) {
+              return;
+            }
+            
+            // Build preview HTML
+            var previewHTML = '<div class="og-preview-card">';
+            
+            if (imageUrl) {
+              previewHTML += '<div class="og-preview-image"><img src="' + escapeHtml(imageUrl) + '" alt="" /></div>';
+            }
+            
+            if (title || description) {
+              previewHTML += '<div class="og-preview-content">';
+              
+              if (title) {
+                previewHTML += '<div class="og-preview-title">' + escapeHtml(title) + '</div>';
+              }
+              
+              if (description) {
+                // Truncate description if too long
+                if (description.length > 200) {
+                  description = description.substring(0, 200) + '...';
+                }
+                previewHTML += '<div class="og-preview-description">' + escapeHtml(description) + '</div>';
+              }
+              
+              previewHTML += '</div>';
+            }
+            
+            previewHTML += '</div>';
+            
+            previewDiv.innerHTML = previewHTML;
+          } catch (e) {
+            // Silently fail if JSON parsing fails
+          }
+        }
+      };
+      xhr.send();
+    }
+    
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Load all previews when DOM is ready
+    function initOGPreviews() {
+      var items = document.querySelectorAll('.item[data-url]');
+      for (var i = 0; i < items.length; i++) {
+        loadOGPreview(items[i]);
+      }
+    }
+    
+    // Run when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initOGPreviews);
+    } else {
+      initOGPreviews();
+    }
+  })();
+  </script>
 
 </head>
 
