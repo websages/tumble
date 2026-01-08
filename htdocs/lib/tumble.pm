@@ -160,13 +160,41 @@ sub displayTumble {
                       $link_filler = $stuff->{'html'};
                     }
 
-                    $content =
-                        '<a href="http://' . $CONFIG->{'baseurl'} .
-                        qq{/irclink/?} .
-                        $data->{$item}->{'ircLinkID'} .
-                        qq{">} .
-                        $link_filler  .
-                        qq{</a>}
+                    # Handle YouTube URLs - extract video ID and create embed
+                    my $is_youtube = 0;
+                    if ($data->{$item}->{'url'} =~ /youtube\.com|youtu\.be/i) {
+                      my $video_id;
+                      my $url = $data->{$item}->{'url'};
+
+                      # Handle various YouTube URL formats (case-insensitive, with or without www/protocol)
+                      if ($url =~ /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/i) {
+                        $video_id = $1;
+                      } elsif ($url =~ /youtube\.com\/watch\?.*[&?]v=([a-zA-Z0-9_-]{11})/i) {
+                        $video_id = $1;
+                      }
+
+                      if ($video_id) {
+                        # Create responsive YouTube embed (standalone, not wrapped in link)
+                        $content = '<div class="youtube-embed-wrapper">' .
+                                   '<iframe width="560" height="315" ' .
+                                   'src="https://www.youtube.com/embed/' . $video_id . '?rel=0" ' .
+                                   'frameborder="0" ' .
+                                   'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' .
+                                   'allowfullscreen></iframe>' .
+                                   '</div>';
+                        $is_youtube = 1;
+                      }
+                    }
+
+                    unless ($is_youtube) {
+                      $content =
+                          '<a href="http://' . $CONFIG->{'baseurl'} .
+                          qq{/irclink/?} .
+                          $data->{$item}->{'ircLinkID'} .
+                          qq{">} .
+                          $link_filler  .
+                          qq{</a>};
+                    }
 
                 };
 
