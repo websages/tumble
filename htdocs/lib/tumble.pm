@@ -6,6 +6,7 @@ use lsrfsh::MySQL;
 
 use DBI;
 use POSIX qw( strftime );
+use Time::Local qw( timelocal timegm );
 use Cwd qw( abs_path getcwd );
 use File::Spec;
 
@@ -34,7 +35,7 @@ sub setup {
     $self->{'arg'}->{'dtype'} ||= 'html';
 
     for ( $self->{'arg'}->{'dtype'} ) {
-        /rss|xml/ && do { $self->header_props( -type => 'text/xml' ); };
+        /rss|xml/ && do { $self->header_props( -type => 'text/xml; charset=UTF-8' ); };
         /html/    && do { $self->header_props( -type => 'text/html; charset=UTF-8' ); };
     }
 
@@ -83,10 +84,32 @@ sub displayTumble {
             $data->{$item}->{'timestamp'} =~
                 /(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/
         ) {
+            # Parse the timestamp: $1=year, $2=month, $3=day, $4=hour, $5=minute, $6=second
+            my ($year, $month, $day, $hour, $minute, $second) = ($1, $2, $3, $4, $5, $6);
+            
+            # Convert to epoch time (month is 0-based in timelocal)
+            # Note: timelocal interprets time as local time based on server timezone
+            my $epoch = timelocal($second, $minute, $hour, $day, $month - 1, $year - 1900);
+            
+            # Format as RFC 822 date (RSS pubDate format)
+            # Get localtime components for the timestamp
+            my @lt = localtime($epoch);
+            
+            # Calculate timezone offset by comparing GMT and local time
+            # timegm returns GMT epoch for given local time components
+            my $gmt_epoch = timegm(@lt);
+            my $local_epoch = timelocal(@lt);
+            my $tz_offset_seconds = $local_epoch - $gmt_epoch;
+            my $tz_offset_minutes = $tz_offset_seconds / 60;
+            
+            # Format timezone offset as +HHMM or -HHMM
+            my $tz_sign = $tz_offset_minutes >= 0 ? '+' : '-';
+            my $tz_hours = abs(int($tz_offset_minutes / 60));
+            my $tz_mins = abs(int($tz_offset_minutes % 60));
+            my $tz_offset = sprintf("%s%02d%02d", $tz_sign, $tz_hours, $tz_mins);
+            
             $data->{$item}->{'timestamp'} =
-                POSIX::strftime(
-                    "%a, %d %b %Y %T -0600", 0, $5, $4, $3, $2 - 1, $1 - 1900
-                );
+                POSIX::strftime("%a, %d %b %Y %H:%M:%S $tz_offset", @lt);
 
                 if ( ( !$d ) || ( $3 ne $d ) ) {
                     $d = $3;
@@ -153,19 +176,54 @@ sub displayTumble {
                         $data->{$item}->{'url'} .
                         qq{" alt="image" />};
                 };
+                
+                /quote/ && do {
+                    # For quote items, build description text
+                    my $quote_text = $data->{$item}->{'quote'} || '';
+                    my $author_text = $data->{$item}->{'author'} || '';
+                    # Build the description text - will be escaped in wrap() function
+                    $content = '"' . $quote_text . '" --' . $author_text;
+                };
         }
 
-        $c .= $self->wrap(
+        # For XML/RSS feeds, wrap HTML content in CDATA sections (for ircLink and image items)
+        my $xml_content = $content;
+        if ( $self->{'arg'}->{'dtype'} =~ /xml|rss/ && defined $content && $content ne '' && $data->{$item}->{'type'} ne 'quote' ) {
+            # Wrap HTML content in CDATA for RSS descriptions (quote already has CDATA)
+            $xml_content = '<![CDATA[' . $content . ']]>';
+        }
+
+        my %template_vars = (
             wrapper => 'tumble_item_' . $data->{$item}->{'type'},
             author  => $data->{$item}->{'user'},
-	    baseurl => $CONFIG->{'baseurl'},
-            content => $content,
-
+            baseurl => $CONFIG->{'baseurl'},
             %{$data->{$item}}
         );
+        
+        # Add content or description depending on item type
+        if ( $data->{$item}->{'type'} eq 'quote' ) {
+            # For quote items, pass description (will be escaped in wrap() function)
+            $template_vars{'description'} = $content if defined $content;
+        } elsif ( defined $xml_content ) {
+            $template_vars{'content'} = $xml_content;
+        }
+
+        $c .= $self->wrap( %template_vars );
     }
 
-    $c =~ s/\&/\&amp;/g if $c;
+    # Escape XML special characters for non-CDATA sections
+    if ( $self->{'arg'}->{'dtype'} =~ /xml|rss/ && $c ) {
+        # Only escape if not already in CDATA sections
+        # Escape & first, then other characters
+        $c =~ s/&(?!lt;|gt;|amp;|quot;|apos;|#\d+;|#x[0-9a-f]+;)/&amp;/gi;
+        # Don't escape < and > that are already in CDATA sections
+        # But we need to escape them outside CDATA and in titles/links
+        # Since we're wrapping descriptions in CDATA, we only need to escape in titles and links
+        # This is handled by the XML escaping function below for non-CDATA content
+    } elsif ( $c ) {
+        # For HTML output, escape ampersands
+        $c =~ s/\&/\&amp;/g;
+    }
 
     my ( $nav );
 
@@ -346,9 +404,28 @@ sub wrap {
         }
     }
 
+    # Escape XML special characters for text fields in XML/RSS output
+    my $is_xml = $self->{'arg'}->{'dtype'} =~ /xml|rss/;
+    
     map {
-        chomp( $arg->{$_} ) if ref $arg->{$_};
-        $template->param( $_ => $arg->{$_} );
+        my $value = $arg->{$_};
+        chomp( $value ) if ref $value;
+        
+        # For XML output, escape text fields (but not content which should be CDATA)
+        if ( $is_xml && !ref $value && $_ ne 'content' && $_ ne 'container' ) {
+            # Escape XML special characters for titles, links, descriptions, etc.
+            # Must escape & first, then < and >
+            $value =~ s/&/&amp;/g;
+            $value =~ s/</&lt;/g;
+            $value =~ s/>/&gt;/g;
+            # Escape quotes for attribute safety (though we're using in content, not attributes)
+            # Also escape quotes in description text to be safe
+            if ( $_ eq 'description' ) {
+                $value =~ s/"/&quot;/g;
+            }
+        }
+        
+        $template->param( $_ => $value );
     } keys %{$arg};
 
     return $template->output();
