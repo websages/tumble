@@ -2,7 +2,7 @@ package tumble;
 
 use base 'CGI::Application';
 
-use lsrfsh::MySQL;
+use tumble::DB;
 
 use DBI;
 use strict;
@@ -40,7 +40,7 @@ sub setup {
         /html/    && do { $self->header_props( -type => 'text/html; charset=UTF-8' ); };
     }
 
-    $self->{'dbh'} = lsrfsh::MySQL->new( config => 'config.yaml' );
+    $self->{'dbh'} = tumble::DB->new( config => 'config.yaml' );
     $self->{'content_processor'} = tumble::Content->new( config => $CONFIG );
 
     $self->start_mode( 'displayTumble' );
@@ -54,12 +54,14 @@ sub displayTumble {
     my ( $filter, $data, $r );
 
     if ( $self->{'arg'}->{'i'} ) {
-        $filter = "DATE_SUB(CURDATE(), INTERVAL " . $self->{'arg'}->{'i'} * 6
-            . " DAY) <= timestamp AND DATE_SUB(CURDATE(), INTERVAL "
-            . ( $self->{'arg'}->{'i'} - 1 ) * 6 . " DAY) >= timestamp";
+        my $start_days = $self->{'arg'}->{'i'} * 6;
+        my $end_days = ( $self->{'arg'}->{'i'} - 1 ) * 6;
+
+        $filter = $self->{'dbh'}->date_interval_sql($start_days) . " <= timestamp AND " .
+                  $self->{'dbh'}->date_interval_sql($end_days) . " >= timestamp";
     }
     else {
-        $filter = "DATE_SUB(CURDATE(), INTERVAL 6 DAY) <= timestamp";
+        $filter = $self->{'dbh'}->date_interval_sql(6) . " <= timestamp";
     }
 
     foreach my $type ( qw( ircLink image quote ) ) {
@@ -170,15 +172,10 @@ sub displayTumble {
     $nav->{'n'} = '' unless $self->{'arg'}->{'i'};
 
     if ( $self->{'arg'}->{'dtype'} =~ /html/ ) {
-        $filter = qq{
-            DATE_SUB(
-                CURDATE(), INTERVAL 12 DAY
-            ) <= timestamp
-            AND DATE_SUB(
-                CURDATE(), INTERVAL 6 DAY
-            ) >= timestamp
-            AND clicks > 1
-        };
+        $filter = $self->{'dbh'}->date_interval_sql(12) . " <= timestamp" .
+                  " AND " .
+                  $self->{'dbh'}->date_interval_sql(6) . " >= timestamp" .
+                  " AND clicks > 1";
 
         my $hot = $self->{'dbh'}->fetch(
             source => 'ircLink',

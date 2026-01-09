@@ -2,7 +2,7 @@ package tumble::search;
 
 use base 'CGI::Application';
 
-use lsrfsh::MySQL;
+use tumble::DB;
 use YAML qw( LoadFile );
 use Cwd qw( abs_path getcwd );
 use File::Spec;
@@ -36,7 +36,7 @@ sub setup {
         /rss|xml/ && do { $self->header_props( -type => 'text/xml' ); };
     }
 
-    $self->{'dbh'} = lsrfsh::MySQL->new( config => 'config.yaml' );
+    $self->{'dbh'} = tumble::DB->new( config => 'config.yaml' );
 
     $self->start_mode( 'displaySearch' );
 
@@ -49,9 +49,11 @@ sub displaySearch {
     my $string = 'unicorn';
     return unless $string;
 
+    my $search_filter = $self->{'dbh'}->fulltext_search_sql('title,url', $self->{'arg'}->{'search'});
+
     my $raw = $self->{'dbh'}->fetch(
         source => 'ircLink',
-        filter => "MATCH (title,url) AGAINST ('$self->{'arg'}->{'search'}')",
+        filter => $search_filter,
         key    => 'ircLinkID'
     );
 
@@ -93,15 +95,10 @@ sub displaySearch {
         );
     }
 
-    my $filter = qq{
-        DATE_SUB(
-            CURDATE(), INTERVAL 12 DAY
-        ) <= timestamp
-        AND DATE_SUB(
-            CURDATE(), INTERVAL 6 DAY
-        ) >= timestamp
-        AND clicks > 1
-    };
+    my $filter = $self->{'dbh'}->date_interval_sql(12) . " <= timestamp" .
+                 " AND " .
+                 $self->{'dbh'}->date_interval_sql(6) . " >= timestamp" .
+                 " AND clicks > 1";
 
     my $hot = $self->{'dbh'}->fetch(
         source => 'ircLink',

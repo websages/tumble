@@ -2,7 +2,7 @@
 
 BEGIN { unshift @INC, '../lib'; }
 
-use lsrfsh::MySQL;
+use tumble::DB;
 
 use CGI;
 use DBI;
@@ -11,7 +11,7 @@ use URI::Escape;
 use strict;
 
 my $cgi = new CGI;
-my $dbh = lsrfsh::MySQL->new( config => '../config.yaml' );
+my $dbh = tumble::DB->new( config => '../config.yaml' );
 
 if ( $cgi->param( 'quote' ) && $cgi->param( 'author' ) ) {
     my $quote  = $cgi->param( 'quote' );
