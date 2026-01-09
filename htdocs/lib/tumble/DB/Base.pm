@@ -43,10 +43,40 @@ sub fetch {
 
     my $sql = "SELECT * FROM $args{source} $where_clause $order_clause $limit_clause";
 
-    return $self->{dbi}->selectall_hashref(
-        $sql,
-        $args{key}
-    );
+    # Log the SQL query if DEBUG environment variable is set
+    if ($ENV{TUMBLE_DEBUG}) {
+        warn "[DB] Executing query: $sql\n";
+    }
+
+    my $result;
+    eval {
+        $result = $self->{dbi}->selectall_hashref(
+            $sql,
+            $args{key}
+        );
+    };
+    
+    if ($@) {
+        warn "[DB] Query FAILED: $@\n";
+        warn "[DB] SQL: $sql\n";
+        die "Database query failed: $@";
+    }
+    
+    # Check if result is empty and log
+    if ($result && ref($result) eq 'HASH') {
+        my $row_count = scalar keys %$result;
+        
+        if ($ENV{TUMBLE_DEBUG}) {
+            warn "[DB] Query returned $row_count row(s) from table '$args{source}'\n";
+        }
+        
+        if ($row_count == 0) {
+            warn "[DB] No data found in table '$args{source}' with filter: " . 
+                 ($args{filter} || 'none') . "\n";
+        }
+    }
+    
+    return $result;
 }
 
 sub post {

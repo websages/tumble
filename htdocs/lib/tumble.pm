@@ -40,7 +40,21 @@ sub setup {
         /html/    && do { $self->header_props( -type => 'text/html; charset=UTF-8' ); };
     }
 
-    $self->{'dbh'} = tumble::DB->new( config => 'config.yaml' );
+    # Initialize database connection with error handling
+    eval {
+        $self->{'dbh'} = tumble::DB->new( config => 'config.yaml' );
+    };
+    if ($@) {
+        warn "[tumble] FATAL: Failed to initialize database connection\n";
+        warn "[tumble] Error: $@\n";
+        warn "[tumble] Please check:\n";
+        warn "[tumble]   1. config.yaml exists and is readable\n";
+        warn "[tumble]   2. Database server is running (if using MySQL)\n";
+        warn "[tumble]   3. Database file exists and is readable (if using SQLite)\n";
+        warn "[tumble]   4. Database credentials are correct\n";
+        die "Database initialization failed: $@";
+    }
+    
     $self->{'content_processor'} = tumble::Content->new( config => $CONFIG );
 
     $self->start_mode( 'displayTumble' );
@@ -77,6 +91,20 @@ sub displayTumble {
             $data->{$_} = $raw->{$type}->{$_};
             $data->{$_}->{'type'} = $type;
         } keys %{$raw->{$type}}
+    }
+    
+    # Check if we have any data at all
+    if (!$data || (ref($data) eq 'HASH' && scalar(keys %$data) == 0)) {
+        warn "[tumble] WARNING: No content found in database\n";
+        warn "[tumble] Filter used: $filter\n";
+        warn "[tumble] This could mean:\n";
+        warn "[tumble]   1. Database is empty (no content has been added yet)\n";
+        warn "[tumble]   2. No content matches the current date filter\n";
+        warn "[tumble]   3. Database tables exist but contain no rows\n";
+        warn "[tumble] Try:\n";
+        warn "[tumble]   - Adding some content to the database\n";
+        warn "[tumble]   - Checking if content exists: SELECT COUNT(*) FROM ircLink;\n";
+        warn "[tumble]   - Verifying the date filter is not too restrictive\n";
     }
 
     my ( $c, $d, $date );
