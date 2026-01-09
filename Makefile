@@ -82,3 +82,6 @@ rpm: clean tarball
 
 tempdir:
 	echo $(TMPDIR)
+
+test:
+	prove -l t/*.t

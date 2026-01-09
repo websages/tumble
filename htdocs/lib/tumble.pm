@@ -5,21 +5,22 @@ use base 'CGI::Application';
 use lsrfsh::MySQL;
 
 use DBI;
-use POSIX qw( strftime );
-use Time::Local qw( timelocal timegm );
-use Cwd qw( abs_path getcwd );
-use File::Spec;
-
-use YAML qw( LoadFile );
-
 use strict;
 use warnings;
+
+use tumble::Content;
+use YAML qw( LoadFile );
+use Cwd qw( abs_path getcwd );
+use File::Spec;
 
 my $CONFIG = LoadFile( 'config.yaml' );
 
 
 sub setup {
     my $self = shift;
+
+    # Ensure STDOUT handles UTF-8 to prevent "Wide character in print" errors
+    binmode(STDOUT, ':encoding(UTF-8)');
 
     $self->run_modes([qw/
         displayTumble
@@ -40,6 +41,7 @@ sub setup {
     }
 
     $self->{'dbh'} = lsrfsh::MySQL->new( config => 'config.yaml' );
+    $self->{'content_processor'} = tumble::Content->new( config => $CONFIG );
 
     $self->start_mode( 'displayTumble' );
 
@@ -77,159 +79,53 @@ sub displayTumble {
 
     my ( $c, $d, $date );
 
-    foreach my $item ( reverse sort { $a cmp $b } keys %{$data} ) {
-        my ( $content );
+    foreach my $item_id ( reverse sort { $a cmp $b } keys %{$data} ) {
+        my $item = $data->{$item_id};
+        
+        # Delegate processing to Tumble::Content
+        # This handles date formatting, twitter/youtube embeds, title truncation etc.
+        my $processed = $self->{'content_processor'}->process_item( $item );
+        
+        # Update the data hash with processed values
+        $data->{$item_id} = $processed;
+        my $formatted_timestamp = $processed->{'timestamp'};
+        my $content = $processed->{'content'};
 
-        if (
-            $data->{$item}->{'timestamp'} =~
-                /(\d{4})-(\d{2})-(\d{2})\s(\d{2}):(\d{2}):(\d{2})/
-        ) {
-            # Parse the timestamp: $1=year, $2=month, $3=day, $4=hour, $5=minute, $6=second
-            my ($year, $month, $day, $hour, $minute, $second) = ($1, $2, $3, $4, $5, $6);
+        # Date header logic
+        if ( defined $processed->{_date_components} ) {
+            my $comps = $processed->{_date_components};
             
-            # Convert to epoch time (month is 0-based in timelocal)
-            # Note: timelocal interprets time as local time based on server timezone
-            my $epoch = timelocal($second, $minute, $hour, $day, $month - 1, $year - 1900);
-            
-            # Format as RFC 822 date (RSS pubDate format)
-            # Get localtime components for the timestamp
-            my @lt = localtime($epoch);
-            
-            # Calculate timezone offset by comparing GMT and local time
-            # timegm returns GMT epoch for given local time components
-            my $gmt_epoch = timegm(@lt);
-            my $local_epoch = timelocal(@lt);
-            my $tz_offset_seconds = $local_epoch - $gmt_epoch;
-            my $tz_offset_minutes = $tz_offset_seconds / 60;
-            
-            # Format timezone offset as +HHMM or -HHMM
-            my $tz_sign = $tz_offset_minutes >= 0 ? '+' : '-';
-            my $tz_hours = abs(int($tz_offset_minutes / 60));
-            my $tz_mins = abs(int($tz_offset_minutes % 60));
-            my $tz_offset = sprintf("%s%02d%02d", $tz_sign, $tz_hours, $tz_mins);
-            
-            $data->{$item}->{'timestamp'} =
-                POSIX::strftime("%a, %d %b %Y %H:%M:%S $tz_offset", @lt);
+            if ( ( !$d ) || ( $comps->{'raw_day'} ne $d ) ) {
+                $d = $comps->{'raw_day'};
 
-                if ( ( !$d ) || ( $3 ne $d ) ) {
-                    $d = $3;
+                $date->{'day'} = $comps->{'day'};
+                $date->{'mon'} = $comps->{'mon'};
 
-                    $date->{'day'} = POSIX::strftime(
-                        "%a", 0, $5, $4, $3, $2 - 1, $1 - 1900
-                    );
-                    $date->{'mon'} = POSIX::strftime(
-                        "%b", 0, $5, $4, $3, $2 - 1, $1 - 1900
-                    );
-
-                    $c .= $self->wrap(
-                        wrapper => 'tumble_date',
-                        month   => $date->{'mon'},
-                        day     => $date->{'day'},
-                        date    => $d
-                    );
-                }
+                $c .= $self->wrap(
+                    wrapper => 'tumble_date',
+                    month   => $date->{'mon'},
+                    day     => $date->{'day'},
+                    date    => $d
+                );
+            }
         }
 
-        for ( $data->{$item}->{'type'} ) {
-                /ircLink/ && do {
-                    if ( $data->{$item}->{'title'} =~ /^(http:\/\/.*)/ ) {
-                        if ( length( $1 ) > 40 ) {
-                            $data->{$item}->{'title'} = substr( $1, 0, 40 ) . '...';
-                        }
-                    }
-
-                    my $link_filler =  $data->{$item}->{'title'};
-
-                    # fall back to normal linking of images if they could be nsfw
-                    if (($data->{$item}->{'content_type'} =~ /image/) and ($data->{$item}->{'user'} !~ /nsfw|otd/)) {
-                      $link_filler =  '<img src="' .  $data->{$item}->{'url'} . '">';
-                    }
-
-                    if ($data->{$item}->{'url'} =~ /twitter/) {
-                      use LWP::Simple;
-                      use JSON;
-                      my @parts = split('/' , $data->{$item}->{'url'});
-                      my $id = $parts[-1];
-                      # This is so URIs like id/photos/1 don't try to call json
-                      next if $id !~ /[0-9]+/;
-                      next if $#parts > 6;
-                      my $tw_uri = "https://api.twitter.com/1/statuses/oembed.json?id=" . $id;
-                      my $tw_j = get( $tw_uri );
-                      next unless $tw_j;
-                      my $stuff = from_json($tw_j);
-                      $link_filler = $stuff->{'html'};
-                    }
-
-                    # Handle YouTube URLs - extract video ID and create embed
-                    my $is_youtube = 0;
-                    if ($data->{$item}->{'url'} =~ /youtube\.com|youtu\.be/i) {
-                      my $video_id;
-                      my $url = $data->{$item}->{'url'};
-
-                      # Handle various YouTube URL formats (case-insensitive, with or without www/protocol)
-                      if ($url =~ /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/i) {
-                        $video_id = $1;
-                      } elsif ($url =~ /youtube\.com\/watch\?.*[&?]v=([a-zA-Z0-9_-]{11})/i) {
-                        $video_id = $1;
-                      }
-
-                      if ($video_id) {
-                        # Create responsive YouTube embed (standalone, not wrapped in link)
-                        $content = '<div class="youtube-embed-wrapper">' .
-                                   '<iframe width="560" height="315" ' .
-                                   'src="https://www.youtube.com/embed/' . $video_id . '?rel=0" ' .
-                                   'frameborder="0" ' .
-                                   'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' .
-                                   'allowfullscreen></iframe>' .
-                                   '</div>';
-                        $is_youtube = 1;
-                      }
-                    }
-
-                    unless ($is_youtube) {
-                      $content =
-                          '<a href="http://' . $CONFIG->{'baseurl'} .
-                          qq{/irclink/?} .
-                          $data->{$item}->{'ircLinkID'} .
-                          qq{">} .
-                          $link_filler  .
-                          qq{</a>};
-                    }
-
-                };
-
-                /image/ && do {
-                    $content =
-                        qq{<img src="} .
-                        $data->{$item}->{'url'} .
-                        qq{" alt="image" />};
-                };
-                
-                /quote/ && do {
-                    # For quote items, build description text
-                    my $quote_text = $data->{$item}->{'quote'} || '';
-                    my $author_text = $data->{$item}->{'author'} || '';
-                    # Build the description text - will be escaped in wrap() function
-                    $content = '"' . $quote_text . '" --' . $author_text;
-                };
-        }
-
+        my %template_vars = (
+            wrapper => 'tumble_item_' . $processed->{'type'},
+            author  => $processed->{'user'},
+            baseurl => $CONFIG->{'baseurl'},
+            %{$processed}
+        );
+        
+        # Add content or description depending on item type
         # For XML/RSS feeds, wrap HTML content in CDATA sections (for ircLink and image items)
         my $xml_content = $content;
-        if ( $self->{'arg'}->{'dtype'} =~ /xml|rss/ && defined $content && $content ne '' && $data->{$item}->{'type'} ne 'quote' ) {
+        if ( $self->{'arg'}->{'dtype'} =~ /xml|rss/ && defined $content && $content ne '' && $processed->{'type'} ne 'quote' ) {
             # Wrap HTML content in CDATA for RSS descriptions (quote already has CDATA)
             $xml_content = '<![CDATA[' . $content . ']]>';
         }
 
-        my %template_vars = (
-            wrapper => 'tumble_item_' . $data->{$item}->{'type'},
-            author  => $data->{$item}->{'user'},
-            baseurl => $CONFIG->{'baseurl'},
-            %{$data->{$item}}
-        );
-        
-        # Add content or description depending on item type
-        if ( $data->{$item}->{'type'} eq 'quote' ) {
+        if ( $processed->{'type'} eq 'quote' ) {
             # For quote items, pass description (will be escaped in wrap() function)
             $template_vars{'description'} = $content if defined $content;
         } elsif ( defined $xml_content ) {
