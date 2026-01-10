@@ -5,30 +5,52 @@ import (
 	"embed"
 	"html/template"
 	"io"
+	"strings"
+	texttemplate "text/template"
 )
 
 //go:embed views/*.html views/*.xml
 var viewsFS embed.FS
 
 type Renderer struct {
-	tmpls *template.Template
+	htmlTmpls *template.Template
+	xmlTmpls  *texttemplate.Template
 }
 
 func NewRenderer() (*Renderer, error) {
-	tmpls, err := template.ParseFS(viewsFS, "views/*.html", "views/*.xml")
+	htmlTmpls, err := template.ParseFS(viewsFS, "views/*.html")
 	if err != nil {
 		return nil, err
 	}
-	return &Renderer{tmpls: tmpls}, nil
+
+	xmlTmpls, err := texttemplate.ParseFS(viewsFS, "views/*.xml")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Renderer{
+		htmlTmpls: htmlTmpls,
+		xmlTmpls:  xmlTmpls,
+	}, nil
 }
 
 func (r *Renderer) Render(w io.Writer, name string, data interface{}) error {
-	return r.tmpls.ExecuteTemplate(w, name, data)
+	if strings.HasSuffix(name, ".xml") {
+		return r.xmlTmpls.ExecuteTemplate(w, name, data)
+	}
+	return r.htmlTmpls.ExecuteTemplate(w, name, data)
 }
 
 func (r *Renderer) RenderToString(name string, data interface{}) (string, error) {
 	var buf bytes.Buffer
-	if err := r.tmpls.ExecuteTemplate(&buf, name, data); err != nil {
+	var err error
+	if strings.HasSuffix(name, ".xml") {
+		err = r.xmlTmpls.ExecuteTemplate(&buf, name, data)
+	} else {
+		err = r.htmlTmpls.ExecuteTemplate(&buf, name, data)
+	}
+
+	if err != nil {
 		return "", err
 	}
 	return buf.String(), nil

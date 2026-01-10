@@ -31,6 +31,8 @@ type DisplayItem struct {
 	Content       template.HTML `json:"content"`
 	Description   string        `json:"description,omitempty"`
 	ContentType   string        `json:"content_type"`
+	Quote         string        `json:"quote,omitempty"`
+	BaseURL       string        `json:"base_url"`
 
 	// Date components for grouping
 	DateDay    string `json:"date_day"`     // e.g. "Mon"
@@ -52,6 +54,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		URL:         item.URL,
 		Clicks:      item.Clicks,
 		ContentType: item.ContentType,
+		BaseURL:     s.Config.BaseURL,
 	}
 	s.formatDate(&d)
 
@@ -64,7 +67,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 
 	// Image check
 	if strings.Contains(item.ContentType, "image") && !strings.Contains(item.User, "nsfw") && !strings.Contains(item.User, "otd") {
-		linkFiller = fmt.Sprintf(`<img src="%s">`, item.URL)
+		linkFiller = fmt.Sprintf(`<img src="%s" />`, item.URL)
 	}
 
 	isYoutube := false
@@ -101,7 +104,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 	}
 
 	if videoID != "" {
-		embed := fmt.Sprintf(`<div class="youtube-embed-wrapper"><iframe width="560" height="315" src="https://www.youtube.com/embed/%s?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`, videoID)
+		embed := fmt.Sprintf(`<div class="youtube-embed-wrapper"><iframe width="560" height="315" src="https://www.youtube.com/embed/%s?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe></div>`, videoID)
 		d.Content = template.HTML(embed)
 		isYoutube = true
 	}
@@ -122,6 +125,7 @@ func (s *ContentService) ProcessImage(item data.Image) DisplayItem {
 		Timestamp: item.Timestamp,
 		Title:     item.Title,
 		URL:       item.URL,
+		BaseURL:   s.Config.BaseURL,
 	}
 	s.formatDate(&d)
 	d.Content = template.HTML(fmt.Sprintf(`<img src="%s" alt="image" />`, item.URL))
@@ -134,6 +138,8 @@ func (s *ContentService) ProcessQuote(item data.Quote) DisplayItem {
 		Type:      "quote",
 		Timestamp: item.Timestamp,
 		Author:    item.Author, // Quote author field
+		Quote:     item.Quote,
+		BaseURL:   s.Config.BaseURL,
 	}
 	s.formatDate(&d)
 	// For quotes, content is text + author

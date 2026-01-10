@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+
+	"golang.org/x/net/html"
 )
 
 // OGPreviewHandler handles /ogpreview.cgi
@@ -15,6 +17,7 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch data
 	resp, err := http.Get(urlParam)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch URL"})
@@ -22,17 +25,62 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	// Simple parsing using net/html tokenizer or just simple logic
-	// For "100% compatibility" we need a decent parser.
-	// Since I cannot import external packages easily without go get, and I already did go get...
-	// Wait, I didn't get `golang.org/x/net/html`. I should probably skip full parsing and do regex
-	// matching like the fallback in Perl to avoid dependency hell in this environment?
-	// The Perl code had a regex fallback!
-	// I'll implement the regex fallback logic using `io/ioutil` and `regexp`.
+	// Parse HTML
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to parse HTML"})
+		return
+	}
 
-	// ... (Parsing logic similar to Perl regex)
-	// Placeholder for now:
-	json.NewEncoder(w).Encode(map[string]string{
-		"title": "Preview not implemented fully in migration yet",
-	})
+	metadata := make(map[string]string)
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "meta" {
+			var property, content, name string
+			for _, a := range n.Attr {
+				if a.Key == "property" {
+					property = a.Val
+				}
+				if a.Key == "content" {
+					content = a.Val
+				}
+				if a.Key == "name" {
+					name = a.Val
+				}
+			}
+
+			if property == "og:title" {
+				metadata["title"] = content
+			} else if property == "og:description" {
+				metadata["description"] = content
+			} else if property == "og:image" {
+				metadata["image"] = content
+			} else if name == "twitter:image" {
+				metadata["twitter_image"] = content
+			} else if name == "twitter:title" {
+				metadata["twitter_title"] = content
+			} else if name == "twitter:description" {
+				metadata["twitter_description"] = content
+			} else if name == "description" {
+				if _, ok := metadata["description"]; !ok {
+					metadata["description"] = content
+				}
+			}
+		}
+		// Also look for title tag
+		if n.Type == html.ElementNode && n.Data == "title" {
+			if n.FirstChild != nil {
+				if _, ok := metadata["title"]; !ok {
+					metadata["title"] = n.FirstChild.Data
+				}
+			}
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
+
+	json.NewEncoder(w).Encode(metadata)
 }

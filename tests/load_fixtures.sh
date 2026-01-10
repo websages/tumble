@@ -19,4 +19,14 @@ $ADD_LINK_SCRIPT "social_butterfly" "https://fosstodon.org/@genebean/11394524445
 # Standard Link
 $ADD_LINK_SCRIPT "web_surfer" "http://costs.wtf"
 
+ADD_QUOTE_SCRIPT="./tests/add_quote.sh"
+
+# Quotes
+$ADD_QUOTE_SCRIPT "Linus Torvalds" "Talk is cheap. Show me the code."
+$ADD_QUOTE_SCRIPT "Brian Kernighan" "Debugging is twice as hard as writing the code in the first place."
+$ADD_QUOTE_SCRIPT "Simba" "Everything the light touches is our kingdom."
+
+echo "Loading backdated 'Hot Links' directly into DB..."
+sqlite3 tumble.sqlite < tests/fixtures_hot.sql
+
 echo "Fixtures loaded."
