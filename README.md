@@ -99,10 +99,83 @@ mysql -u tumble -p tumble < sql/schema.mysql
 
 See [docs/database_setup.md](docs/database_setup.md) for detailed instructions.
 
+## Debugging and Logging
+
+Tumble provides comprehensive database logging to help troubleshoot connection issues and diagnose problems.
+
+### Automatic Database Diagnostics
+
+When the application starts, it automatically:
+
+- **Logs connection attempts** with database details (host, database name, file paths)
+- **Verifies database health** by checking for expected tables (`ircLink`, `image`, `quote`)
+- **Reports table statistics** including row counts for each table
+- **Warns about issues** such as:
+  - Missing database files (SQLite)
+  - Empty databases (no tables)
+  - Missing expected tables
+  - Empty tables (no data)
+  - File permission problems (SQLite)
+  - Connection failures with troubleshooting suggestions
+
+### Debug Mode
+
+For verbose logging of all database operations, enable debug mode:
+
+```bash
+export TUMBLE_DEBUG=1
+```
+
+With debug mode enabled, you'll see:
+- All SQL queries being executed
+- Row counts for each query result
+- Detailed query execution information
+
+**Example:**
+```bash
+# Enable debug mode
+export TUMBLE_DEBUG=1
+
+# Start your web server or run the application
+perl -I htdocs/lib htdocs/index.cgi
+```
+
+### Log Output Examples
+
+**Successful MySQL connection:**
+```
+[MySQL] Attempting to connect to database 'tumble' on host 'localhost' as user 'tumble'
+[MySQL] Connection SUCCESSFUL
+[MySQL] Database contains 3 table(s)
+[MySQL] Tables: ircLink, image, quote
+```
+
+**SQLite with missing database file:**
+```
+[SQLite] Attempting to connect to database file: tumble.db
+[SQLite] Database file DOES NOT EXIST
+[SQLite]   - SQLite will create a new empty database file
+[SQLite]   - You will need to run the database setup script to create tables
+[SQLite] Connection SUCCESSFUL
+[SQLite] WARNING: Database appears to be empty (no tables found)
+[SQLite]   - You need to run the database setup script
+```
+
+**Connection failure with diagnostics:**
+```
+[MySQL] Connection FAILED: Access denied for user 'tumble'@'localhost'
+[MySQL] Diagnostics:
+[MySQL]   - DSN: dbi:mysql:tumble;host=localhost
+[MySQL]   - Username: tumble
+[MySQL] Troubleshooting suggestions:
+[MySQL]   1. Verify MySQL server is running: systemctl status mysql
+[MySQL]   2. Check credentials in config.yaml are correct
+[MySQL]   3. Verify user has permissions: GRANT ALL ON tumble.* TO 'tumble'@'localhost'
+```
+
 ## Bugs
 
     * fix user-agent being hardy for link verification
-    * Should warn if unable to talk to databse or database is empty
     * abstract quantity of items to be in 'hot shit' category
     * Fix odd encoding bugs for web site titles
     * Probably lots of others, but it has been in production for 10 years.
