@@ -52,6 +52,13 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	dtype := params.Get("dtype")
 	iParam := params.Get("i")
 
+	// Infer dtype from path if not set
+	if dtype == "" {
+		if r.URL.Path == "/index.xml" || r.URL.Path == "/index.rss" {
+			dtype = "xml"
+		}
+	}
+
 	i := 1
 	if iParam != "" {
 		val, err := strconv.Atoi(iParam)
