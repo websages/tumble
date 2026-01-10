@@ -1,2 +1,2 @@
-debian/changelog
-scripts/twit-link
+tumble.sqlite
+bin/*

@@ -1,0 +1,197 @@
+body {
+    margin: 0 auto 0 auto;
+    background-color: white;
+    width: 750px;
+}
+
+#page {
+    padding: 15px 0 50px 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    line-height: 18px;
+    position: relative;
+}
+
+#masthead, #sidebar, #content {
+    position: relative;
+}
+
+#masthead {
+    margin-left: -100px;
+    padding-left: 100px;
+    margin-right: -25px;
+    padding-right: 25px;
+    font-size: 72px;
+    font-weight: bold;
+    line-height: 68px;
+    letter-spacing: -5px;
+    border-bottom: solid 2px;
+}
+
+#masthead a {
+    text-decoration: none;
+    color: #000;
+}
+
+#sidebar {
+    width: 175px;
+    float: right;
+}
+
+#content {
+    width: 525px;
+}
+
+.date-icon {
+    margin-top: 23px;
+    margin-left: -75px;
+    font-size: 16px;
+    font-weight: bold;
+    float: left;
+}
+
+.date-date {
+    font-size: 52px;
+    color: #ccc;
+}
+
+.date-day {
+    margin-top: -24px;
+    margin-left: 15px;
+    color: #666;
+}
+
+.date-month {
+    margin-left: 15px;
+}
+
+.item {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 24px;
+    line-height: 20px;
+    letter-spacing: -1px;
+}
+
+.item img {
+    padding: 3px;
+    background: #bbb;
+    max-height: 400px; 
+    max-width: 400px; 
+    overflow: hidden;
+}
+
+.author {
+    padding-left: 5px;
+    font-size: 18px;
+    color: #aaa;
+}
+
+.link a {
+    font-weight: bold;
+    text-decoration: none;
+    color: #6c3;
+}
+
+.text {
+    font-weight: bold;
+    text-decoration: none;
+    color: #aaa;
+}
+
+.quote {
+    padding-left: 30px;
+    font-weight: bold;
+    color: #d5b;
+    background: url(/img/parens.gif) no-repeat;
+}
+
+.header {
+    padding-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: -1px;
+    color: #aaa;
+    text-align: right;
+}
+
+#search-form {
+    padding-bottom: 15px;
+    text-align: right;
+}
+
+.sm {
+    padding-bottom: 15px;
+    font-size: 16px;
+    line-height: 14px;
+    letter-spacing: -1px;
+    text-align: right;
+}
+
+.og-preview {
+    margin-top: 10px;
+    max-width: 500px;
+}
+
+.og-preview:empty {
+    display: none;
+}
+
+.og-preview-card {
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    max-width: 500px;
+    margin-top: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.og-preview-image {
+    width: 100%;
+    overflow: hidden;
+    display: block;
+}
+
+.og-preview-image img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+.og-preview-content {
+    padding: 12px;
+}
+
+.og-preview-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #14171a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.og-preview-description {
+    font-size: 13px;
+    color: #657786;
+    line-height: 1.4;
+}
+
+.youtube-embed-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    margin-top: 10px;
+    background: #000;
+}
+
+.youtube-embed-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}

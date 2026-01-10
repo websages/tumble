@@ -1,0 +1,7 @@
+        <item>
+            <title>{{.Title}}</title>
+            <link>{{.URL}}</link>
+            <guid isPermaLink="false">tumble-image-{{.ID}}</guid>
+            <description>{{.Content}}</description>
+            <pubDate>{{.Timestamp}}</pubDate>
+        </item>
