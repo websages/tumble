@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -45,6 +46,7 @@ func (s *MySQLStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDa
 	// But start_days is the LARGER number (further back in time).
 	// So timestamp >= (NOW - start) AND timestamp <= (NOW - end)
 
+	slog.Debug("GetRecentIRCLinks", "query", query, "startDays", startDays, "endDays", endDays)
 	rows, err := s.db.QueryContext(ctx, query, startDays, endDays)
 	if err != nil {
 		return nil, err
@@ -74,6 +76,7 @@ func (s *MySQLStore) GetRecentImages(ctx context.Context, startDays int, endDays
 		AND timestamp <= DATE_SUB(NOW(), INTERVAL ? DAY)
 		ORDER BY timestamp DESC
 	`
+	slog.Debug("GetRecentImages", "query", query, "startDays", startDays, "endDays", endDays)
 	rows, err := s.db.QueryContext(ctx, query, startDays, endDays)
 	if err != nil {
 		return nil, err
@@ -99,6 +102,7 @@ func (s *MySQLStore) GetRecentQuotes(ctx context.Context, startDays int, endDays
 		AND timestamp <= DATE_SUB(NOW(), INTERVAL ? DAY)
 		ORDER BY timestamp DESC
 	`
+	slog.Debug("GetRecentQuotes", "query", query, "startDays", startDays, "endDays", endDays)
 	rows, err := s.db.QueryContext(ctx, query, startDays, endDays)
 	if err != nil {
 		return nil, err
@@ -125,6 +129,7 @@ func (s *MySQLStore) SearchIRCLinks(ctx context.Context, searchTerm string) ([]I
 		ORDER BY clicks DESC
 		LIMIT 50
 	`
+	slog.Debug("SearchIRCLinks", "query", query, "searchTerm", searchTerm)
 	rows, err := s.db.QueryContext(ctx, query, searchTerm)
 	if err != nil {
 		return nil, err
