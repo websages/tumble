@@ -94,6 +94,7 @@ func main() {
 	mux.Handle("/apple-touch-icon.png", fileServer)
 	subFS, _ := fs.Sub(assets.StaticFS, "2202")
 	mux.Handle("/2202/", http.StripPrefix("/2202/", http.FileServer(http.FS(subFS))))
+	mux.Handle("/roast/", fileServer)
 
 	// API Documentation
 	mux.HandleFunc("/api/docs", h.DocsHandler)
