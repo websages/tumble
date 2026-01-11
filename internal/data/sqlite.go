@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	_ "modernc.org/sqlite"
 )
@@ -36,6 +37,7 @@ func (s *SQLiteStore) GetRecentIRCLinks(ctx context.Context, startDays int, endD
 		AND timestamp <= datetime('now', '-' || ? || ' days')
 		ORDER BY timestamp DESC
 	`
+	slog.Debug("GetRecentIRCLinks", "query", query, "startDays", startDays, "endDays", endDays)
 	rows, err := s.db.QueryContext(ctx, query, startDays, endDays)
 	if err != nil {
 		return nil, err
@@ -66,6 +68,7 @@ func (s *SQLiteStore) GetRecentImages(ctx context.Context, startDays int, endDay
 		AND timestamp <= datetime('now', '-' || ? || ' days')
 		ORDER BY timestamp DESC
 	`
+	slog.Debug("GetRecentImages", "query", query, "startDays", startDays, "endDays", endDays)
 	rows, err := s.db.QueryContext(ctx, query, startDays, endDays)
 	if err != nil {
 		return nil, err
@@ -91,6 +94,7 @@ func (s *SQLiteStore) GetRecentQuotes(ctx context.Context, startDays int, endDay
 		AND timestamp <= datetime('now', '-' || ? || ' days')
 		ORDER BY timestamp DESC
 	`
+	slog.Debug("GetRecentQuotes", "query", query, "startDays", startDays, "endDays", endDays)
 	rows, err := s.db.QueryContext(ctx, query, startDays, endDays)
 	if err != nil {
 		return nil, err
@@ -118,6 +122,7 @@ func (s *SQLiteStore) SearchIRCLinks(ctx context.Context, searchTerm string) ([]
 		LIMIT 50
 	`
 	likeTerm := fmt.Sprintf("%%%s%%", searchTerm)
+	slog.Debug("SearchIRCLinks", "query", query, "searchTerm", searchTerm)
 	rows, err := s.db.QueryContext(ctx, query, likeTerm, likeTerm)
 	if err != nil {
 		return nil, err

@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"sync"
@@ -86,7 +86,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 
 	if errIrc != nil || errImg != nil || errQuote != nil {
-		log.Printf("Error fetching data: %v %v %v", errIrc, errImg, errQuote)
+		slog.Error("Error fetching data", "irc_error", errIrc, "img_error", errImg, "quote_error", errQuote)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -130,7 +130,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 				FullDate:   item.Timestamp.Format("20060102"),
 			})
 		} else {
-			log.Printf("DEBUG: Render Error for Link %d: %v", item.ID, err)
+			slog.Debug("Render Error for Link", "id", item.ID, "error", err)
 		}
 	}
 
@@ -269,7 +269,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", contentType)
 	if err := h.Renderer.Render(w, templateName, viewData); err != nil {
-		log.Printf("Error rendering template: %v", err)
+		slog.Error("Error rendering template", "template", templateName, "error", err)
 	}
 }
 
@@ -287,7 +287,7 @@ func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.Renderer.Render(w, "tumble_buttons.html", data); err != nil {
-		log.Printf("Error rendering buttons: %v", err)
+		slog.Error("Error rendering buttons", "error", err)
 	}
 }
 
@@ -303,7 +303,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	// Perform Search
 	links, err := h.Store.SearchIRCLinks(ctx, query)
 	if err != nil {
-		log.Printf("Search error: %v", err)
+		slog.Error("Search error", "query", query, "error", err)
 		http.Error(w, "Search Error", http.StatusInternalServerError)
 		return
 	}

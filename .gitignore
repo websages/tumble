@@ -1,2 +1,3 @@
 tumble.sqlite
 bin/*
+*.log

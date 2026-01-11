@@ -8,12 +8,18 @@ import (
 )
 
 type Config struct {
-	Host     string `yaml:"host"`
-	Database string `yaml:"database"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	BaseURL  string `yaml:"baseurl"`
-	Driver   string `yaml:"driver"`
+	Host     string  `yaml:"host"`
+	Database string  `yaml:"database"`
+	Username string  `yaml:"username"`
+	Password string  `yaml:"password"`
+	BaseURL  string  `yaml:"baseurl"`
+	Driver   string  `yaml:"driver"`
+	Logging  Logging `yaml:"logging"`
+}
+
+type Logging struct {
+	Level  string `yaml:"level"`  // debug, info, warn, error
+	Output string `yaml:"output"` // stdout, stderr, or file path
 }
 
 func Load(path string) (*Config, error) {
@@ -32,6 +38,12 @@ func Load(path string) (*Config, error) {
 	// Defaults
 	if cfg.Driver == "" {
 		cfg.Driver = "mysql"
+	}
+	if cfg.Logging.Level == "" {
+		cfg.Logging.Level = "info"
+	}
+	if cfg.Logging.Output == "" {
+		cfg.Logging.Output = "stdout"
 	}
 
 	return &cfg, nil
