@@ -89,6 +89,10 @@ func main() {
 	mux.Handle("/buttons/", fileServer)
 	mux.Handle("/favicon.ico", fileServer)
 
+	// API Documentation
+	mux.HandleFunc("/api/docs", h.DocsHandler)
+	mux.HandleFunc("/api/openapi.json", h.OpenAPISpecHandler)
+
 	// Start
 	addr := ":8080" // Default or from config? Perl was CGI so port wasn't in config.
 	log.Printf("Starting tumble server on %s", addr)
