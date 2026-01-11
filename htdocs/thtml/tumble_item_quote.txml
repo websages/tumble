@@ -1,7 +1,0 @@
-        <item>
-            <title><!-- tmpl_var name="quote" --></title>
-            <link>http://<!-- tmpl_var name="baseurl" -->/</link>
-            <guid isPermaLink="false">tumble-quote-<!-- tmpl_var name="quoteID" --></guid>
-            <description><!-- tmpl_var name="description" --></description>
-            <pubDate><!-- tmpl_var name="timestamp" --></pubDate>
-        </item>

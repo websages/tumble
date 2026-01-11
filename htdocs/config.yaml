@@ -1,6 +1,0 @@
----
-host: 'localhost'
-database: 'tumble'
-username: 'tumble'
-baseurl: 'tumble.wcyd.org'
-
