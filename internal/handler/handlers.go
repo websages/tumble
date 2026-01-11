@@ -218,12 +218,11 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			for _, l := range topLinks {
 				// Link content: <a href...>Title</a>
-				content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
-				if len(l.Title) > 15 && len(l.Title) > 15 {
-					// Truncate logic from Perl
-					// if ( $hot->{$_}->{'title'} =~ /^(http:\/\/.*)/ ) { if ( length( $1 ) > 15 ) { ... } }
-					// Handled loosely here or strictly port logic.
+				if len(l.Title) > 30 {
+					l.Title = l.Title[:30] + "..."
 				}
+				// Link content: <a href...>Title</a>
+				content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
 
 				// Render item
 				// Using map for flexibility

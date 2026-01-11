@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -88,6 +89,11 @@ func main() {
 	mux.Handle("/img/", fileServer)
 	mux.Handle("/buttons/", fileServer)
 	mux.Handle("/favicon.ico", fileServer)
+	// Legacy static files
+	mux.Handle("/robots.txt", fileServer)
+	mux.Handle("/apple-touch-icon.png", fileServer)
+	subFS, _ := fs.Sub(assets.StaticFS, "2202")
+	mux.Handle("/2202/", http.StripPrefix("/2202/", http.FileServer(http.FS(subFS))))
 
 	// API Documentation
 	mux.HandleFunc("/api/docs", h.DocsHandler)
