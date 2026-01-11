@@ -1,0 +1,26 @@
+-- Clean up
+DROP USER IF EXISTS 'tumble'@'%';
+DROP USER IF EXISTS 'tumble'@'127.0.0.1';
+DROP USER IF EXISTS 'tumble'@'localhost';
+
+-- Create DB
+CREATE DATABASE IF NOT EXISTS tumble;
+
+-- Socket-authenticated local user
+CREATE USER 'tumble'@'localhost' IDENTIFIED BY '';
+
+-- Grants (powerful but no DB drop)
+GRANT
+  SELECT,
+  INSERT,
+  UPDATE,
+  DELETE,
+  CREATE,
+  ALTER,
+  INDEX,
+  DROP,
+  REFERENCES
+ON tumble.*
+TO 'tumble'@'localhost';
+
+FLUSH PRIVILEGES;
