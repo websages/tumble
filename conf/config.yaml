@@ -1,3 +1,5 @@
-driver: sqlite
-database: tumble.sqlite
+driver: mysql
+database: tumble
+username: tumble
+host: 127.0.0.1:13306
 baseurl: localhost:8080
