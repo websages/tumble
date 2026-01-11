@@ -3,43 +3,49 @@ VERSION=$(shell git describe --tags --always | sed -e 's/-/\./g')
 BINARY_NAME=tumble
 BUILD_DIR=bin
 
-.PHONY: all build clean test deps docs kill restart reset-db load-fixtures
+.PHONY: all build clean test deps docs kill restart reset-db load-fixtures build-linux help
 
-all: build
+all: build ## Build the binary (default)
 
-deps:
+deps: ## Download dependencies
 	go mod download
 
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 LDFLAGS=-ldflags "-X tumble/internal/version.CommitHash=$(GIT_COMMIT)"
 
-build:
+build: ## Build the binary
 	mkdir -p $(BUILD_DIR)
 	CGO_ENABLED=0 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/tumble
 
-clean:
+build-linux: ## Build the binary for Linux amd64
+	mkdir -p $(BUILD_DIR)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/tumble
+
+clean: ## Clean build directory
 	rm -rf $(BUILD_DIR)
 
-test:
+test: ## Run unit tests
 	go test -v ./...
 
-test-api: build
+test-api: build ## Run API tests
 	./tests/api_test.sh
 
-docs:
+docs: ## Generate API docs
 	@echo "Generating API docs..."
 	# Placeholder for Swagger/OpenAPI generation
 	# e.g. swag init -g cmd/tumble/main.go --output docs/api
 
-kill:
+kill: ## Kill the running process
 	-pkill -f $(BUILD_DIR)/$(BINARY_NAME)
 
-restart: kill build
+restart: kill build ## Restart the application locally
 	$(BUILD_DIR)/$(BINARY_NAME) conf/config.yaml &
 
-reset-db:
+reset-db: ## Remove sqlite database
 	rm -f tumble.sqlite
 
-load-fixtures:
+load-fixtures: ## Load test fixtures
 	./tests/load_fixtures.sh
 
+help: ## Show this help message
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
