@@ -1,0 +1,14 @@
+# Model Lifecycle Rules
+
+You must manage the build, start, and stop lifecycle of this project exclusively through the provided `Makefile`. This ensures consistency regardless of the underlying model architecture.
+
+## Primary Commands
+- **Build:** Whenever a model needs setup or dependencies, run `make build`.
+- **Execution:** To run the model/application, run `make restart`. 
+- **Kill:** To stop processes, run `make kill`.
+
+## Constraints
+- **No Direct Shell Commands:** Do not run `docker run`, `go build`, `kill`, `pkill`, or `lsof` to manage the application process. Always use the Makefile targets.
+- **Strict Flow Control:** You MUST use `make kill` to stop the application. You MUST use `make restart` to restart the application.
+- **Model Agnostic:** These rules apply to Gemini, Llama, Claude, or any local models. The Makefile handles the specifics.
+- **Error Handling:** If a `make` command fails, check the `Makefile` definition before attempting manual fixes.
