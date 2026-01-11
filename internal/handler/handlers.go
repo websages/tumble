@@ -274,6 +274,24 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.FormValue("user")
+	if user == "" {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("Oh no!  You didn't enter your name!"))
+		return
+	}
+
+	data := map[string]string{
+		"User":    user,
+		"BaseURL": h.Config.BaseURL,
+	}
+
+	if err := h.Renderer.Render(w, "tumble_buttons.html", data); err != nil {
+		log.Printf("Error rendering buttons: %v", err)
+	}
+}
+
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query().Get("search")
