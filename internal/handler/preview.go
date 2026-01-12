@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -15,6 +17,15 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	if urlParam == "" {
 		json.NewEncoder(w).Encode(map[string]string{"error": "No URL provided"})
 		return
+	}
+
+	// Reddit JSON API (better than oEmbed)
+	if strings.Contains(urlParam, "reddit.com") {
+		if meta, err := h.fetchRedditJSON(urlParam); err == nil {
+			json.NewEncoder(w).Encode(meta)
+			return
+		}
+		// Fallback to normal scraping
 	}
 
 	// Fetch data
@@ -83,4 +94,91 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	f(doc)
 
 	json.NewEncoder(w).Encode(metadata)
+}
+
+func (h *Handler) fetchRedditJSON(url string) (map[string]string, error) {
+	jsonURL := url + ".json"
+	req, err := http.NewRequest("GET", jsonURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	// Unique UA to ensure access
+	req.Header.Set("User-Agent", "Tumble/1.0 (internal tool; +http://tumble.example.com)")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("bad status: %d", resp.StatusCode)
+	}
+
+	var data []interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+
+	if len(data) == 0 {
+		return nil, fmt.Errorf("no data")
+	}
+
+	meta := make(map[string]string)
+	meta["provider_name"] = "Reddit"
+
+	// Traverse: [0] -> data -> children -> [0] -> data
+	if listing, ok := data[0].(map[string]interface{}); ok {
+		if dataObj, ok := listing["data"].(map[string]interface{}); ok {
+			if children, ok := dataObj["children"].([]interface{}); ok && len(children) > 0 {
+				if child, ok := children[0].(map[string]interface{}); ok {
+					if post, ok := child["data"].(map[string]interface{}); ok {
+						if title, ok := post["title"].(string); ok {
+							meta["title"] = title
+							meta["og:title"] = title
+						}
+
+						// Construct description
+						author, _ := post["author"].(string)
+						sub, _ := post["subreddit_name_prefixed"].(string)
+						if author != "" && sub != "" {
+							meta["description"] = fmt.Sprintf("Posted by u/%s in %s", author, sub)
+						}
+
+						if hint, ok := post["post_hint"].(string); ok {
+							if hint == "hosted:video" || hint == "rich:video" {
+								meta["type"] = "video"
+							}
+						}
+
+						// Image extraction
+						// 1. Try 'preview' images (highest quality usually)
+						foundImage := false
+						if preview, ok := post["preview"].(map[string]interface{}); ok {
+							if images, ok := preview["images"].([]interface{}); ok && len(images) > 0 {
+								if img, ok := images[0].(map[string]interface{}); ok {
+									if source, ok := img["source"].(map[string]interface{}); ok {
+										if u, ok := source["url"].(string); ok {
+											meta["image"] = strings.ReplaceAll(u, "&amp;", "&")
+											foundImage = true
+										}
+									}
+								}
+							}
+						}
+
+						// 2. Fallback to 'thumbnail' if valid URL
+						if !foundImage {
+							if thumb, ok := post["thumbnail"].(string); ok && strings.HasPrefix(thumb, "http") {
+								meta["image"] = thumb
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return meta, nil
 }

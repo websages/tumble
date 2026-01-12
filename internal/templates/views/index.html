@@ -69,28 +69,37 @@
             }
             
             // Build preview HTML
-            var previewHTML = '<div class="og-preview-card">';
+            // Build preview HTML
+            var previewHTML = '<div class="og-card">';
             
-            if (imageUrl) {
-              previewHTML += '<div class="og-preview-image"><img src="' + escapeHtml(imageUrl) + '" alt="" /></div>';
+            // Site Info (Icon + Name)
+            var provider = data.provider_name || 'Link';
+            var iconUrl = '/favicon.ico'; 
+            if (provider === 'Reddit') iconUrl = 'https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png';
+            
+            previewHTML += '<div class="og-site-info"><img src="' + iconUrl + '" class="og-site-icon" /> ' + escapeHtml(provider) + '</div>';
+
+            // Title
+            if (title) {
+                previewHTML += '<div class="og-title"><a href="' + escapeHtml(url) + '" target="_blank">' + escapeHtml(title) + '</a></div>';
             }
-            
-            if (title || description) {
-              previewHTML += '<div class="og-preview-content">';
-              
-              if (title) {
-                previewHTML += '<div class="og-preview-title">' + escapeHtml(title) + '</div>';
-              }
-              
-              if (description) {
-                // Truncate description if too long
-                if (description.length > 200) {
-                  description = description.substring(0, 200) + '...';
+
+            // Description
+            if (description) {
+                if (description.length > 300) {
+                    description = description.substring(0, 300) + '...';
                 }
-                previewHTML += '<div class="og-preview-description">' + escapeHtml(description) + '</div>';
-              }
-              
-              previewHTML += '</div>';
+                previewHTML += '<div class="og-description">' + escapeHtml(description) + '</div>';
+            }
+
+            // Image
+            if (imageUrl) {
+                var imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
+                // If it's a video, add the play button overlay
+                if (data.type === 'video') {
+                    imageContent += '<div class="og-play-button"></div>';
+                }
+                previewHTML += '<div class="og-image ' + (data.type === 'video' ? 'is-video' : '') + '">' + imageContent + '</div>';
             }
             
             previewHTML += '</div>';
