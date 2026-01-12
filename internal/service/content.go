@@ -73,16 +73,17 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 
 	isYoutube := false
 
-	// Twitter (Basic implementation of legacy logic)
-	// Note: The Perl code uses V1 API which is deprecated/gone, but we port the logic structure.
-	if strings.Contains(item.URL, "twitter") {
-		parts := strings.Split(item.URL, "/")
-		id := parts[len(parts)-1]
-		if matched, _ := regexp.MatchString(`[0-9]+`, id); matched {
-			// In a real modernization, we'd use local validation or a new API.
-			// Currently skipping the actual HTTP call to avoid timeouts on dead APIs
-			// unless we want to strictly mimic "fail if API fails".
-			// For now, let's skip the dead API call to keep the app responsive.
+	// Twitter / X
+	isTwitter := false
+	if strings.Contains(item.URL, "twitter.com") || strings.Contains(item.URL, "x.com") {
+		// Extract ID to ensure it looks like a tweet URL
+		re := regexp.MustCompile(`(?:twitter\.com|x\.com)\/.*\/status\/([0-9]+)`)
+		matches := re.FindStringSubmatch(item.URL)
+		if len(matches) > 1 {
+			// standard embed code
+			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s"></a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, item.URL)
+			d.Content = template.HTML(embed)
+			isTwitter = true
 		}
 	}
 
@@ -110,7 +111,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		isYoutube = true
 	}
 
-	if !isYoutube {
+	if !isYoutube && !isTwitter {
 		baseURL := s.Config.BaseURL
 		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, baseURL, item.ID, linkFiller)
 		d.Content = template.HTML(content)
