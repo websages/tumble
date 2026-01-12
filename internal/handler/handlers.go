@@ -106,6 +106,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		DateRawDay string
 		DateDay    string
 		DateMonth  string
+		DateYear   string
 		FullDate   string // YYYYMMDD for comparison
 	}
 
@@ -127,6 +128,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 				DateRawDay: d.DateRawDay,
 				DateDay:    d.DateDay,
 				DateMonth:  d.DateMonth,
+				DateYear:   d.DateYear,
 				FullDate:   item.Timestamp.Format("20060102"),
 			})
 		} else {
@@ -150,6 +152,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 				DateRawDay: d.DateRawDay,
 				DateDay:    d.DateDay,
 				DateMonth:  d.DateMonth,
+				DateYear:   d.DateYear,
 				FullDate:   item.Timestamp.Format("20060102"),
 			})
 		}
@@ -171,6 +174,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 				DateRawDay: d.DateRawDay,
 				DateDay:    d.DateDay,
 				DateMonth:  d.DateMonth,
+				DateYear:   d.DateYear,
 				FullDate:   item.Timestamp.Format("20060102"),
 			})
 		}
@@ -199,6 +203,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 					"Date":  p.DateRawDay,
 					"Day":   p.DateDay,
 					"Month": p.DateMonth,
+					"Year":  p.DateYear,
 				}
 				dateHTML, err := h.Renderer.RenderToString("tumble_date.html", dateData)
 				if err == nil {
