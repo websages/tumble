@@ -19,8 +19,17 @@ $ADD_LINK_SCRIPT "social_butterfly" "https://fosstodon.org/@genebean/11394524445
 # Standard Link
 $ADD_LINK_SCRIPT "web_surfer" "http://costs.wtf"
 
+# Reddit Post (Valheim)
+$ADD_LINK_SCRIPT "gamer_girl" "https://www.reddit.com/r/valheim/comments/leqdj6/our_first_encounter_with_the_troll/"
+
+# Imgur (Animated)
+$ADD_LINK_SCRIPT "meme_lord" "https://imgur.com/only-one-jack-black-0qetp3u"
+
 # Twitter Post
 $ADD_LINK_SCRIPT "tweet_master" "https://x.com/jcockhren/status/1229101594505097216?s=20"
+
+# Wikipedia (Go)
+$ADD_LINK_SCRIPT "knowledge_seeker" "https://en.wikipedia.org/wiki/Go_(programming_language)"
 
 ADD_QUOTE_SCRIPT="./tests/add_quote.sh"
 
