@@ -38,6 +38,7 @@ type DisplayItem struct {
 	DateDay    string `json:"date_day"`     // e.g. "Mon"
 	DateMonth  string `json:"date_month"`   // e.g. "Jan"
 	DateRawDay string `json:"date_raw_day"` // e.g. "01"
+	DateYear   string `json:"date_year"`    // e.g. "2026"
 }
 
 func NewContentService(cfg *config.Config) *ContentService {
@@ -158,6 +159,7 @@ func (s *ContentService) formatDate(d *DisplayItem) {
 	d.DateDay = d.Timestamp.Format("Mon")
 	d.DateMonth = d.Timestamp.Format("Jan")
 	d.DateRawDay = d.Timestamp.Format("02")
+	d.DateYear = d.Timestamp.Format("2006")
 }
 
 // FetchOEmbed (Optional helper, untranslated for now due to API changes)
