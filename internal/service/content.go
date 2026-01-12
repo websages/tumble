@@ -87,6 +87,30 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		}
 	}
 
+	// Imgur
+	isImgur := false
+	if strings.Contains(item.URL, "imgur.com") {
+		// Regex for ID extraction
+		re := regexp.MustCompile(`imgur\.com\/(?:.*[\/-])?([a-zA-Z0-9]{5,})(?:\..*)?$`)
+		matches := re.FindStringSubmatch(item.URL)
+		if len(matches) > 1 {
+			id := matches[1]
+			videoURL := fmt.Sprintf("https://i.imgur.com/%s.mp4", id)
+			imgURL := fmt.Sprintf("https://i.imgur.com/%s.jpg", id)
+
+			// We render a video tag by default. If it fails to load (404 for static images, or other errors),
+			// the onerror handler swaps it for a standard image tag.
+			// This avoids server-side rate limits (HTTP 429) and speeds up response time.
+			// Note: We wrap it in the anchor tag in the Go code, but the onerror replaces the VIDEO tag specifically.
+			embed := fmt.Sprintf(
+				`<a href="%s"><video autoplay loop muted playsinline style="max-width: 500px;" src="%s" onerror="this.onerror=null;this.outerHTML='<img src=\'%s\' style=\'max-width: 500px;\' />'"></video></a>`,
+				item.URL, videoURL, imgURL)
+
+			d.Content = template.HTML(embed)
+			isImgur = true
+		}
+	}
+
 	// YouTube
 	// Supports: youtube.com/watch?v=, embed/, youtu.be/
 	videoID := ""
@@ -111,7 +135,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		isYoutube = true
 	}
 
-	if !isYoutube && !isTwitter {
+	if !isYoutube && !isTwitter && !isImgur {
 		baseURL := s.Config.BaseURL
 		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, baseURL, item.ID, linkFiller)
 		d.Content = template.HTML(content)
