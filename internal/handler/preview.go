@@ -29,7 +29,16 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch data
-	resp, err := http.Get(urlParam)
+	req, err := http.NewRequest("GET", urlParam, nil)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid URL"})
+		return
+	}
+	// Use a standard browser UA to avoid 403s (e.g. Wikipedia)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch URL"})
 		return
@@ -44,6 +53,20 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	metadata := make(map[string]string)
+
+	// Helper to extract text from a node's children
+	var extractText func(*html.Node) string
+	extractText = func(n *html.Node) string {
+		var sb strings.Builder
+		if n.Type == html.TextNode {
+			sb.WriteString(n.Data)
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			sb.WriteString(extractText(c))
+		}
+		return sb.String()
+	}
+
 	var f func(*html.Node)
 	f = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "meta" {
@@ -83,6 +106,21 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			if n.FirstChild != nil {
 				if _, ok := metadata["title"]; !ok {
 					metadata["title"] = n.FirstChild.Data
+				}
+			}
+		}
+
+		// Look for first paragraph if no description yet
+		if n.Type == html.ElementNode && n.Data == "p" {
+			if _, hasDesc := metadata["description"]; !hasDesc {
+				text := strings.TrimSpace(extractText(n))
+				// Wikipedia paragraphs often have citations [1] or are empty/short
+				// Simple heuristic: length > 50
+				if len(text) > 50 {
+					// Check for "Coordinates:" which matches length but isn't intro
+					if !strings.HasPrefix(text, "Coordinates:") {
+						metadata["description"] = text
+					}
 				}
 			}
 		}
