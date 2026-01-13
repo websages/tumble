@@ -31,6 +31,15 @@ $ADD_LINK_SCRIPT "tweet_master" "https://x.com/jcockhren/status/1229101594505097
 # Wikipedia (Go)
 $ADD_LINK_SCRIPT "knowledge_seeker" "https://en.wikipedia.org/wiki/Go_(programming_language)"
 
+# Broken Link (404)
+$ADD_LINK_SCRIPT "404_finder" "http://google.com/this-page-does-not-exist-12345"
+
+# Unavailable Video (Soft 404)
+$ADD_LINK_SCRIPT "video_gone" "https://youtu.be/Ie_Wl9eNffE"
+
+# Valid Video (Rick Roll)
+$ADD_LINK_SCRIPT "astley_fan" "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
 ADD_QUOTE_SCRIPT="./tests/add_quote.sh"
 
 # Quotes
