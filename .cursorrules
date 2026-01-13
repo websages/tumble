@@ -12,3 +12,6 @@ You must manage the build, start, and stop lifecycle of this project exclusively
 - **Strict Flow Control:** You MUST use `make kill` to stop the application. You MUST use `make restart` to restart the application.
 - **Model Agnostic:** These rules apply to Gemini, Llama, Claude, or any local models. The Makefile handles the specifics.
 - **Error Handling:** If a `make` command fails, check the `Makefile` definition before attempting manual fixes.
+
+# General Guidelines
+- Do not leave trailing whitespace in files. This can be validated using `git diff --check`.
