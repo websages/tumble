@@ -3,12 +3,16 @@ VERSION=$(shell git describe --tags --always | sed -e 's/-/\./g')
 BINARY_NAME=tumble
 BUILD_DIR=bin
 
-.PHONY: all build clean test deps docs kill restart reset-db load-fixtures build-linux help
+.PHONY: all build clean test deps docs kill restart reset-db load-fixtures build-linux help fmt
 
 all: build ## Build the binary (default)
 
 deps: ## Download dependencies
 	go mod download
+
+fmt: ## Run go fmt and cleanup whitespace
+	go fmt ./...
+	find internal/templates -type f \( -name "*.html" -o -name "*.xml" \) -exec sed -i '' 's/[ \t]*$$//' {} +
 
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 LDFLAGS=-ldflags "-X tumble/internal/version.CommitHash=$(GIT_COMMIT)"
