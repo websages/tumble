@@ -244,10 +244,10 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	navP := ""
 	navN := ""
 	if iParam != "" {
-		navP = fmt.Sprintf(`<a href="?i=%d"><img src="/img/prev.jpg" border="0" alt="" /></a>`, i+1)
-		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d"><img src="/img/next.jpg" border="0" alt="" /></a>`, i-1)
+		navP = fmt.Sprintf(`<a href="?i=%d"><img src="/img/prev.png" border="0" alt="" /></a>`, i+1)
+		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d"><img src="/img/next.png" border="0" alt="" /></a>`, i-1)
 	} else {
-		navP = `<a href="?i=2"><img src="/img/prev.jpg" border="0" alt="" /></a>`
+		navP = `<a href="?i=2"><img src="/img/prev.png" border="0" alt="" /></a>`
 	}
 	if i == 1 {
 		navN = "" // Perl: $nav->{'n'} = '' unless $self->{'arg'}->{'i'};

@@ -1,10 +1,104 @@
+:root {
+  /* Core Colors */
+  --bg-body: white;
+  --text-main: #222; /* Default text color */
+  --text-muted: #aaa;
+  
+  /* Masthead */
+  --masthead-text: #000;
+  --masthead-border: #000;
+
+  /* Date Widget */
+  --date-number: #e0e0e0;
+  --date-text: #444;
+  --date-shadow: white;
+  --date-year: #888;
+
+  /* Content Elements */
+  --img-placeholder: #bbb;
+  --author-color: #aaa;
+  --link-color: #6c3;
+  --quote-color: #d5b;
+  --header-color: #aaa;
+  
+  /* OG Preview (Cards) */
+  --og-border: #e1e8ed;
+  --og-bg: #fff;
+  --og-title: #14171a;
+  --og-desc: #657786;
+  
+  /* Slack-like OG */
+  --slack-border: #e0e0e0;
+  --slack-site-info: #696969;
+  --slack-title: #1264a3;
+  --slack-desc: #2d2d2d;
+  --slack-img-border: #e0e0e0;
+
+  /* Footer */
+  --footer-bg: #f5f5f5;
+  --footer-border: #eee;
+  --footer-text: #666;
+  --footer-link: #444;
+  
+  /* Icon Fill */
+  --icon-fill: #000000;
+}
+
+[data-theme="dark"] {
+  /* Core Colors */
+  --bg-body: #121212;
+  --text-main: #e0e0e0;
+  --text-muted: #888;
+  
+  /* Masthead */
+  --masthead-text: #fff;
+  --masthead-border: #fff;
+
+  /* Date Widget */
+  --date-number: #333;
+  --date-text: #ccc;
+  --date-shadow: #000;
+  --date-year: #666;
+
+  /* Content Elements */
+  --img-placeholder: #333;
+  --author-color: #888;
+  --link-color: #8e5;
+  --quote-color: #e6c;
+  --header-color: #888;
+  
+  /* OG Preview (Cards) */
+  --og-border: #333;
+  --og-bg: #1e1e1e;
+  --og-title: #e0e0e0;
+  --og-desc: #aaa;
+  
+  /* Slack-like OG */
+  --slack-border: #444;
+  --slack-site-info: #888;
+  --slack-title: #5af;
+  --slack-desc: #ccc;
+  --slack-img-border: #444;
+
+  /* Footer */
+  --footer-bg: #1a1a1a;
+  --footer-border: #333;
+  --footer-text: #888;
+  --footer-link: #aaa;
+
+  /* Icon Fill */
+  --icon-fill: #ffffff;
+}
+
 body {
     margin: 0;
-    background-color: white;
+    background-color: var(--bg-body);
+    color: var(--text-main);
     width: 100%;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #page {
@@ -34,11 +128,31 @@ body {
   line-height: 68px;
   letter-spacing: -5px;
   border-bottom: solid 2px;
+  border-color: var(--masthead-border);
+  color: var(--masthead-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #masthead a {
   text-decoration: none;
-  color: #000;
+  color: var(--masthead-text);
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 10px; /* Adjust alignment */
+    color: var(--masthead-text);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+#theme-toggle:hover {
+    opacity: 1;
 }
 
 #sidebar {
@@ -63,7 +177,7 @@ body {
 .date-date {
   font-size: 52px;
   line-height: 1;
-  color: #e0e0e0; /* Light grey background number */
+  color: var(--date-number); /* Light grey background number */
   font-weight: bold;
 }
 
@@ -85,9 +199,9 @@ body {
   padding: 0;
   font-size: 13px;
   font-weight: bold;
-  color: #444; /* Darker text for visibility over grey */
+  color: var(--date-text); /* Darker text for visibility over grey */
   text-transform: uppercase;
-  text-shadow: 0px 0px 2px white; /* Halo to ensure readability */
+  text-shadow: 0px 0px 2px var(--date-shadow); /* Halo to ensure readability */
 }
 
 .date-year {
@@ -95,7 +209,7 @@ body {
   padding: 0;
   font-size: 10px;
   font-weight: bold;
-  color: #888;
+  color: var(--date-year);
 }
 
 .item {
@@ -108,7 +222,7 @@ body {
 
 .item img {
   padding: 3px;
-  background: #bbb;
+  background: var(--img-placeholder);
   max-height: 400px;
   max-width: 400px;
   overflow: hidden;
@@ -117,25 +231,25 @@ body {
 .author {
   padding-left: 5px;
   font-size: 18px;
-  color: #aaa;
+  color: var(--author-color);
 }
 
 .link a {
   font-weight: bold;
   text-decoration: none;
-  color: #6c3;
+  color: var(--link-color);
 }
 
 .text {
   font-weight: bold;
   text-decoration: none;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 .quote {
   padding-left: 30px;
   font-weight: bold;
-  color: #d5b;
+  color: var(--quote-color);
   background: url(/img/parens.gif) no-repeat;
 }
 
@@ -144,7 +258,7 @@ body {
   font-size: 18px;
   font-weight: bold;
   letter-spacing: -1px;
-  color: #aaa;
+  color: var(--header-color);
   text-align: right;
 }
 
@@ -171,10 +285,10 @@ body {
 }
 
 .og-preview-card {
-  border: 1px solid #e1e8ed;
+  border: 1px solid var(--og-border);
   border-radius: 8px;
   overflow: hidden;
-  background: #fff;
+  background: var(--og-bg);
   max-width: 500px;
   margin-top: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -200,14 +314,14 @@ body {
 .og-preview-title {
   font-size: 14px;
   font-weight: bold;
-  color: #14171a;
+  color: var(--og-title);
   margin-bottom: 4px;
   line-height: 1.4;
 }
 
 .og-preview-description {
   font-size: 13px;
-  color: #657786;
+  color: var(--og-desc);
   line-height: 1.4;
 }
 
@@ -231,21 +345,26 @@ body {
 #footer {
   padding: 10px;
   text-align: center;
-  background: #f5f5f5;
-  border-top: 1px solid #eee;
+  background: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
   font-size: 12px;
-  color: #666;
+  color: var(--footer-text);
   font-family: sans-serif;
 }
 
 #footer a {
-  color: #444;
+  color: var(--footer-link);
   text-decoration: none;
 }
 
 #footer a:hover {
   text-decoration: underline;
 }
+
+#footer svg {
+    fill: var(--icon-fill);
+}
+
 #navigation {
     width: 525px;
     margin-left: -75px;
@@ -258,7 +377,7 @@ body {
     margin-top: 8px;
     margin-bottom: 8px;
     padding-left: 12px;
-    border-left: 4px solid #e0e0e0;
+    border-left: 4px solid var(--slack-border);
     font-family: "Slack-Lato", "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     max-width: 600px;
 }
@@ -268,7 +387,7 @@ body {
     align-items: center;
     font-size: 12px;
     font-weight: 700;
-    color: #696969; /* Slack's lighter grey */
+    color: var(--slack-site-info); /* Slack's lighter grey */
     margin-bottom: 4px;
 }
 
@@ -287,12 +406,12 @@ body {
     font-size: 16px;
     font-weight: 700;
     line-height: 24px;
-    color: #1264a3;
+    color: var(--slack-title);
     margin-bottom: 2px;
 }
 
 .og-title a {
-    color: #1264a3;
+    color: var(--slack-title);
     text-decoration: none;
 }
 
@@ -303,7 +422,7 @@ body {
 .og-description {
     font-size: 15px;
     line-height: 22px;
-    color: #2d2d2d; /* Slightly softer than #1d1c1d */
+    color: var(--slack-desc); /* Slightly softer than #1d1c1d */
     margin-bottom: 8px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     letter-spacing: normal;
@@ -321,7 +440,7 @@ body {
 .og-image img {
     max-width: 100%;
     border-radius: 8px; /* Slack likes rounder corners on media */
-    border: 1px solid #e0e0e0; 
+    border: 1px solid var(--slack-img-border); 
     display: block;
     /* Reset styles from .item img */
     padding: 0 !important;
