@@ -102,7 +102,7 @@ body {
 }
 
 #page {
-    padding: 15px 0 50px 0;
+    padding: 15px 20px 50px 100px; /* Added left padding for hanging elements */
     font-family: Helvetica, Arial, sans-serif;
     font-size: 12px;
     line-height: 18px;
@@ -111,6 +111,7 @@ body {
     max-width: 1400px;      /* Reasonable maximum */
     margin: 0 auto;
     flex: 1;
+    box-sizing: border-box; /* Include padding in width calculation */
     
     /* CSS Grid Layout */
     display: grid;
@@ -251,6 +252,36 @@ body {
   color: var(--author-color);
 }
 
+.author a {
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+}
+
+.author a:hover {
+  text-decoration: underline;
+  color: var(--link-color);
+}
+
+.author a[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0.9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  margin-bottom: 5px;
+}
+
 .link a {
   font-weight: bold;
   text-decoration: none;
@@ -344,12 +375,15 @@ body {
 
 .youtube-embed-wrapper {
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  height: 0;
-  overflow: hidden;
-  max-width: 100%;
-  margin-top: 10px;
+  /* Match OG Card properties */
+  max-width: 600px;
+  margin-top: 8px;
   background: #000;
+
+  /* Modern Aspect Ratio */
+  aspect-ratio: 16 / 9;
+  height: auto; /* Let aspect-ratio drive height */
+  overflow: hidden;
 }
 
 .youtube-embed-wrapper iframe {

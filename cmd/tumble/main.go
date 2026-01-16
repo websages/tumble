@@ -138,8 +138,10 @@ func main() {
 	// Main Routes
 	mux.HandleFunc("/", h.Index)
 	mux.HandleFunc("/index.cgi", h.Index)
+	mux.HandleFunc("/stats", h.Stats)
 	mux.HandleFunc("/search.cgi", h.Search)
 	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Handles /irclink/?id and posts
+
 	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
 	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler)
 
