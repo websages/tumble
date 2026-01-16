@@ -231,6 +231,79 @@ func (s *SQLiteStore) InsertQuote(ctx context.Context, quote, author string) err
 	return err
 }
 
+func (s *SQLiteStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error) {
+	// Sort logic
+	orderBy := "link_count DESC"
+	switch sortBy {
+	case "user":
+		orderBy = "u.user ASC"
+	case "quotes":
+		orderBy = "quote_count DESC"
+	case "links":
+		orderBy = "link_count DESC"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT
+			u.user,
+			COALESCE(l.count, 0) as link_count,
+			COALESCE(q.count, 0) as quote_count
+		FROM
+			(SELECT DISTINCT user FROM ircLink UNION SELECT DISTINCT author as user FROM quote) u
+		LEFT JOIN
+			(SELECT user, COUNT(*) as count FROM ircLink GROUP BY user) l ON u.user = l.user
+		LEFT JOIN
+			(SELECT author, COUNT(*) as count FROM quote GROUP BY author) q ON u.user = q.author
+		ORDER BY %s
+		LIMIT ? OFFSET ?
+	`, orderBy)
+
+	rows, err := s.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []UserStat
+	for rows.Next() {
+		var stat UserStat
+		if err := rows.Scan(&stat.User, &stat.LinkCount, &stat.QuoteCount); err != nil {
+			return nil, err
+		}
+		stats = append(stats, stat)
+	}
+	return stats, nil
+}
+
+func (s *SQLiteStore) GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error) {
+	query := `
+		SELECT ircLinkID, timestamp, user, title, url, clicks, content_type
+		FROM ircLink
+		WHERE user = ?
+		ORDER BY timestamp DESC
+		LIMIT ? OFFSET ?
+	`
+	rows, err := s.db.QueryContext(ctx, query, user, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var links []IRCLink
+	for rows.Next() {
+		var l IRCLink
+		var contentType sql.NullString
+		if err := rows.Scan(&l.ID, &l.Timestamp, &l.User, &l.Title, &l.URL, &l.Clicks, &contentType); err != nil {
+			return nil, err
+		}
+		if contentType.Valid {
+			l.ContentType = contentType.String
+		}
+		links = append(links, l)
+	}
+	return links, nil
+}
+
 func (s *SQLiteStore) Bootstrap(ctx context.Context) error {
 	schema, err := SchemaFS.ReadFile("schema.sqlite")
 	if err != nil {

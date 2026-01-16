@@ -31,6 +31,12 @@ type Quote struct {
 	Author    string    `json:"author"`
 }
 
+type UserStat struct {
+	User       string `json:"user"`
+	LinkCount  int    `json:"link_count"`
+	QuoteCount int    `json:"quote_count"`
+}
+
 type Store interface {
 	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]IRCLink, error)
 	GetRecentImages(ctx context.Context, days int, offsetDays int) ([]Image, error)
@@ -43,6 +49,10 @@ type Store interface {
 	IncrementClicks(ctx context.Context, id int) error
 	InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error)
 	InsertQuote(ctx context.Context, quote, author string) error
+
+	// Stats
+	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
+	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 
 	Bootstrap(ctx context.Context) error
 

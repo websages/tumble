@@ -79,11 +79,23 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	var images []data.Image
 	var quotes []data.Quote
 
-	wg.Add(3)
-	go func() { defer wg.Done(); ircLinks, errIrc = h.Store.GetRecentIRCLinks(ctx, startDays, endDays) }()
-	go func() { defer wg.Done(); images, errImg = h.Store.GetRecentImages(ctx, startDays, endDays) }()
-	go func() { defer wg.Done(); quotes, errQuote = h.Store.GetRecentQuotes(ctx, startDays, endDays) }()
-	wg.Wait()
+	poster := params.Get("poster")
+
+	if poster != "" {
+		// Filtered View: Only links by 'poster'
+		// Pagination for poster view is 30 items
+		limit := 30
+		offset := (i - 1) * 30
+		ircLinks, errIrc = h.Store.GetLinksByUser(ctx, poster, limit, offset)
+		// No images or quotes in filtered view
+	} else {
+		// Standard View
+		wg.Add(3)
+		go func() { defer wg.Done(); ircLinks, errIrc = h.Store.GetRecentIRCLinks(ctx, startDays, endDays) }()
+		go func() { defer wg.Done(); images, errImg = h.Store.GetRecentImages(ctx, startDays, endDays) }()
+		go func() { defer wg.Done(); quotes, errQuote = h.Store.GetRecentQuotes(ctx, startDays, endDays) }()
+		wg.Wait()
+	}
 
 	if errIrc != nil || errImg != nil || errQuote != nil {
 		slog.Error("Error fetching data", "irc_error", errIrc, "img_error", errImg, "quote_error", errQuote)
@@ -243,19 +255,29 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	// Navigation
 	navP := ""
 	navN := ""
-	if iParam != "" {
-		navP = fmt.Sprintf(`<a href="?i=%d"><img src="/img/prev.png" border="0" alt="" /></a>`, i+1)
-		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d"><img src="/img/next.png" border="0" alt="" /></a>`, i-1)
+	posterParam := ""
+	if poster != "" {
+		posterParam = fmt.Sprintf("&poster=%s", poster)
+	}
+
+	if iParam != "" || i > 1 {
+		navP = fmt.Sprintf(`<a href="?i=%d%s"><img src="/img/prev.png" border="0" alt="" /></a>`, i+1, posterParam)
+		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d%s"><img src="/img/next.png" border="0" alt="" /></a>`, i-1, posterParam)
 	} else {
-		navP = `<a href="?i=2"><img src="/img/prev.png" border="0" alt="" /></a>`
+		navP = fmt.Sprintf(`<a href="?i=2%s"><img src="/img/prev.png" border="0" alt="" /></a>`, posterParam)
 	}
 	if i == 1 {
 		navN = "" // Perl: $nav->{'n'} = '' unless $self->{'arg'}->{'i'};
 	}
 
 	// View Data
+	pageTitle := ""
+	if poster != "" {
+		pageTitle = fmt.Sprintf(" &gt; Links by %s", poster)
+	}
+
 	viewData := IndexPageData{
-		PageTitle:    "",
+		PageTitle:    pageTitle,
 		Container:    template.HTML(containerHTML),
 		Hot:          template.HTML(hotHTML),
 		NavP:         template.HTML(navP),
@@ -358,4 +380,81 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	h.Renderer.Render(w, "index.html", viewData)
+}
+
+func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Pagination
+	page := 1
+	pageParam := r.URL.Query().Get("page")
+	if pageParam != "" {
+		val, err := strconv.Atoi(pageParam)
+		if err == nil && val > 0 {
+			page = val
+		}
+	}
+	limit := 50
+	offset := (page - 1) * limit
+
+	// Sorting
+	sortBy := r.URL.Query().Get("sort")
+	if sortBy == "" {
+		sortBy = "links"
+	}
+
+	stats, err := h.Store.GetUserStats(ctx, sortBy, limit, offset)
+	if err != nil {
+		slog.Error("Error fetching stats", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Prepare View Data with Ranks
+	type StatViewItem struct {
+		Rank       int
+		User       string
+		LinkCount  int
+		QuoteCount int
+	}
+
+	var statsView []StatViewItem
+	for i, s := range stats {
+		statsView = append(statsView, StatViewItem{
+			Rank:       offset + i + 1,
+			User:       s.User,
+			LinkCount:  s.LinkCount,
+			QuoteCount: s.QuoteCount,
+		})
+	}
+
+	// Navigation
+	nextPage := page + 1
+	prevPage := page - 1
+	if prevPage < 1 {
+		prevPage = 0
+	}
+
+	// Check if we need a next page (simplistic: if we got full limit, likely there's more)
+	hasNext := len(stats) == limit
+
+	// Determine Sort Order for links
+	// Logic: If current sort is X, clicking X again should probably toggle or reset?
+	// For simplicity, headers always sort descending by that column.
+
+	data := map[string]interface{}{
+		"Stats":        statsView,
+		"PageTitle":    " &gt; Stats",
+		"GitCommit":    version.CommitHash,
+		"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+		"Page":         page,
+		"NextPage":     nextPage,
+		"PrevPage":     prevPage,
+		"HasNext":      hasNext,
+		"Sort":         sortBy,
+	}
+
+	if err := h.Renderer.Render(w, "stats.html", data); err != nil {
+		slog.Error("Error rendering stats", "error", err)
+	}
 }
