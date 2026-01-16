@@ -107,9 +107,15 @@ body {
     font-size: 12px;
     line-height: 18px;
     position: relative;
-    width: 750px;
+    width: 95%;             /* Dynamic width */
+    max-width: 1400px;      /* Reasonable maximum */
     margin: 0 auto;
     flex: 1;
+    
+    /* CSS Grid Layout */
+    display: grid;
+    grid-template-columns: 1fr 250px;
+    column-gap: 40px;
 }
 
 #masthead,
@@ -119,10 +125,9 @@ body {
 }
 
 #masthead {
-  margin-left: -100px;
-  padding-left: 100px;
-  margin-right: -25px;
-  padding-right: 25px;
+  /* Span full width of the grid */
+  grid-column: 1 / -1;
+  
   font-size: 72px;
   font-weight: bold;
   line-height: 68px;
@@ -133,6 +138,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  
+  /* Reset previous negative margins/padding if they interfere, 
+     but keeping some padding might be desired for the text look. 
+     Let's simplify for the grid context. */
+  margin: 0 0 20px 0;
+  padding: 0;
 }
 
 #masthead a {
@@ -156,12 +167,18 @@ body {
 }
 
 #sidebar {
-  width: 175px;
-  float: right;
+  /* Grid placement */
+  grid-column: 2;
+  grid-row: 2; /* Starts after masthead */
+  
+  width: 100%; /* Take full width of the column */
 }
 
 #content {
-  width: 525px;
+  /* Grid placement */
+  grid-column: 1;
+  
+  width: 100%; /* Take full width of the column */
 }
 
 .date-icon {
@@ -366,8 +383,10 @@ body {
 }
 
 #navigation {
-    width: 525px;
-    margin-left: -75px;
+    /* Grid placement */
+    grid-column: 1;
+    
+    width: 100%;
     text-align: left;
     padding-bottom: 20px;
 }
