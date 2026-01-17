@@ -9,7 +9,7 @@
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-24593498-1']);
     _gaq.push(['_trackPageview']);
-    
+
     (function() {
       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
@@ -18,7 +18,7 @@
   </script>
   <!-- Twitter Cards -->
   <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-  
+
   <!-- Open Graph Preview Loader -->
   <script type="text/javascript">
   (function() {
@@ -26,57 +26,68 @@
       var url = item.getAttribute('data-url');
       var contentType = item.getAttribute('data-content-type');
       var previewDiv = item.querySelector('.og-preview');
-      
+
       // Only load preview for non-image content (text/html)
       if (!url || (contentType && contentType.match(/image/))) {
         return;
       }
-      
-      // Skip OG preview for YouTube links (they're embedded directly)
-      if (url.match(/youtube\.com|youtu\.be/i)) {
-        return;
-      }
+
+      // Skip OG preview for YouTube links check removed to allow client-side handling
 
       // Ensure URL has protocol
       if (!url.match(/^https?:\/\//)) {
         url = 'http://' + url;
       }
-      
-      // Create preview endpoint URL
-      var previewUrl = '/ogpreview.cgi?url=' + encodeURIComponent(url);
-      
-      // Load preview asynchronously
+
       var xhr = new XMLHttpRequest();
+      // Add timestamp to prevent caching of previous 200 OK responses
+      var previewUrl = '/ogpreview.cgi?url=' + encodeURIComponent(url) + '&_t=' + new Date().getTime();
       xhr.open('GET', previewUrl, true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4 && xhr.status === 200) {
           try {
             var data = JSON.parse(xhr.responseText);
+
+            // Handle HTTP Errors (compact display)
+            if (data.status && data.status >= 400) {
+                var errorHtml = '<div class="og-error-compact">';
+                errorHtml += '<span class="http-error-badge">' + data.status + '</span> ';
+                errorHtml += '<a href="' + escapeHtml(url) + '" class="broken-link" target="_blank">' + escapeHtml(url) + '</a>';
+                errorHtml += '</div>';
+                previewDiv.innerHTML = errorHtml;
+
+                // Hide the original link text to reduce clutter
+                var originalLink = element.querySelector('.link');
+                if (originalLink) {
+                    originalLink.style.display = 'none';
+                }
+                return;
+            }
+
             if (data.error) {
               return;
             }
-            
+
             // Use Open Graph image, Twitter image, or nothing
             var imageUrl = data.image || data.twitter_image || null;
             // Use Open Graph title, Twitter title, or fallback title
             var title = data.title || data.twitter_title || null;
             // Use Open Graph description, Twitter description, or fallback description
             var description = data.description || data.twitter_description || null;
-            
+
             // Only show preview if we have at least an image, title, or description
             if (!imageUrl && !title && !description) {
               return;
             }
-            
-            // Build preview HTML
+
             // Build preview HTML
             var previewHTML = '<div class="og-card">';
-            
+
             // Site Info (Icon + Name)
             var provider = data.provider_name || 'Link';
-            var iconUrl = '/favicon.ico'; 
+            var iconUrl = '/favicon.ico';
             if (provider === 'Reddit') iconUrl = 'https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png';
-            
+
             previewHTML += '<div class="og-site-info"><img src="' + iconUrl + '" class="og-site-icon" /> ' + escapeHtml(provider) + '</div>';
 
             // Title
@@ -95,30 +106,67 @@
             // Image
             if (imageUrl) {
                 var imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
-                // If it's a video, add the play button overlay
-                if (data.type === 'video') {
+                var extraClass = '';
+                var onClickAttr = '';
+
+                // Video / YouTube handling
+                if (data.type === 'video' || url.match(/(youtube\.com|youtu\.be)/)) {
+                    extraClass = 'is-video';
                     imageContent += '<div class="og-play-button"></div>';
+
+                    // Click to play logic - safe DOM lookup
+                    onClickAttr = 'onclick="replaceWithVideo(this)"';
                 }
-                previewHTML += '<div class="og-image ' + (data.type === 'video' ? 'is-video' : '') + '">' + imageContent + '</div>';
+
+                previewHTML += '<div class="og-image ' + extraClass + '" ' + onClickAttr + '>' + imageContent + '</div>';
             }
-            
+
             previewHTML += '</div>';
-            
+
             previewDiv.innerHTML = previewHTML;
           } catch (e) {
             // Silently fail if JSON parsing fails
+            console.error(e);
           }
         }
       };
       xhr.send();
     }
-    
+
     function escapeHtml(text) {
       var div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
-    
+
+    // Global handler for video replacemen
+    window.replaceWithVideo = function(container) {
+        // Find URL from parent item
+        var item = container.closest('.item');
+        if (!item) return;
+        var url = item.getAttribute('data-url');
+        if (!url) return;
+
+        var videoID = '';
+        var match = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (match) {
+            videoID = match[1];
+        } else {
+             // Try query param scan too
+             var match2 = url.match(/v=([a-zA-Z0-9_-]{11})/);
+             if (match2) videoID = match2[1];
+        }
+
+        if (videoID) {
+            var iframe = '<div class="youtube-embed-wrapper"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + videoID + '?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+            container.innerHTML = iframe;
+            container.onclick = null; // Remove handler
+            container.classList.remove('is-video');
+            container.style.cursor = 'default';
+        }
+    };
+
+
     // Load all previews when DOM is ready
     function initOGPreviews() {
       var items = document.querySelectorAll('.item[data-url]');
@@ -126,7 +174,7 @@
         loadOGPreview(items[i]);
       }
     }
-    
+
     // Run when DOM is ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initOGPreviews);

@@ -314,6 +314,10 @@ body {
     display: inline-block;
 }
 
+.og-image.is-video {
+    cursor: pointer;
+}
+
 .og-image img {
     max-width: 100%;
     border-radius: 8px; /* Slack likes rounder corners on media */
@@ -348,4 +352,32 @@ body {
     border-top: 9px solid transparent;
     border-bottom: 9px solid transparent;
     margin-left: 4px; /* Optical centering */
+}
+
+/* HTTP Error Styles */
+.og-error-compact {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    font-family: monospace;
+}
+
+.http-error-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: white;
+    background-color: #d72b3f; /* Red for errors */
+}
+
+.broken-link {
+    color: #868686;
+    text-decoration: none;
+    margin-left: 5px;
+}
+
+.broken-link:hover {
+    text-decoration: underline;
+    color: #666;
 }

@@ -45,6 +45,15 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode >= 400 {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error":  "HTTP Error",
+			"status": resp.StatusCode,
+		})
+		return
+	}
+
 	// Parse HTML
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
@@ -130,6 +139,22 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	f(doc)
+
+	// Check for YouTube "soft 404" (Video unavailable)
+	// YouTube returns 200 but minimal metadata for unavailable videos.
+	if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
+		title, hasTitle := metadata["title"]
+		// Valid videos usually have a specific title in og:title or title tag.
+		// Unavailable videos often have just "- YouTube" or no og:title.
+		if !hasTitle || title == " - YouTube" || title == "YouTube" {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":  "Video Unavailable",
+				"status": 404,
+			})
+			return
+		}
+	}
 
 	json.NewEncoder(w).Encode(metadata)
 }
