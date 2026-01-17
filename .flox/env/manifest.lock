@@ -9,6 +9,9 @@
       "go": {
         "pkg-path": "go"
       },
+      "imagemagick": {
+        "pkg-path": "imagemagick"
+      },
       "jq": {
         "pkg-path": "jq"
       },
@@ -28,13 +31,13 @@
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T02:56:52.890309Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T02:57:05.645649Z",
       "stabilities": [
         "unstable"
       ],
@@ -60,13 +63,13 @@
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:12:55.696986Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:13:09.131365Z",
       "stabilities": [
         "unstable"
       ],
@@ -93,13 +96,13 @@
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:23:44.936382Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:23:41.371512Z",
       "stabilities": [
         "unstable"
       ],
@@ -125,13 +128,13 @@
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:33:52.985473Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:33:36.721994Z",
       "stabilities": [
         "unstable"
       ],
@@ -158,13 +161,13 @@
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T02:56:52.899062Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T02:57:05.654157Z",
       "stabilities": [
         "unstable"
       ],
@@ -187,13 +190,13 @@
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:12:55.711454Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:13:09.145846Z",
       "stabilities": [
         "unstable"
       ],
@@ -216,13 +219,13 @@
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:23:44.945010Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:23:41.380187Z",
       "stabilities": [
         "unstable"
       ],
@@ -245,13 +248,13 @@
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:33:53.000574Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:33:36.737943Z",
       "stabilities": [
         "unstable"
       ],
@@ -268,19 +271,145 @@
       "priority": 5
     },
     {
+      "attr_path": "imagemagick",
+      "broken": false,
+      "derivation": "/nix/store/qmbnnxay37g5c78mks1mylnic01hwcqp-imagemagick-7.1.2-11.drv",
+      "description": "Software suite to create, edit, compose, or convert bitmap images",
+      "install_id": "imagemagick",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "imagemagick-7.1.2-11",
+      "pname": "imagemagick",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T02:57:19.735845Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.1.2-11",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/h62nffpg06sg3z8m1f8zylh18bf73rns-imagemagick-7.1.2-11-dev",
+        "doc": "/nix/store/fpnfkb98b4914f5rhi3wb4nns37s9qlg-imagemagick-7.1.2-11-doc",
+        "out": "/nix/store/fq59i9l5chsnhxh1ahj22df3if39vg0x-imagemagick-7.1.2-11"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "imagemagick",
+      "broken": false,
+      "derivation": "/nix/store/1rghfjnb49akjzlgmqxyvhq4zh698011-imagemagick-7.1.2-11.drv",
+      "description": "Software suite to create, edit, compose, or convert bitmap images",
+      "install_id": "imagemagick",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "imagemagick-7.1.2-11",
+      "pname": "imagemagick",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:13:27.370930Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.1.2-11",
+      "outputs_to_install": [
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/c3mzw08f2sywj5pcqfyvp2vg3paf0acn-imagemagick-7.1.2-11-dev",
+        "doc": "/nix/store/p461inbsj7x41shq5nz2c6giqsxwj4aq-imagemagick-7.1.2-11-doc",
+        "out": "/nix/store/jgxnhc6dd5s5vn0k0blf6csyi0vab8fd-imagemagick-7.1.2-11"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "imagemagick",
+      "broken": false,
+      "derivation": "/nix/store/2xfzrk3gh4z9xcna76llsm82szl4pdzq-imagemagick-7.1.2-11.drv",
+      "description": "Software suite to create, edit, compose, or convert bitmap images",
+      "install_id": "imagemagick",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "imagemagick-7.1.2-11",
+      "pname": "imagemagick",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:23:55.183314Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.1.2-11",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/r4a0ydcxifpifh1r9z6s4grc8pdwzgvr-imagemagick-7.1.2-11-dev",
+        "doc": "/nix/store/mv4avnfgxsf517llf0f4h9ag74pchga0-imagemagick-7.1.2-11-doc",
+        "out": "/nix/store/v00m47mxdmx2fzvxjg9147qqcvmdnybj-imagemagick-7.1.2-11"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "imagemagick",
+      "broken": false,
+      "derivation": "/nix/store/9pd78j1kx0w7srfqqji81q9ssmjhmyx8-imagemagick-7.1.2-11.drv",
+      "description": "Software suite to create, edit, compose, or convert bitmap images",
+      "install_id": "imagemagick",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "name": "imagemagick-7.1.2-11",
+      "pname": "imagemagick",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:33:55.912290Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "7.1.2-11",
+      "outputs_to_install": [
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "dev": "/nix/store/47y76bq8qcnpxizqgl0c0j15s7ciix5r-imagemagick-7.1.2-11-dev",
+        "doc": "/nix/store/y4ncgbx0fwj3fn0j8q71fb1dk5jplzd1-imagemagick-7.1.2-11-doc",
+        "out": "/nix/store/dfj4g2rpz8yf1g6ybj7d37p4kmwsl772-imagemagick-7.1.2-11"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
       "attr_path": "jq",
       "broken": false,
       "derivation": "/nix/store/xh7sg4v2x4d44yzvmx9zcr71gn7z6b03-jq-1.8.1.drv",
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T02:57:07.357547Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T02:57:20.278663Z",
       "stabilities": [
         "unstable"
       ],
@@ -308,13 +437,13 @@
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:13:15.192840Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:13:28.263169Z",
       "stabilities": [
         "unstable"
       ],
@@ -343,13 +472,13 @@
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:23:59.361272Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:23:55.715433Z",
       "stabilities": [
         "unstable"
       ],
@@ -377,13 +506,13 @@
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:34:13.175749Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:33:56.962349Z",
       "stabilities": [
         "unstable"
       ],
@@ -412,13 +541,13 @@
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "sqlite-3.51.1",
       "pname": "sqlite",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T02:58:27.156134Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T02:58:44.851872Z",
       "stabilities": [
         "unstable"
       ],
@@ -446,13 +575,13 @@
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "sqlite-3.51.1",
       "pname": "sqlite",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:15:11.691092Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:15:17.908195Z",
       "stabilities": [
         "unstable"
       ],
@@ -481,13 +610,13 @@
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "sqlite-3.51.1",
       "pname": "sqlite",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:25:19.581441Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:25:22.251960Z",
       "stabilities": [
         "unstable"
       ],
@@ -515,13 +644,13 @@
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
       "name": "sqlite-3.51.1",
       "pname": "sqlite",
-      "rev": "3497aa5c9457a9d88d71fa93a4a8368816fbeeba",
-      "rev_count": 924538,
-      "rev_date": "2026-01-08T17:13:37Z",
-      "scrape_date": "2026-01-10T03:36:10.043655Z",
+      "rev": "ffbc9f8cbaacfb331b6017d5a5abb21a492c9a38",
+      "rev_count": 925861,
+      "rev_date": "2026-01-11T10:35:08Z",
+      "scrape_date": "2026-01-12T03:36:01.474473Z",
       "stabilities": [
         "unstable"
       ],
