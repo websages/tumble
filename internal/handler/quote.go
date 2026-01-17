@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"html"
 	"net/http"
 )
 
@@ -9,8 +10,8 @@ import (
 func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	quote := r.FormValue("quote")
-	author := r.FormValue("author")
+	quote := html.UnescapeString(r.FormValue("quote"))
+	author := html.UnescapeString(r.FormValue("author"))
 
 	if quote != "" && author != "" {
 		// Perl code did uri_unescape. net/http request parsing handles standard form encoding.
