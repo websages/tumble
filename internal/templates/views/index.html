@@ -249,7 +249,17 @@
         </div>
       </div>
 
-      <div id="content">{{.Container}}</div>
+      <div id="content">
+        {{if .Poster}}
+        <div class="item" style="font-size: 14px; margin-bottom: 20px;">
+            Filter:
+            <a href="/?poster={{.Poster}}" style="{{if eq .FilterType ""}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">All</a> |
+            <a href="/?poster={{.Poster}}&type=links" style="{{if eq .FilterType "links"}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">Links</a> |
+            <a href="/?poster={{.Poster}}&type=quotes" style="{{if eq .FilterType "quotes"}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">Quotes</a>
+        </div>
+        {{end}}
+        {{.Container}}
+      </div>
 
       <div id="navigation">{{.NavP}} {{.NavN}}</div>
     </div>

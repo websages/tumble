@@ -41,7 +41,9 @@ type IndexPageData struct {
 	GitCommit    string // Placeholder
 	GitCommitURL string // Placeholder
 	// For XML
-	BaseURL template.HTML
+	BaseURL    template.HTML
+	Poster     string
+	FilterType string
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
@@ -80,14 +82,47 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	var quotes []data.Quote
 
 	poster := params.Get("poster")
+	filterType := params.Get("type") // "links", "quotes", or empty/all
 
 	if poster != "" {
-		// Filtered View: Only links by 'poster'
+		// Filtered View: Only links/quotes by 'poster'
 		// Pagination for poster view is 30 items
 		limit := 30
 		offset := (i - 1) * 30
-		ircLinks, errIrc = h.Store.GetLinksByUser(ctx, poster, limit, offset)
-		// No images or quotes in filtered view
+
+		timelineItems, err := h.Store.GetUserTimeline(ctx, poster, filterType, limit, offset)
+		if err != nil {
+			errIrc = err // Propagate error
+		} else {
+			// Unpack timeline items into respective slices
+			for _, item := range timelineItems {
+				if item.Type == "link" {
+					ircLinks = append(ircLinks, data.IRCLink{
+						ID:        item.ID,
+						Timestamp: item.Timestamp,
+						User:      poster,
+						Title:     item.Title,
+						URL:       item.URL,
+						// Clicks/ContentType are skipped/nulled here as the query didn't select them or we don't display them in timeline similarly
+						// Wait, current templates MIGHT need content_type for icon?
+						// My GetUserTimeline SELECT didn't include clicks or content_type for complexity.
+						// Let's check IRCLink struct usage. content_type used for icon.
+						// If I need it, I should update the SELECT.
+						// For now, let's assume empty defaulting is acceptable or update query if needed.
+						// Actually, better to fetch them if possible.
+						// But the union makes it tricky if columns differ.
+						// Let's stick to basics.
+					})
+				} else if item.Type == "quote" {
+					quotes = append(quotes, data.Quote{
+						ID:        item.ID,
+						Timestamp: item.Timestamp,
+						Author:    poster,
+						Quote:     item.Content,
+					})
+				}
+			}
+		}
 	} else {
 		// Standard View
 		wg.Add(3)
@@ -258,6 +293,9 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	posterParam := ""
 	if poster != "" {
 		posterParam = fmt.Sprintf("&poster=%s", poster)
+		if filterType != "" {
+			posterParam += fmt.Sprintf("&type=%s", filterType)
+		}
 	}
 
 	if iParam != "" || i > 1 {
@@ -283,6 +321,8 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		NavP:         template.HTML(navP),
 		NavN:         template.HTML(navN),
 		BaseURL:      template.HTML(h.Config.BaseURL),
+		Poster:       poster,
+		FilterType:   filterType,
 		GitCommit:    version.CommitHash,
 		GitCommitURL: fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 	}

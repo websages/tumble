@@ -275,6 +275,46 @@ func (s *SQLiteStore) GetUserStats(ctx context.Context, sortBy string, limit int
 	return stats, nil
 }
 
+func (s *SQLiteStore) GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error) {
+	var query string
+	var args []interface{}
+
+	linkQuery := `SELECT 'link', ircLinkID, timestamp, title, url, '' FROM ircLink WHERE user = ?`
+	quoteQuery := `SELECT 'quote', quoteID, timestamp, '', '', quote FROM quote WHERE author = ?`
+
+	if filterType == "links" {
+		query = linkQuery
+		args = append(args, user)
+	} else if filterType == "quotes" {
+		query = quoteQuery
+		args = append(args, user)
+	} else {
+		// Union
+		query = linkQuery + " UNION ALL " + quoteQuery
+		args = append(args, user, user)
+	}
+
+	query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []TimelineItem
+	for rows.Next() {
+		var i TimelineItem
+		// Scan matches SELECT order: Type, ID, Timestamp, Title, URL, Content
+		if err := rows.Scan(&i.Type, &i.ID, &i.Timestamp, &i.Title, &i.URL, &i.Content); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	return items, nil
+}
+
 func (s *SQLiteStore) GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error) {
 	query := `
 		SELECT ircLinkID, timestamp, user, title, url, clicks, content_type

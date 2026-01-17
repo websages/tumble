@@ -37,6 +37,15 @@ type UserStat struct {
 	QuoteCount int    `json:"quote_count"`
 }
 
+type TimelineItem struct {
+	Type      string    `json:"type"` // "link" or "quote"
+	ID        int       `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
+	Title     string    `json:"title"`   // For links
+	URL       string    `json:"url"`     // For links
+	Content   string    `json:"content"` // For quotes
+}
+
 type Store interface {
 	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]IRCLink, error)
 	GetRecentImages(ctx context.Context, days int, offsetDays int) ([]Image, error)
@@ -53,6 +62,7 @@ type Store interface {
 	// Stats
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
+	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)
 
 	Bootstrap(ctx context.Context) error
 
