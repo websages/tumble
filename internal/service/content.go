@@ -111,29 +111,8 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		}
 	}
 
-	// YouTube
-	// Supports: youtube.com/watch?v=, embed/, youtu.be/
-	videoID := ""
-	if strings.Contains(strings.ToLower(item.URL), "youtube.com") || strings.Contains(strings.ToLower(item.URL), "youtu.be") {
-		re := regexp.MustCompile(`(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})`)
-		matches := re.FindStringSubmatch(item.URL)
-		if len(matches) > 1 {
-			videoID = matches[1]
-		} else {
-			// Try query param
-			re2 := regexp.MustCompile(`youtube\.com\/watch\?.*[&?]v=([a-zA-Z0-9_-]{11})`)
-			matches2 := re2.FindStringSubmatch(item.URL)
-			if len(matches2) > 1 {
-				videoID = matches2[1]
-			}
-		}
-	}
-
-	if videoID != "" {
-		embed := fmt.Sprintf(`<div class="youtube-embed-wrapper"><iframe width="560" height="315" src="https://www.youtube.com/embed/%s?rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen"></iframe></div>`, videoID)
-		d.Content = template.HTML(embed)
-		isYoutube = true
-	}
+	// YouTube logic removed: Handled client-side by OGPreview for "click to play" behavior
+	// and to correctly handle unavailable videos (404s).
 
 	if !isYoutube && !isTwitter && !isImgur {
 		baseURL := s.Config.BaseURL
