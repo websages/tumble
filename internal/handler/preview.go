@@ -154,6 +154,8 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
+		// Force type to video for YouTube
+		metadata["type"] = "video"
 	}
 
 	json.NewEncoder(w).Encode(metadata)

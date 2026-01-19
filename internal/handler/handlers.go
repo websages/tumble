@@ -329,10 +329,10 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if iParam != "" || i > 1 {
-		navP = fmt.Sprintf(`<a href="?i=%d%s"><img src="/img/prev.png" border="0" alt="" /></a>`, i+1, posterParam)
-		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d%s"><img src="/img/next.png" border="0" alt="" /></a>`, i-1, posterParam)
+		navP = fmt.Sprintf(`<a href="?i=%d%s" style="text-decoration:none;"><span class="material-symbols-rounded" style="font-size: 36px; vertical-align: middle;">chevron_left</span></a>`, i+1, posterParam)
+		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d%s" style="text-decoration:none;"><span class="material-symbols-rounded" style="font-size: 36px; vertical-align: middle;">chevron_right</span></a>`, i-1, posterParam)
 	} else {
-		navP = fmt.Sprintf(`<a href="?i=2%s"><img src="/img/prev.png" border="0" alt="" /></a>`, posterParam)
+		navP = fmt.Sprintf(`<a href="?i=2%s" style="text-decoration:none;"><span class="material-symbols-rounded" style="font-size: 36px; vertical-align: middle;">chevron_left</span></a>`, posterParam)
 	}
 	if i == 1 {
 		navN = ""
