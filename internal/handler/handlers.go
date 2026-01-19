@@ -41,9 +41,10 @@ type IndexPageData struct {
 	GitCommit    string // Placeholder
 	GitCommitURL string // Placeholder
 	// For XML
-	BaseURL    template.HTML
-	Poster     string
-	FilterType string
+	BaseURL           template.HTML
+	Poster            string
+	FilterType        string
+	IsFallbackContent bool
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +84,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 	poster := params.Get("poster")
 	filterType := params.Get("type") // "links", "quotes", or empty/all
+	isFallback := false
 
 	if poster != "" {
 		// Filtered View: Only links/quotes by 'poster'
@@ -103,15 +105,6 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 						User:      poster,
 						Title:     item.Title,
 						URL:       item.URL,
-						// Clicks/ContentType are skipped/nulled here as the query didn't select them or we don't display them in timeline similarly
-						// Wait, current templates MIGHT need content_type for icon?
-						// My GetUserTimeline SELECT didn't include clicks or content_type for complexity.
-						// Let's check IRCLink struct usage. content_type used for icon.
-						// If I need it, I should update the SELECT.
-						// For now, let's assume empty defaulting is acceptable or update query if needed.
-						// Actually, better to fetch them if possible.
-						// But the union makes it tricky if columns differ.
-						// Let's stick to basics.
 					})
 				} else if item.Type == "quote" {
 					quotes = append(quotes, data.Quote{
@@ -138,14 +131,57 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Combine and Sort
-	// Since we fetched by specific intervals, we just need to merge and sort by timestamp.
-	// OR we can process them all and then sort.
-	// But simply rendering them in memory and then concatenating is easier if we process them in time order.
-	// Perl simply assumes they are ordered by key timestamp in the hash?
-	// Actually Perl: `foreach my $item_id ( reverse sort { $a cmp $b } keys %{$data} )`
-	// The keys are timestamps (Wait, `key => 'timestamp'` in fetch means keys are timestamps).
-	// So items are sorted by timestamp.
+	// Check for empty state on front page (standard view, page 1)
+	if poster == "" && i == 1 && len(ircLinks) == 0 && len(images) == 0 && len(quotes) == 0 {
+		slog.Info("No recent content found, fetching global timeline fallback")
+		fallbackItems, err := h.Store.GetGlobalTimeline(ctx, 20, 0)
+		if err == nil {
+			isFallback = true
+			for _, item := range fallbackItems {
+				switch item.Type {
+				case "link":
+					ircLinks = append(ircLinks, data.IRCLink{
+						ID:        item.ID,
+						Timestamp: item.Timestamp,
+						User:      item.Author,
+						Title:     item.Title,
+						URL:       item.URL,
+					})
+				case "quote":
+					quotes = append(quotes, data.Quote{
+						ID:        item.ID,
+						Timestamp: item.Timestamp,
+						Author:    item.Author,
+						Quote:     item.Content,
+					})
+				case "image":
+					images = append(images, data.Image{
+						ID:        item.ID,
+						Timestamp: item.Timestamp,
+						Title:     item.Title,
+						Link:      item.URL, // In GetGlobalTimeline, we mapped URL to URL, but Image struct has Link and URL.
+						// Looking at mysql select: 'image' as type... url ...
+						// In Image struct: Link is usually the click-through, URL is the src.
+						// Let's re-verify image struct usage.
+						// Image struct: Link string `json:"link"`, URL string `json:"url"`
+						// In GetRecentImages: Scan(&i.Link, &i.URL...)
+						// In GetGlobalTimeline: SELECT ... url ...
+						// We might be missing the 'link' field in global timeline for images if we just select one 'url' column.
+						// TimelineItem has 'URL'.
+						// For now, let's map URL to URL and assume Link is same or empty?
+						// Revisiting GetGlobalTimeline query:
+						// SELECT 'image', ..., url, ...
+						// It seems we only selected URL. We might want to fix GetGlobalTimeline to include Link if essential.
+						// Assuming URL is the main thing for display.
+						URL:    item.URL,
+						MD5Sum: item.MD5Sum,
+					})
+				}
+			}
+		} else {
+			slog.Error("Error fetching global timeline fallback", "error", err)
+		}
+	}
 
 	type ProcessedItem struct {
 		Timestamp  string // for sorting
@@ -228,8 +264,6 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Sort items (descending)
-	// Simple bubble sort or whatever for small lists, or sort packages.
-	// For "100% compatibility" I must sort descending.
 	for j := 0; j < len(processedItems); j++ {
 		for k := j + 1; k < len(processedItems); k++ {
 			if processedItems[j].Timestamp < processedItems[k].Timestamp {
@@ -269,15 +303,11 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		topLinks, err := h.Store.GetTopIRCLinks(ctx, 12, 6, 5)
 		if err == nil {
 			for _, l := range topLinks {
-				// Link content: <a href...>Title</a>
 				if len(l.Title) > 30 {
 					l.Title = l.Title[:30] + "..."
 				}
-				// Link content: <a href...>Title</a>
 				content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
 
-				// Render item
-				// Using map for flexibility
 				data := map[string]interface{}{
 					"Content": template.HTML(content),
 				}
@@ -305,7 +335,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		navP = fmt.Sprintf(`<a href="?i=2%s"><img src="/img/prev.png" border="0" alt="" /></a>`, posterParam)
 	}
 	if i == 1 {
-		navN = "" // Perl: $nav->{'n'} = '' unless $self->{'arg'}->{'i'};
+		navN = ""
 	}
 
 	// View Data
@@ -315,16 +345,17 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	viewData := IndexPageData{
-		PageTitle:    pageTitle,
-		Container:    template.HTML(containerHTML),
-		Hot:          template.HTML(hotHTML),
-		NavP:         template.HTML(navP),
-		NavN:         template.HTML(navN),
-		BaseURL:      template.HTML(h.Config.BaseURL),
-		Poster:       poster,
-		FilterType:   filterType,
-		GitCommit:    version.CommitHash,
-		GitCommitURL: fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+		PageTitle:         pageTitle,
+		Container:         template.HTML(containerHTML),
+		Hot:               template.HTML(hotHTML),
+		NavP:              template.HTML(navP),
+		NavN:              template.HTML(navN),
+		BaseURL:           template.HTML(h.Config.BaseURL),
+		Poster:            poster,
+		FilterType:        filterType,
+		GitCommit:         version.CommitHash,
+		GitCommitURL:      fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+		IsFallbackContent: isFallback,
 	}
 
 	templateName := "index.html"

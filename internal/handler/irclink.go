@@ -47,7 +47,8 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		// Insert
 		id, err := h.Store.InsertIRCLink(ctx, user, title, url, contentType)
 		if err != nil {
-			http.Error(w, "Database Error", http.StatusInternalServerError)
+			log.Printf("InsertIRCLink error: %v", err)
+			http.Error(w, fmt.Sprintf("Database Error: %v", err), http.StatusInternalServerError)
 			return
 		}
 
