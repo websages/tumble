@@ -220,7 +220,7 @@ func (s *MySQLStore) IncrementClicks(ctx context.Context, id int) error {
 }
 
 func (s *MySQLStore) InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error) {
-	query := `INSERT INTO ircLink (user, title, url, content_type) VALUES (?, ?, ?, ?)`
+	query := `INSERT INTO ircLink (user, title, url, content_type, clicks) VALUES (?, ?, ?, ?, 0)`
 	res, err := s.db.ExecContext(ctx, query, user, title, url, contentType)
 	if err != nil {
 		return 0, err
@@ -357,6 +357,40 @@ func (s *MySQLStore) GetLinksByUser(ctx context.Context, user string, limit int,
 		links = append(links, l)
 	}
 	return links, nil
+}
+
+func (s *MySQLStore) GetGlobalTimeline(ctx context.Context, limit int, offset int) ([]TimelineItem, error) {
+	query := `
+		SELECT 
+			'link' as type, ircLinkID as id, timestamp, title, url, '' as content, user as author, '' as md5sum
+		FROM ircLink
+		UNION ALL
+		SELECT 
+			'quote' as type, quoteID as id, timestamp, '' as title, '' as url, quote as content, author as author, '' as md5sum
+		FROM quote
+		UNION ALL
+		SELECT 
+			'image' as type, imageID as id, timestamp, title, url, '' as content, '' as author, md5sum
+		FROM image
+		ORDER BY timestamp DESC
+		LIMIT ? OFFSET ?
+	`
+	rows, err := s.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []TimelineItem
+	for rows.Next() {
+		var i TimelineItem
+		// Scan matches SELECT order: Type, ID, Timestamp, Title, URL, Content, Author, MD5Sum
+		if err := rows.Scan(&i.Type, &i.ID, &i.Timestamp, &i.Title, &i.URL, &i.Content, &i.Author, &i.MD5Sum); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	return items, nil
 }
 
 func (s *MySQLStore) Bootstrap(ctx context.Context) error {

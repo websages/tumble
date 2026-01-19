@@ -38,12 +38,14 @@ type UserStat struct {
 }
 
 type TimelineItem struct {
-	Type      string    `json:"type"` // "link" or "quote"
+	Type      string    `json:"type"` // "link", "quote", or "image"
 	ID        int       `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
-	Title     string    `json:"title"`   // For links
-	URL       string    `json:"url"`     // For links
+	Title     string    `json:"title"`   // For links and images
+	URL       string    `json:"url"`     // For links and images
 	Content   string    `json:"content"` // For quotes
+	Author    string    `json:"author"`  // For quotes (and links/images as User)
+	MD5Sum    string    `json:"md5sum"`  // For images
 }
 
 type Store interface {
@@ -64,6 +66,7 @@ type Store interface {
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)
+	GetGlobalTimeline(ctx context.Context, limit int, offset int) ([]TimelineItem, error)
 
 	Bootstrap(ctx context.Context) error
 

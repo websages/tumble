@@ -258,6 +258,12 @@
             <a href="/?poster={{.Poster}}&type=quotes" style="{{if eq .FilterType "quotes"}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">Quotes</a>
         </div>
         {{end}}
+        {{if .IsFallbackContent}}
+        <div class="item" style="border: 1px solid var(--og-border); padding: 15px; margin-bottom: 20px; background-color: var(--footer-bg); border-radius: 4px; text-align: center;">
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 18px;">It's been a bit quiet lately...</div>
+            <div style="font-size: 14px;">Here is some content from the archives. Why not <a href="/buttons/" style="font-weight: bold; color: var(--link-color);">share something new</a>?</div>
+        </div>
+        {{end}}
         {{.Container}}
       </div>
 
