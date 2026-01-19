@@ -129,6 +129,38 @@
       }
     },
     "/quote/": {
+      "get": {
+        "summary": "Get a Random Quote",
+        "responses": {
+          "200": {
+            "description": "Random Quote",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Wise words -- Author"
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quoteID": { "type": "integer" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "quote": { "type": "string" },
+                    "author": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Submit a Quote",
         "requestBody": {
@@ -180,6 +212,40 @@
         "responses": {
           "200": {
             "description": "Search Results HTML",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "summary": "Get User Statistics",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort order (default: links)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics HTML Page",
             "content": {
               "text/html": {
                 "schema": {

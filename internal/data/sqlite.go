@@ -231,6 +231,17 @@ func (s *SQLiteStore) InsertQuote(ctx context.Context, quote, author string) err
 	return err
 }
 
+func (s *SQLiteStore) GetRandomQuote(ctx context.Context) (*Quote, error) {
+	query := `SELECT quoteID, timestamp, quote, author FROM quote ORDER BY RANDOM() LIMIT 1`
+	row := s.db.QueryRowContext(ctx, query)
+
+	var q Quote
+	if err := row.Scan(&q.ID, &q.Timestamp, &q.Quote, &q.Author); err != nil {
+		return nil, err
+	}
+	return &q, nil
+}
+
 func (s *SQLiteStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error) {
 	// Sort logic
 	orderBy := "link_count DESC"
