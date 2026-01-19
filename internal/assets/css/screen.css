@@ -18,7 +18,7 @@
   --img-placeholder: #bbb;
   --author-color: #aaa;
   --link-color: #2c6e2f;
-  --quote-color: #d5b;
+  --quote-color: #d65a00;
   --header-color: #aaa;
   
   /* OG Preview (Cards) */
@@ -64,7 +64,7 @@
   --img-placeholder: #333;
   --author-color: #888;
   --link-color: #66bb6a;
-  --quote-color: #e6c;
+  --quote-color: #ffb74d;
   --header-color: #888;
   
   /* OG Preview (Cards) */
@@ -377,6 +377,7 @@ body {
   position: relative;
   /* Match OG Card properties */
   max-width: 600px;
+  width: 100%;
   margin-top: 8px;
   background: #000;
 
@@ -423,6 +424,16 @@ body {
     width: 100%;
     text-align: left;
     padding-bottom: 20px;
+}
+
+#navigation a {
+    color: var(--text-main);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+#navigation a:hover {
+    color: var(--link-color);
 }
 
 /* Slack-like Link Preview Styles */
@@ -483,7 +494,7 @@ body {
 
 .og-image {
     position: relative; /* For absolute positioning of play button */
-    display: inline-block;
+    display: block;
 }
 
 .og-image.is-video {
@@ -552,4 +563,81 @@ body {
 .broken-link:hover {
     text-decoration: underline;
     color: #666;
+}
+
+/* Material Symbols Sizing */
+.material-symbols-rounded {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24;
+  font-size: 20px; /* Default matches previous SVG size */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    #page {
+        display: block; /* Stack everything */
+        padding: 15px; /* Reduce padding */
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #masthead {
+        font-size: 48px; /* Smaller title */
+        line-height: 1.1;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #theme-toggle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin-top: 0;
+    }
+
+    #sidebar {
+        margin-bottom: 40px;
+    }
+
+    /* Date Widget Reset for Mobile */
+    .date-icon {
+        margin-top: 0;
+        margin-left: 0;
+        float: none;
+        width: 100%;
+        text-align: left;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .date-meta {
+        position: static;
+        transform: none;
+        display: inline-block;
+        width: auto;
+    }
+
+    .date-date {
+        display: inline-block;
+        font-size: 24px; /* Smaller date number */
+    }
+
+    .date-day, .date-month, .date-year {
+        display: inline-block;
+        font-size: 14px;
+        margin-left: 5px;
+    }
+
+    .quote {
+        padding-left: 15px; /* Reduce quote padding */
+    }
+
+    .youtube-embed-wrapper {
+        max-width: 100%;
+    }
 }
