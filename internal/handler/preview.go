@@ -20,7 +20,7 @@ var oembedProviders = []struct {
 	{`^https?://(www\.)?(youtube\.com|youtu\.be)/.+`, "https://www.youtube.com/oembed", ""},
 	{`^https?://(open\.)?spotify\.com/.+`, "https://open.spotify.com/oembed", ""},
 	{`^https?://(www\.)?tiktok\.com/.+`, "https://www.tiktok.com/oembed", ""},
-	{`^https?://(www\.)?reddit\.com/.+`, "https://www.reddit.com/oembed", ""},
+	// {`^https?://(www\.)?reddit\.com/.+`, "https://www.reddit.com/oembed", ""}, // Use scraping for better metadata
 	{`^https?://(www\.)?flickr\.com/.+`, "https://www.flickr.com/services/oembed", ""},
 	{`^https?://(www\.|mobile\.)?(twitter|x)\.com/.+`, "https://publish.twitter.com/oembed", ""},
 	{`^https?://(www\.)?instagram\.com/.+`, "https://api.instagram.com/oembed", ""}, // Note: Often requires token
@@ -59,6 +59,18 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	if urlParam == "" {
 		json.NewEncoder(w).Encode(map[string]string{"error": "No URL provided"})
 		return
+	}
+
+	// 0. Special Hybrid Handlers
+	if strings.Contains(urlParam, "reddit.com") {
+		meta, err := h.GetRedditPreview(urlParam)
+		if err == nil && len(meta) > 0 {
+			json.NewEncoder(w).Encode(meta)
+			return
+		}
+		// If failed, fallthrough or return error?
+		// Fallthrough to generic scrape might not work if Scrape inside GetRedditPreview failed.
+		// But let's let fallthrough happen just in case.
 	}
 
 	// 1. Try OEmbed
@@ -168,37 +180,51 @@ func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
 }
 
 func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
-	// Fetch data
-	req, err := http.NewRequest("GET", urlParam, nil)
+	// Default UA
+	ua := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+	meta, err := h.scrapeOpenGraph(urlParam, ua)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid URL"})
+		w.Header().Set("Content-Type", "application/json")
+		// If it's a 4xx/5xx error from the helper, we might want to pass that through
+		// For now, generic error or basic mapping
+		if strings.Contains(err.Error(), "status") {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error": "HTTP Error",
+				// Extract status code if possible, or default to 400
+				"status": 400,
+			})
+		} else {
+			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch metadata"})
+		}
 		return
 	}
-	// Use a standard browser UA to avoid 403s
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+	json.NewEncoder(w).Encode(meta)
+}
+
+func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]string, error) {
+	req, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", userAgent)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch URL"})
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"error":  "HTTP Error",
-			"status": resp.StatusCode,
-		})
-		return
+		return nil, fmt.Errorf("status %d", resp.StatusCode)
 	}
 
 	// Parse HTML
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to parse HTML"})
-		return
+		return nil, err
 	}
 
 	metadata := make(map[string]string)
@@ -238,6 +264,8 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
 				metadata["description"] = content
 			} else if property == "og:image" {
 				metadata["image"] = content
+			} else if property == "og:site_name" {
+				metadata["provider_name"] = content
 			} else if name == "twitter:image" {
 				metadata["twitter_image"] = content
 			} else if name == "twitter:title" {
@@ -269,8 +297,8 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
 					metadata["icon"] = "https:" + href
 				} else if strings.HasPrefix(href, "/") {
 					// Need base URL.
-					// Simple hack: use the scheme/host from urlParam
-					u, _ := url.Parse(urlParam)
+					// Simple hack: use the scheme/host from targetURL
+					u, _ := url.Parse(targetURL)
 					if u != nil {
 						metadata["icon"] = fmt.Sprintf("%s://%s%s", u.Scheme, u.Host, href)
 					}
@@ -309,25 +337,21 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
 	// Fallback icon if not found in Scrape
 	if metadata["icon"] == "" {
 		// Try using google favicon service on the scraped URL
-		u, _ := url.Parse(urlParam)
+		u, _ := url.Parse(targetURL)
 		if u != nil {
 			metadata["icon"] = fmt.Sprintf("https://www.google.com/s2/favicons?domain=%s://%s&sz=32", u.Scheme, u.Host)
 		}
 	}
 
 	// Check for YouTube "soft 404"
-	if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
+	if strings.Contains(targetURL, "youtube.com") || strings.Contains(targetURL, "youtu.be") {
 		title, hasTitle := metadata["title"]
 		if !hasTitle || title == " - YouTube" || title == "YouTube" {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error":  "Video Unavailable",
-				"status": 404,
-			})
-			return
+			// Special handling for caller to know it's a 404
+			return nil, fmt.Errorf("status 404")
 		}
 		metadata["type"] = "video"
 	}
 
-	json.NewEncoder(w).Encode(metadata)
+	return metadata, nil
 }
