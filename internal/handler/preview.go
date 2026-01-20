@@ -4,10 +4,52 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
 )
+
+// OEmbed Providers Configuration
+var oembedProviders = []struct {
+	Pattern  string
+	Endpoint string
+	Format   string // "json" (default) or "xml" (not used here yet as we assume json)
+}{
+	{`^https?://(www\.)?(youtube\.com|youtu\.be)/.+`, "https://www.youtube.com/oembed", ""},
+	{`^https?://(open\.)?spotify\.com/.+`, "https://open.spotify.com/oembed", ""},
+	{`^https?://(www\.)?tiktok\.com/.+`, "https://www.tiktok.com/oembed", ""},
+	{`^https?://(www\.)?reddit\.com/.+`, "https://www.reddit.com/oembed", ""},
+	{`^https?://(www\.)?flickr\.com/.+`, "https://www.flickr.com/services/oembed", ""},
+	{`^https?://(www\.|mobile\.)?(twitter|x)\.com/.+`, "https://publish.twitter.com/oembed", ""},
+	{`^https?://(www\.)?instagram\.com/.+`, "https://api.instagram.com/oembed", ""}, // Note: Often requires token
+	{`^https?://(www\.)?dailymotion\.com/.+`, "https://www.dailymotion.com/services/oembed", ""},
+	{`^https?://(www\.)?kickstarter\.com/projects/.+`, "https://www.kickstarter.com/services/oembed", ""},
+	{`^https?://(www\.)?slideshare\.net/.+`, "https://www.slideshare.net/api/oembed/2", ""},
+	{`^https?://speakerdeck\.com/.+`, "https://speakerdeck.com/oembed.json", ""},
+	{`^https?://giphy\.com/gifs/.+`, "https://giphy.com/services/oembed", ""},
+}
+
+// OEmbedResponse represents standard OEmbed keys
+type OEmbedResponse struct {
+	Type         string `json:"type"`
+	Version      string `json:"version"`
+	Title        string `json:"title"`
+	AuthorName   string `json:"author_name"`
+	AuthorURL    string `json:"author_url"`
+	ProviderName string `json:"provider_name"`
+	ProviderURL  string `json:"provider_url"`
+	CacheAge     int64  `json:"cache_age"`
+	ThumbnailURL string `json:"thumbnail_url"`
+	ThumbnailW   int    `json:"thumbnail_width"`
+	ThumbnailH   int    `json:"thumbnail_height"`
+	HTML         string `json:"html"`
+	Width        int    `json:"width"`
+	Height       int    `json:"height"`
+	Description  string `json:"description"` // Non-standard but common
+	URL          string `json:"url"`         // Required for type=photo
+}
 
 // OGPreviewHandler handles /ogpreview.cgi
 func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
@@ -19,39 +61,120 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Reddit JSON API (better than oEmbed)
-	if strings.Contains(urlParam, "reddit.com") {
-		if meta, err := h.fetchRedditJSON(urlParam); err == nil {
-			json.NewEncoder(w).Encode(meta)
+	// 1. Try OEmbed
+	if meta, err := h.tryOEmbed(urlParam); err == nil {
+		// For Twitter/X, if successful, we might still want to return empty object to avoid duplicating
+		// the widget embedded by server-side logic?
+		// User request implies utilizing OEmbed. If server-side generates a widget, and we generate a card,
+		// we have duplication.
+		// However, returning OEmbed data allows the frontend to optionally replace or augment.
+		// Current existing logic for Twitter was:
+		// "If valid (200), return empty success so frontend keeps the existing embed"
+		// If we stick to that for Twitter/X ONLY:
+		if strings.Contains(urlParam, "twitter.com") || strings.Contains(urlParam, "x.com") {
+			json.NewEncoder(w).Encode(map[string]string{})
 			return
 		}
-		// Fallback to normal scraping
-	}
 
-	// Twitter / X OEmbed (to detect deletions)
-	if strings.Contains(urlParam, "twitter.com") || strings.Contains(urlParam, "x.com") {
-		status, err := h.fetchTwitterStatus(urlParam)
-		if err != nil || status == 404 || status == 403 {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error":  "Tweet Unavailable",
-				"status": status,
-			})
-			return
-		}
-		// If valid (200), return empty success so frontend keeps the existing embed
-		// and doesn't render a duplicate card.
-		json.NewEncoder(w).Encode(map[string]string{})
+		json.NewEncoder(w).Encode(meta)
 		return
 	}
 
+	// 2. Fallback to generic scraping
+	h.fetchOGScrape(w, urlParam)
+}
+
+func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
+	var endpoint string
+	for _, p := range oembedProviders {
+		if matched, _ := regexp.MatchString(p.Pattern, targetURL); matched {
+			endpoint = p.Endpoint
+			break
+		}
+	}
+
+	if endpoint == "" {
+		return nil, fmt.Errorf("no provider")
+	}
+
+	// Build OEmbed URL
+	reqURL := fmt.Sprintf("%s?url=%s&format=json", endpoint, url.QueryEscape(targetURL))
+
+	req, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	// Use strict browser UA to avoid bot detection (Kickstarter, TikTok, etc.)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("oembed status %d", resp.StatusCode)
+	}
+
+	var data OEmbedResponse
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+
+	// Validate "richness" of data
+	// If we get just a title (TikTok sometimes), it's not enough for a preview card if we want rich media.
+	// We need at least an Image OR HTML.
+	// For type=photo, URL is the image.
+	hasImage := data.ThumbnailURL != "" || (data.Type == "photo" && data.URL != "")
+	if !hasImage && data.HTML == "" {
+		// If we only have title, maybe fallback to OG is better?
+		return nil, fmt.Errorf("incomplete oembed data")
+	}
+
+	// Map to our expected metadata format
+	meta := make(map[string]string)
+	meta["title"] = data.Title
+	meta["provider_name"] = data.ProviderName
+	meta["type"] = data.Type
+
+	// Icon Logic for OEmbed
+	if data.ProviderURL != "" {
+		meta["icon"] = fmt.Sprintf("https://www.google.com/s2/favicons?domain=%s&sz=32", data.ProviderURL)
+	}
+
+	// Image preference
+	if data.ThumbnailURL != "" {
+		meta["image"] = data.ThumbnailURL
+	} else if data.Type == "photo" && data.URL != "" {
+		meta["image"] = data.URL
+	}
+
+	// Description
+	// If standard OEmbed doesn't have it, we might want to leave it empty or use Author?
+	if data.Description != "" {
+		meta["description"] = data.Description
+	} else if data.AuthorName != "" {
+		meta["description"] = fmt.Sprintf("By %s", data.AuthorName)
+	}
+
+	// Pass the embed HTML for video/rich types
+	if (data.Type == "video" || data.Type == "rich") && data.HTML != "" {
+		meta["embed_html"] = data.HTML
+	}
+
+	return meta, nil
+}
+
+func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
 	// Fetch data
 	req, err := http.NewRequest("GET", urlParam, nil)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid URL"})
 		return
 	}
-	// Use a standard browser UA to avoid 403s (e.g. Wikipedia)
+	// Use a standard browser UA to avoid 403s
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
 	client := &http.Client{}
@@ -127,6 +250,34 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+		// Look for link rel=icon
+		if n.Type == html.ElementNode && n.Data == "link" {
+			var rel, href string
+			for _, a := range n.Attr {
+				if a.Key == "rel" {
+					rel = a.Val
+				}
+				if a.Key == "href" {
+					href = a.Val
+				}
+			}
+			if (rel == "icon" || rel == "shortcut icon") && href != "" {
+				// Resolve absolute URL
+				if strings.HasPrefix(href, "http") {
+					metadata["icon"] = href
+				} else if strings.HasPrefix(href, "//") {
+					metadata["icon"] = "https:" + href
+				} else if strings.HasPrefix(href, "/") {
+					// Need base URL.
+					// Simple hack: use the scheme/host from urlParam
+					u, _ := url.Parse(urlParam)
+					if u != nil {
+						metadata["icon"] = fmt.Sprintf("%s://%s%s", u.Scheme, u.Host, href)
+					}
+				}
+			}
+		}
+
 		// Also look for title tag
 		if n.Type == html.ElementNode && n.Data == "title" {
 			if n.FirstChild != nil {
@@ -140,10 +291,8 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		if n.Type == html.ElementNode && n.Data == "p" {
 			if _, hasDesc := metadata["description"]; !hasDesc {
 				text := strings.TrimSpace(extractText(n))
-				// Wikipedia paragraphs often have citations [1] or are empty/short
 				// Simple heuristic: length > 50
 				if len(text) > 50 {
-					// Check for "Coordinates:" which matches length but isn't intro
 					if !strings.HasPrefix(text, "Coordinates:") {
 						metadata["description"] = text
 					}
@@ -157,12 +306,18 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	f(doc)
 
-	// Check for YouTube "soft 404" (Video unavailable)
-	// YouTube returns 200 but minimal metadata for unavailable videos.
+	// Fallback icon if not found in Scrape
+	if metadata["icon"] == "" {
+		// Try using google favicon service on the scraped URL
+		u, _ := url.Parse(urlParam)
+		if u != nil {
+			metadata["icon"] = fmt.Sprintf("https://www.google.com/s2/favicons?domain=%s://%s&sz=32", u.Scheme, u.Host)
+		}
+	}
+
+	// Check for YouTube "soft 404"
 	if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
 		title, hasTitle := metadata["title"]
-		// Valid videos usually have a specific title in og:title or title tag.
-		// Unavailable videos often have just "- YouTube" or no og:title.
 		if !hasTitle || title == " - YouTube" || title == "YouTube" {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]interface{}{
@@ -171,106 +326,8 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		// Force type to video for YouTube
 		metadata["type"] = "video"
 	}
 
 	json.NewEncoder(w).Encode(metadata)
-}
-
-func (h *Handler) fetchRedditJSON(url string) (map[string]string, error) {
-	jsonURL := url + ".json"
-	req, err := http.NewRequest("GET", jsonURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	// Unique UA to ensure access
-	req.Header.Set("User-Agent", "Tumble/1.0 (internal tool; +http://tumble.example.com)")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("bad status: %d", resp.StatusCode)
-	}
-
-	var data []interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, err
-	}
-
-	if len(data) == 0 {
-		return nil, fmt.Errorf("no data")
-	}
-
-	meta := make(map[string]string)
-	meta["provider_name"] = "Reddit"
-
-	// Traverse: [0] -> data -> children -> [0] -> data
-	if listing, ok := data[0].(map[string]interface{}); ok {
-		if dataObj, ok := listing["data"].(map[string]interface{}); ok {
-			if children, ok := dataObj["children"].([]interface{}); ok && len(children) > 0 {
-				if child, ok := children[0].(map[string]interface{}); ok {
-					if post, ok := child["data"].(map[string]interface{}); ok {
-						if title, ok := post["title"].(string); ok {
-							meta["title"] = title
-							meta["og:title"] = title
-						}
-
-						// Construct description
-						author, _ := post["author"].(string)
-						sub, _ := post["subreddit_name_prefixed"].(string)
-						if author != "" && sub != "" {
-							meta["description"] = fmt.Sprintf("Posted by u/%s in %s", author, sub)
-						}
-
-						if hint, ok := post["post_hint"].(string); ok {
-							if hint == "hosted:video" || hint == "rich:video" {
-								meta["type"] = "video"
-							}
-						}
-
-						// Image extraction
-						// 1. Try 'preview' images (highest quality usually)
-						foundImage := false
-						if preview, ok := post["preview"].(map[string]interface{}); ok {
-							if images, ok := preview["images"].([]interface{}); ok && len(images) > 0 {
-								if img, ok := images[0].(map[string]interface{}); ok {
-									if source, ok := img["source"].(map[string]interface{}); ok {
-										if u, ok := source["url"].(string); ok {
-											meta["image"] = strings.ReplaceAll(u, "&amp;", "&")
-											foundImage = true
-										}
-									}
-								}
-							}
-						}
-
-						// 2. Fallback to 'thumbnail' if valid URL
-						if !foundImage {
-							if thumb, ok := post["thumbnail"].(string); ok && strings.HasPrefix(thumb, "http") {
-								meta["image"] = thumb
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return meta, nil
-}
-
-func (h *Handler) fetchTwitterStatus(url string) (int, error) {
-	oembedURL := "https://publish.twitter.com/oembed?url=" + url
-	resp, err := http.Get(oembedURL)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-	return resp.StatusCode, nil
 }
