@@ -68,26 +68,22 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(meta)
 			return
 		}
-		// If failed, fallthrough or return error?
-		// Fallthrough to generic scrape might not work if Scrape inside GetRedditPreview failed.
-		// But let's let fallthrough happen just in case.
+	} else if strings.Contains(urlParam, "twitter.com") || strings.Contains(urlParam, "x.com") {
+		meta, err := h.GetTwitterPreview(urlParam)
+		if err == nil {
+			json.NewEncoder(w).Encode(meta)
+			return
+		}
+	} else if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
+		meta, err := h.GetYouTubePreview(urlParam)
+		if err == nil {
+			json.NewEncoder(w).Encode(meta)
+			return
+		}
 	}
 
 	// 1. Try OEmbed
 	if meta, err := h.tryOEmbed(urlParam); err == nil {
-		// For Twitter/X, if successful, we might still want to return empty object to avoid duplicating
-		// the widget embedded by server-side logic?
-		// User request implies utilizing OEmbed. If server-side generates a widget, and we generate a card,
-		// we have duplication.
-		// However, returning OEmbed data allows the frontend to optionally replace or augment.
-		// Current existing logic for Twitter was:
-		// "If valid (200), return empty success so frontend keeps the existing embed"
-		// If we stick to that for Twitter/X ONLY:
-		if strings.Contains(urlParam, "twitter.com") || strings.Contains(urlParam, "x.com") {
-			json.NewEncoder(w).Encode(map[string]string{})
-			return
-		}
-
 		json.NewEncoder(w).Encode(meta)
 		return
 	}
@@ -341,16 +337,6 @@ func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]strin
 		if u != nil {
 			metadata["icon"] = fmt.Sprintf("https://www.google.com/s2/favicons?domain=%s://%s&sz=32", u.Scheme, u.Host)
 		}
-	}
-
-	// Check for YouTube "soft 404"
-	if strings.Contains(targetURL, "youtube.com") || strings.Contains(targetURL, "youtu.be") {
-		title, hasTitle := metadata["title"]
-		if !hasTitle || title == " - YouTube" || title == "YouTube" {
-			// Special handling for caller to know it's a 404
-			return nil, fmt.Errorf("status 404")
-		}
-		metadata["type"] = "video"
 	}
 
 	return metadata, nil
