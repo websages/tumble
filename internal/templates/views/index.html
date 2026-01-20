@@ -50,8 +50,6 @@
             return;
           }
 
-
-
           // Ensure URL has protocol
           if (!url.match(/^https?:\/\//)) {
             url = "http://" + url;
@@ -64,34 +62,70 @@
           var xhr = new XMLHttpRequest();
           xhr.open("GET", previewUrl, true);
           xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-              try {
-                var data = JSON.parse(xhr.responseText);
-
-                // Check for explicit error or HTTP error status from backend
-                if (data.error || (data.status && data.status >= 400)) {
-                    var status = data.status || 404;
-                    // Find the link container in the parent item
-                    var linkSpan = item.querySelector(".link");
-                    if (linkSpan) {
-                         // Completely replace content to remove potential broken embeds (Twitter/YouTube)
-                         // and show a clean error link.
-                         var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
-                         linkSpan.innerHTML = '<a href="' + escapeHtml(url) + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
-                    }
-                    return;
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                try {
+                  var data = JSON.parse(xhr.responseText);
+                  handlePreviewData(data);
+                } catch (e) {
+                  // Silently fail or remove
+                  previewDiv.remove();
                 }
+              } else {
+                previewDiv.remove();
+              }
+            }
+          };
+          xhr.send();
 
+          function handlePreviewData(data) {
+             // Handle Errors
+             if (data.error || (data.status && data.status >= 400)) {
+                var status = data.status || 404;
+                var linkSpan = item.querySelector(".link");
+                if (linkSpan) {
+                     var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
+                     linkSpan.innerHTML = '<a href="' + escapeHtml(url) + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
+                }
+                previewDiv.remove();
+                return;
+             }
+
+             // Client-side OEmbed Fallback (TikTok)
+             // If missing embed_html but is TikTok, fetch from TikTok's OEmbed endpoint directly.
+             if (!data.embed_html && url.match(/tiktok\.com/)) {
+                  var oembedUrl = 'https://www.tiktok.com/oembed?url=' + encodeURIComponent(url) + '&format=json';
+                  fetch(oembedUrl)
+                      .then(function(response) {
+                          if (response.ok) return response.json();
+                          throw new Error('Client-side OEmbed failed');
+                      })
+                      .then(function(oembedData) {
+                          if (oembedData.html) data.embed_html = oembedData.html;
+                          if (oembedData.thumbnail_url) data.image = oembedData.thumbnail_url;
+                          if (oembedData.title) data.title = oembedData.title;
+                          if (oembedData.provider_name) data.provider_name = oembedData.provider_name;
+                          data.type = "video";
+                          renderPreview(data);
+                      })
+                      .catch(function(e) {
+                          console.log("Fallback failed", e);
+                          renderPreview(data);
+                      });
+                  return;
+             }
+
+             renderPreview(data);
+          }
+
+          function renderPreview(data) {
                 // Use Open Graph image, Twitter image, or nothing
                 var imageUrl = data.image || data.twitter_image || null;
-                // Use Open Graph title, Twitter title, or fallback title
                 var title = data.title || data.twitter_title || null;
-                // Use Open Graph description, Twitter description, or fallback description
-                var description =
-                  data.description || data.twitter_description || null;
+                var description = data.description || data.twitter_description || null;
 
                 // Only show preview if we have at least an image, title, or description
-                if (!imageUrl && !title && !description) {
+                if (!imageUrl && !title && !description && !data.embed_html) {
                   return;
                 }
 
@@ -100,19 +134,43 @@
 
                 // Site Info (Icon + Name)
                 var provider = data.provider_name || "Link";
-                var iconUrl = "/favicon.ico";
-                if (provider === "Reddit")
-                  iconUrl =
-                    "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png";
+                var iconUrl = data.icon || "/favicon.ico";
+                if (provider === "Reddit" && !data.icon)
+                  iconUrl = "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png";
 
                 previewHTML +=
                   '<div class="og-site-info"><img src="' +
-                  iconUrl +
+                  escapeHtml(iconUrl) +
                   '" class="og-site-icon" /> ' +
                   escapeHtml(provider) +
                   "</div>";
 
-                // Title
+                // Image
+                if (imageUrl) {
+                  var imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
+                  var onClickAttr = '';
+
+                  // If it's a video, add the play button overlay
+                  if (data.type === "video" || data.type === "rich") {
+                    imageContent += '<div class="og-play-button"></div>';
+                    onClickAttr = 'onclick="replaceWithVideo(this)"';
+                  }
+
+                  var embedHtmlAttr = '';
+                  if (data.embed_html) {
+                      embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
+                  }
+
+                  previewHTML +=
+                    '<div class="og-image ' +
+                    (data.type === "video" || data.type === "rich" ? "is-video" : "") +
+                    '" ' + onClickAttr + embedHtmlAttr + '>' +
+                    imageContent +
+                    "</div>";
+                }
+
+                // Text Conten
+                previewHTML += '<div class="og-content">';
                 if (title) {
                   previewHTML +=
                     '<div class="og-title"><a href="' +
@@ -121,8 +179,6 @@
                     escapeHtml(title) +
                     "</a></div>";
                 }
-
-                // Description
                 if (description) {
                   if (description.length > 300) {
                     description = description.substring(0, 300) + "...";
@@ -132,36 +188,11 @@
                     escapeHtml(description) +
                     "</div>";
                 }
-
-                // Image
-                if (imageUrl) {
-                  var imageContent =
-                    '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
-                  var onClickAttr = '';
-
-                  // If it's a video, add the play button overlay
-                  if (data.type === "video") {
-                    imageContent += '<div class="og-play-button"></div>';
-                    onClickAttr = 'onclick="replaceWithVideo(this)"';
-                  }
-
-                  previewHTML +=
-                    '<div class="og-image ' +
-                    (data.type === "video" ? "is-video" : "") +
-                    '" ' + onClickAttr + '>' +
-                    imageContent +
-                    "</div>";
-                }
-
-                previewHTML += "</div>";
+                previewHTML += "</div>"; // end og-conten
+                previewHTML += "</div>"; // end og-card
 
                 previewDiv.innerHTML = previewHTML;
-              } catch (e) {
-                // Silently fail if JSON parsing fails
-              }
-            }
-          };
-          xhr.send();
+          }
         }
 
         function escapeHtml(text) {
@@ -172,6 +203,31 @@
 
         // Global handler for video replacemen
         window.replaceWithVideo = function(container) {
+            // Check for pre-fetched embed HTML
+            var embedHtmlEncoded = container.getAttribute('data-embed-html');
+            if (embedHtmlEncoded) {
+                var embedHtml = decodeURIComponent(embedHtmlEncoded);
+                container.innerHTML = embedHtml;
+                container.onclick = null;
+                container.classList.remove('is-video');
+                container.style.cursor = 'default';
+
+                // Manually execute scripts (innerHTML does not execute them)
+                var scripts = container.getElementsByTagName('script');
+                for (var i = 0; i < scripts.length; i++) {
+                    var oldScript = scripts[i];
+                    var newScript = document.createElement('script');
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                        newScript.async = true; // Most embeds need async
+                    } else {
+                        newScript.textContent = oldScript.textContent;
+                    }
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+                return;
+            }
+
             // Find URL from parent item
             var item = container.closest('.item');
             if (!item) return;

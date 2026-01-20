@@ -51,6 +51,33 @@ $ADD_QUOTE_SCRIPT "Linus Torvalds" "Talk is cheap. Show me the code."
 $ADD_QUOTE_SCRIPT "Brian Kernighan" "Debugging is twice as hard as writing the code in the first place."
 $ADD_QUOTE_SCRIPT "Simba" "Everything the light touches is our kingdom."
 
+# Spotify
+$ADD_LINK_SCRIPT "music_lover" "https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5"
+
+# TikTok
+$ADD_LINK_SCRIPT "tiktok_star" "https://www.tiktok.com/@tiagogreis/video/6830059644233223429"
+
+# Flickr
+$ADD_LINK_SCRIPT "photog" "http://flickr.com/photos/bees/2362225867/"
+
+# Instagram
+$ADD_LINK_SCRIPT "insta_fan" "https://www.instagram.com/p/fA9uwTtkSN/"
+
+# Dailymotion
+$ADD_LINK_SCRIPT "video_daily" "https://www.dailymotion.com/video/x7tgad0"
+
+# Kickstarter
+$ADD_LINK_SCRIPT "backer" "https://www.kickstarter.com/projects/ouya/ouya-a-new-kind-of-video-game-console"
+
+# SlideShare
+$ADD_LINK_SCRIPT "presenter" "http://www.slideshare.net/lyndadotcom/code-drivesworld12"
+
+# Speaker Deck
+$ADD_LINK_SCRIPT "speaker" "https://speakerdeck.com/mislav/git"
+
+# Giphy
+$ADD_LINK_SCRIPT "gif_master" "https://giphy.com/gifs/cant-hardly-wait-kW8mnYSNkUYKc"
+
 echo "Loading backdated 'Hot Links' directly into DB..."
 sqlite3 tumble.sqlite < tests/fixtures_hot.sql
 
