@@ -68,7 +68,8 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 
 	// Image check
 	if strings.Contains(item.ContentType, "image") && !strings.Contains(item.User, "nsfw") && !strings.Contains(item.User, "otd") {
-		linkFiller = fmt.Sprintf(`<img src="%s" />`, item.URL)
+		// Add onerror handler to replace broken images with text
+		linkFiller = fmt.Sprintf(`<img src="%s" onerror="this.parentNode.innerHTML='<span class=\'http-error-badge\'>404</span> <span class=\'missing-link\'>%s</span>'; this.parentNode.classList.add('missing-link');" />`, item.URL, item.URL)
 	}
 
 	isYoutube := false

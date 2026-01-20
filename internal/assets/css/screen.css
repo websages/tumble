@@ -641,3 +641,11 @@ body {
         max-width: 100%;
     }
 }
+
+/* Ensure priority over .link a */
+.link a.missing-link, .missing-link {
+    color: #999 !important;
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
