@@ -67,8 +67,19 @@
             if (xhr.readyState === 4 && xhr.status === 200) {
               try {
                 var data = JSON.parse(xhr.responseText);
-                if (data.error) {
-                  return;
+
+                // Check for explicit error or HTTP error status from backend
+                if (data.error || (data.status && data.status >= 400)) {
+                    var status = data.status || 404;
+                    // Find the link container in the parent item
+                    var linkSpan = item.querySelector(".link");
+                    if (linkSpan) {
+                         // Completely replace content to remove potential broken embeds (Twitter/YouTube)
+                         // and show a clean error link.
+                         var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
+                         linkSpan.innerHTML = '<a href="' + escapeHtml(url) + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
+                    }
+                    return;
                 }
 
                 // Use Open Graph image, Twitter image, or nothing

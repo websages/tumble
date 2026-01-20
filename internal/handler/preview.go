@@ -28,6 +28,23 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		// Fallback to normal scraping
 	}
 
+	// Twitter / X OEmbed (to detect deletions)
+	if strings.Contains(urlParam, "twitter.com") || strings.Contains(urlParam, "x.com") {
+		status, err := h.fetchTwitterStatus(urlParam)
+		if err != nil || status == 404 || status == 403 {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":  "Tweet Unavailable",
+				"status": status,
+			})
+			return
+		}
+		// If valid (200), return empty success so frontend keeps the existing embed
+		// and doesn't render a duplicate card.
+		json.NewEncoder(w).Encode(map[string]string{})
+		return
+	}
+
 	// Fetch data
 	req, err := http.NewRequest("GET", urlParam, nil)
 	if err != nil {
@@ -246,4 +263,14 @@ func (h *Handler) fetchRedditJSON(url string) (map[string]string, error) {
 	}
 
 	return meta, nil
+}
+
+func (h *Handler) fetchTwitterStatus(url string) (int, error) {
+	oembedURL := "https://publish.twitter.com/oembed?url=" + url
+	resp, err := http.Get(oembedURL)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode, nil
 }

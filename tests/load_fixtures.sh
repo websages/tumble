@@ -34,6 +34,10 @@ $ADD_LINK_SCRIPT "knowledge_seeker" "https://en.wikipedia.org/wiki/Go_(programmi
 # Broken Link (404)
 $ADD_LINK_SCRIPT "404_finder" "http://google.com/this-page-does-not-exist-12345"
 
+# Another Explicit 404 Link (Test Case)
+$ADD_LINK_SCRIPT "broken_link_tester" "http://httpstat.us/404"
+
+
 # Unavailable Video (Soft 404)
 $ADD_LINK_SCRIPT "video_gone" "https://youtu.be/Ie_Wl9eNffE"
 
