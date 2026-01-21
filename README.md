@@ -23,11 +23,9 @@ Tumble now supports both **MySQL** and **SQLite** databases. Choose the one that
 
 ### Database Migrations
 
-Tumble uses [golang-migrate](https://github.com/golang-migrate/migrate) to manage database schemas. Migrations are automatically applied on application startup.
+Tumble uses **GORM AutoMigrate** to manage database schemas. Migrations are automatically applied on application startup.
 
-- **Location**: Migration files are stored in `sql/mysql/` and `sql/sqlite/`.
-- **Versioning**: Files are named sequentially (e.g., `000001_init.up.sql`).
-- **Adding Migrations**: To change the schema, create a new numbered `.up.sql` file in the appropriate directory.
+- **Mechanism**: The application checks the database schema on startup and creates/updates tables to match the Go structs in `internal/data/store.go`.
 
 ### Testing Infrastructure
 
@@ -113,13 +111,7 @@ You can override any configuration value using environment variables prefixed wi
 
 ### 2. Initialize Database
 
-Run the setup script (works for both MySQL and SQLite):
-
-```bash
-perl scripts/setup_database.pl
-```
-
-That's it! The script will automatically detect your database type and create the necessary tables.
+Simply start the application! Tumble will automatically detect your database type (configured in `config.yaml` or via env vars) and create the necessary tables if they don't exist.
 
 ### 3. Configure Web Server
 

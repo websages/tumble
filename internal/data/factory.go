@@ -3,20 +3,33 @@ package data
 import (
 	"fmt"
 	"strings"
+
+	"github.com/glebarez/sqlite"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // NewStore creates a new Store based on the driver name and DSN.
 // Driver can be "mysql" or "sqlite" (case-insensitive).
 func NewStore(driver, dsn string) (Store, error) {
+	var dialector gorm.Dialector
+
 	switch strings.ToLower(driver) {
 	case "mysql":
-		return NewMySQLStore(dsn)
+		dialector = mysql.Open(dsn)
 	case "sqlite", "sqlite3":
-		// modernc.org/sqlite registers as "sqlite"
-		// If user config says "sqlite3", we map it.
-		// NOTE: NewSQLiteStore uses "sqlite" internally now.
-		return NewSQLiteStore(dsn)
+		dialector = sqlite.Open(dsn)
 	default:
 		return nil, fmt.Errorf("unknown database driver: %s", driver)
 	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return NewGormStore(db), nil
 }

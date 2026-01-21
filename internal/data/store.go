@@ -6,29 +6,44 @@ import (
 )
 
 type IRCLink struct {
-	ID          int       `json:"ircLinkID"`
-	Timestamp   time.Time `json:"timestamp"`
-	User        string    `json:"user"`
-	Title       string    `json:"title"`
-	URL         string    `json:"url"`
-	Clicks      int       `json:"clicks"`
-	ContentType string    `json:"content_type"`
+	ID          int       `json:"ircLinkID" gorm:"column:ircLinkID;primaryKey"`
+	Timestamp   time.Time `json:"timestamp" gorm:"column:timestamp"`
+	User        string    `json:"user" gorm:"column:user"`
+	Title       string    `json:"title" gorm:"column:title"`
+	URL         string    `json:"url" gorm:"column:url"`
+	Clicks      int       `json:"clicks" gorm:"column:clicks;default:0"`
+	ContentType string    `json:"content_type" gorm:"column:content_type"`
+}
+
+// TableName overrides the table name used by User to `ircLink`
+func (IRCLink) TableName() string {
+	return "ircLink"
 }
 
 type Image struct {
-	ID        int       `json:"imageID"`
-	Timestamp time.Time `json:"timestamp"`
-	Title     string    `json:"title"`
-	Link      string    `json:"link"`
-	URL       string    `json:"url"`
-	MD5Sum    string    `json:"md5sum"`
+	ID        int       `json:"imageID" gorm:"column:imageID;primaryKey"`
+	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
+	Title     string    `json:"title" gorm:"column:title"`
+	Link      string    `json:"link" gorm:"column:link"`
+	URL       string    `json:"url" gorm:"column:url"`
+	MD5Sum    string    `json:"md5sum" gorm:"column:md5sum"`
+}
+
+// TableName overrides the table name used by User to `image`
+func (Image) TableName() string {
+	return "image"
 }
 
 type Quote struct {
-	ID        int       `json:"quoteID"`
-	Timestamp time.Time `json:"timestamp"`
-	Quote     string    `json:"quote"`
-	Author    string    `json:"author"`
+	ID        int       `json:"quoteID" gorm:"column:quoteID;primaryKey"`
+	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
+	Quote     string    `json:"quote" gorm:"column:quote"`
+	Author    string    `json:"author" gorm:"column:author"`
+}
+
+// TableName overrides the table name used by User to `quote`
+func (Quote) TableName() string {
+	return "quote"
 }
 
 type UserStat struct {
