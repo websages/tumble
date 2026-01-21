@@ -54,22 +54,16 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	// Load Config
-	cfgPath := "conf/config.yaml" // Default or flag
+	// Load Config
+	cfgPath := ""
 	if len(os.Args) > 1 {
 		cfgPath = os.Args[1]
 	}
 
 	cfg, err := config.Load(cfgPath)
 	if err != nil {
-		slog.Warn("Warning: Could not load config, trying fallback", "path", cfgPath, "error", err)
-		// Proceed with defaults or fail? Perl requires config.yaml in htdocs usually.
-		// We'll assume we need one.
-		// Try htdocs/config.yaml
-		cfg, err = config.Load("htdocs/config.yaml")
-		if err != nil {
-			slog.Error("Fatal: Could not load config", "error", err)
-			os.Exit(1)
-		}
+		slog.Error("Fatal: Could not load config", "error", err)
+		os.Exit(1)
 	}
 
 	// Setup Logging
