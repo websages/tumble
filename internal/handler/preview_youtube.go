@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"strings"
 )
 
 // GetYouTubePreview handles preview logic for YouTube.
@@ -18,10 +19,17 @@ func (h *Handler) GetYouTubePreview(targetURL string) (map[string]string, error)
 	// Check for YouTube "soft 404"
 	// Extracted from original scrapeOpenGraph
 	title, hasTitle := meta["title"]
-	if !hasTitle || title == " - YouTube" || title == "YouTube" {
+
+	if !hasTitle {
+		return nil, fmt.Errorf("status 404")
+	}
+
+	// Make check more permissible using Contains
+	if strings.Contains(title, " - YouTube") || title == "YouTube" {
 		// Special handling for caller to know it's a 404
 		return nil, fmt.Errorf("status 404")
 	}
+
 	meta["type"] = "video"
 
 	return meta, nil
