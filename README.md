@@ -40,6 +40,33 @@ A robust test infrastructure is available for rapid development:
 
 To customize the test environment, you can edit `conf/config-test.yaml`.
 
+### Manual MySQL Verification
+
+To validate MySQL migration support without Docker, you can run against a local MySQL server:
+
+1.  **Create Local Database/User**:
+
+    ```bash
+    mysql -u root -p -e "CREATE DATABASE tumble_test;"
+    mysql -u root -p -e "CREATE USER 'tumble'@'localhost' IDENTIFIED BY 'password';"
+    mysql -u root -p -e "GRANT ALL PRIVILEGES ON tumble_test.* TO 'tumble'@'localhost';"
+    ```
+
+2.  **Configure**: Check `conf/config-test-mysql.yaml` matches your local credentials.
+
+3.  **Run Application**:
+
+    ```bash
+    bin/tumble conf/config-test-mysql.yaml
+    ```
+
+4.  **Load Fixtures**:
+    ```bash
+    export DRIVER=mysql
+    export MYSQL_PASSWORD=password
+    ./tests/load_fixtures.sh
+    ```
+
 ## Quick Setup
 
 ### 1. Configure Database

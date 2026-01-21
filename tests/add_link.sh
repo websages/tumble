@@ -11,6 +11,6 @@ if [ -z "$USER" ] || [ -z "$URL" ]; then
     exit 1
 fi
 
-echo "Adding Link: $URL (User: $USER)"
-curl -v "$BASE_URL/irclink/?user=$USER&url=$URL&source=irc"
-echo ""
+
+curl -s "$BASE_URL/irclink/?user=$USER&url=$URL&source=irc" >/dev/null
+

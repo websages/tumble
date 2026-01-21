@@ -31,10 +31,14 @@ for i in {1..30}; do
     sleep 1
 done
 
-# Run fixtures
+# Run fixtures (so tests have data)
 echo "Running fixtures..."
 export DB_PATH="$DB_PATH"
 export API_BASE_URL="$BASE_URL"
 ./tests/load_fixtures.sh
 
-echo "Test database created successfully."
+# Run API Tests
+echo "Running API Tests..."
+./tests/api_test.sh
+
+echo "Integration tests passed successfully."
