@@ -193,9 +193,9 @@
 
                 previewDiv.innerHTML = previewHTML;
 
-                // Auto-expand Reddit embeds to provide "richer view out of the box"
+                // Auto-expand Reddit and Spotify embeds to provide "richer view out of the box"
                 // The custom card acts as a placeholder or fallback, but we trigger the embed swap immediately.
-                if (provider === "Reddit" && data.embed_html) {
+                if ((provider === "Reddit" || provider === "Spotify") && data.embed_html) {
                     var imgDiv = previewDiv.querySelector('.og-image.is-video');
                     if (imgDiv) {
                        // Small delay to ensure render? No, synchronous is fine for DOM,
