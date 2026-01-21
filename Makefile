@@ -26,13 +26,14 @@ build-linux: ## Build the binary for Linux amd64
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/tumble
 
 clean: ## Clean build directory
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) tumble-test.log tumble-test.sqlite
+
 
 test: ## Run unit tests
 	go test -v ./...
 
 test-api: build ## Run API tests
-	./tests/api_test.sh
+	./tests/run_integration_tests.sh
 
 docs: ## Generate API docs
 	@echo "Generating API docs..."

@@ -40,14 +40,4 @@ CREATE TABLE IF NOT EXISTS `quote` (
   KEY `quoteindex` (`quoteID`)
 ) ENGINE=MyISAM AUTO_INCREMENT=4778 DEFAULT CHARSET=latin1;
 
--- Schema version tracking table
-CREATE TABLE IF NOT EXISTS `schema_version` (
-  `version` int(11) NOT NULL,
-  `applied_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `description` varchar(255),
-  PRIMARY KEY (`version`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- Record schema versions
-INSERT IGNORE INTO `schema_version` (`version`, `description`) VALUES (1, 'Initial schema');
-INSERT IGNORE INTO `schema_version` (`version`, `description`) VALUES (2, 'Added content_type to ircLink');

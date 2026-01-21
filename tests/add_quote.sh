@@ -11,9 +11,9 @@ if [ -z "$AUTHOR" ] || [ -z "$QUOTE" ]; then
     exit 1
 fi
 
-echo "Adding Quote by $AUTHOR"
+
 # Encode Content for safe passing? specific for shell escaping?
 # Assuming simple strings for now or rely on curl --data-urlencode
 
-curl -v --data-urlencode "quote=$QUOTE" --data-urlencode "author=$AUTHOR" "$BASE_URL/quote/"
-echo ""
+curl -s --data-urlencode "quote=$QUOTE" --data-urlencode "author=$AUTHOR" "$BASE_URL/quote/" >/dev/null
+

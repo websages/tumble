@@ -38,9 +38,4 @@ CREATE TABLE IF NOT EXISTS quote (
 
 CREATE INDEX IF NOT EXISTS idx_quote_id ON quote(quoteID);
 
--- Schema version tracking table
-CREATE TABLE IF NOT EXISTS schema_version (
-  version INTEGER PRIMARY KEY,
-  applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  description TEXT
-);
+
