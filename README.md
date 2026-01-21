@@ -69,16 +69,25 @@ To validate MySQL migration support without Docker, you can run against a local 
 
 ## Quick Setup
 
-### 1. Configure Database
+### 1. Configure Database and Application
 
-Create or edit `config.yaml` in the htdocs directory:
+Tumble uses **Viper** for configuration, allowing you to configure the application using a file (`config.yaml`), environment variables, or default values.
 
-**For SQLite (easiest):**
+**Configuration Search Paths:**
+
+- `conf/`
+- `htdocs/`
+- Current directory (`.`)
+
+**Configuration File (config.yaml):**
+
+**For SQLite (default):**
 
 ```yaml
 driver: sqlite
-database_file: tumble.db
+database: tumble.db
 baseurl: your.domain.com
+port: 8080
 ```
 
 **For MySQL:**
@@ -89,8 +98,18 @@ database: tumble
 username: tumble
 password: your_secure_password
 host: localhost
+port: 8080
 baseurl: your.domain.com
 ```
+
+**Environment Variables:**
+
+You can override any configuration value using environment variables prefixed with `TUMBLE_`. Use underscores (`_`) to access nested keys.
+
+- `TUMBLE_PORT=9090`
+- `TUMBLE_DRIVER=mysql`
+- `TUMBLE_DATABASE=production_db`
+- `TUMBLE_LOGGING_LEVEL=debug`
 
 ### 2. Initialize Database
 
