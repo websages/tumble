@@ -31,6 +31,18 @@ func NewHandler(cfg *config.Config, store data.Store, svc *service.ContentServic
 	}
 }
 
+func (h *Handler) ServerError(w http.ResponseWriter, r *http.Request, err error) {
+	slog.Error("Internal Server Error", "method", r.Method, "path", r.URL.Path, "error", err)
+
+	w.WriteHeader(http.StatusInternalServerError)
+
+	if h.Config.Mode == "development" {
+		fmt.Fprintf(w, "Internal Server Error: %s", err.Error())
+	} else {
+		fmt.Fprint(w, "Internal Server Error")
+	}
+}
+
 // Index Page Data structure for the main template
 type IndexPageData struct {
 	PageTitle    string
@@ -126,8 +138,10 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errIrc != nil || errImg != nil || errQuote != nil {
-		slog.Error("Error fetching data", "irc_error", errIrc, "img_error", errImg, "quote_error", errQuote)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		// Consolidate errors for logging?
+		// Just picking one for now as example or joining them
+		err := fmt.Errorf("irc: %v, img: %v, quote: %v", errIrc, errImg, errQuote)
+		h.ServerError(w, r, err)
 		return
 	}
 
@@ -401,8 +415,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	// Perform Search
 	links, err := h.Store.SearchIRCLinks(ctx, query)
 	if err != nil {
-		slog.Error("Search error", "query", query, "error", err)
-		http.Error(w, "Search Error", http.StatusInternalServerError)
+		h.ServerError(w, r, err)
 		return
 	}
 
@@ -476,8 +489,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 
 	stats, err := h.Store.GetUserStats(ctx, sortBy, limit, offset)
 	if err != nil {
-		slog.Error("Error fetching stats", "error", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		h.ServerError(w, r, err)
 		return
 	}
 

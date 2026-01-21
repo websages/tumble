@@ -15,6 +15,7 @@ type Config struct {
 	BaseURL  string  `yaml:"baseurl" mapstructure:"baseurl"`
 	Driver   string  `yaml:"driver" mapstructure:"driver"`
 	Port     string  `yaml:"port" mapstructure:"port"`
+	Mode     string  `yaml:"mode" mapstructure:"mode"`
 	Logging  Logging `yaml:"logging" mapstructure:"logging"`
 }
 
@@ -29,6 +30,7 @@ func Load(path string) (*Config, error) {
 	// Defaults
 	v.SetDefault("driver", "mysql")
 	v.SetDefault("port", "8080")
+	v.SetDefault("mode", "production")
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.output", "stdout")
 
