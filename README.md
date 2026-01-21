@@ -107,7 +107,19 @@ You can override any configuration value using environment variables prefixed wi
 - `TUMBLE_PORT=9090`
 - `TUMBLE_DRIVER=mysql`
 - `TUMBLE_DATABASE=production_db`
+- `TUMBLE_MODE=development` (Options: `development`, `production`. Default: `production`)
 - `TUMBLE_LOGGING_LEVEL=debug`
+
+### Environment Modes (`TUMBLE_MODE`)
+
+- **development**:
+  - **Logging**: Text format, Debug level, Full SQL query logging.
+  - **Templates**: Hot-reloading from disk (edit HTML files to see changes immediately).
+  - **Errors**: Displays detailed error messages in the browser.
+- **production** (default):
+  - **Logging**: JSON format, Info level, Error-only SQL logging.
+  - **Templates**: Cached in memory for performance.
+  - **Errors**: Displays generic "Internal Server Error" message to users.
 
 ### 2. Initialize Database
 

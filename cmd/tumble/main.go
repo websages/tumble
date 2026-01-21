@@ -83,24 +83,38 @@ func main() {
 	}
 
 	var level slog.Level
-	switch cfg.Logging.Level {
-	case "debug", "verbose":
-		level = slog.LevelDebug
-	case "warn":
-		level = slog.LevelWarn
-	case "error":
-		level = slog.LevelError
-	default:
-		level = slog.LevelInfo
+	// Default level based on Mode if not explicitly set
+	if cfg.Logging.Level == "" {
+		if cfg.Mode == "development" {
+			level = slog.LevelDebug
+		} else {
+			level = slog.LevelInfo
+		}
+	} else {
+		switch cfg.Logging.Level {
+		case "debug", "verbose":
+			level = slog.LevelDebug
+		case "warn":
+			level = slog.LevelWarn
+		case "error":
+			level = slog.LevelError
+		default:
+			level = slog.LevelInfo
+		}
 	}
 
-	logger := slog.New(slog.NewTextHandler(output, &slog.HandlerOptions{
-		Level: level,
-	}))
+	var logHandler slog.Handler
+	if cfg.Mode == "production" {
+		logHandler = slog.NewJSONHandler(output, &slog.HandlerOptions{Level: level})
+	} else {
+		logHandler = slog.NewTextHandler(output, &slog.HandlerOptions{Level: level})
+	}
+
+	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
 
 	// Init DB
-	store, err := data.NewStore(cfg.Driver, cfg.DSN())
+	store, err := data.NewStore(cfg)
 	if err != nil {
 		slog.Error("Fatal: Could not connect to DB", "error", err)
 		os.Exit(1)
@@ -117,7 +131,7 @@ func main() {
 	svc := service.NewContentService(cfg)
 
 	// Init Renderer
-	renderer, err := templates.NewRenderer()
+	renderer, err := templates.NewRenderer(cfg)
 	if err != nil {
 		slog.Error("Fatal: Could not init renderer", "error", err)
 		os.Exit(1)
