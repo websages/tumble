@@ -48,8 +48,24 @@ restart: kill build ## Restart the application locally
 reset-db: ## Remove sqlite database
 	rm -f tumble.sqlite
 
+backup: ## Backup the current database
+	cp tumble.sqlite tumble.sqlite.bak
+	@echo "Database backed up to tumble.sqlite.bak"
+
+restore: ## Restore the database from backup
+	cp tumble.sqlite.bak tumble.sqlite
+	@echo "Database restored from tumble.sqlite.bak"
+
 load-fixtures: ## Load test fixtures
 	./tests/load_fixtures.sh
+
+run-test: build ## Run the application with the test database
+	$(BUILD_DIR)/$(BINARY_NAME) conf/config-test.yaml
+
+
+
+test-db: build ## Create a fresh test database with fixtures
+	./tests/setup_test_db.sh
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

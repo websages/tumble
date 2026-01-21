@@ -2,8 +2,12 @@
 # Load fixtures into the database
 # Usage: ./tests/load_fixtures.sh
 
-BASE_URL="http://localhost:8080"
+BASE_URL="${API_BASE_URL:-http://localhost:8080}"
+DB_PATH="${DB_PATH:-tumble.sqlite}"
 ADD_LINK_SCRIPT="./tests/add_link.sh"
+
+echo "Using BASE_URL: $BASE_URL"
+echo "Using DB_PATH: $DB_PATH"
 
 echo "Loading fixtures..."
 
@@ -79,6 +83,6 @@ $ADD_LINK_SCRIPT "speaker" "https://speakerdeck.com/mislav/git"
 $ADD_LINK_SCRIPT "gif_master" "https://giphy.com/gifs/cant-hardly-wait-kW8mnYSNkUYKc"
 
 echo "Loading backdated 'Hot Links' directly into DB..."
-sqlite3 tumble.sqlite < tests/fixtures_hot.sql
+sqlite3 "$DB_PATH" < tests/fixtures_hot.sql
 
 echo "Fixtures loaded."

@@ -14,6 +14,7 @@ type Config struct {
 	Password string  `yaml:"password"`
 	BaseURL  string  `yaml:"baseurl"`
 	Driver   string  `yaml:"driver"`
+	Port     string  `yaml:"port"`
 	Logging  Logging `yaml:"logging"`
 }
 
@@ -44,6 +45,9 @@ func Load(path string) (*Config, error) {
 	}
 	if cfg.Logging.Output == "" {
 		cfg.Logging.Output = "stdout"
+	}
+	if cfg.Port == "" {
+		cfg.Port = "8080"
 	}
 
 	return &cfg, nil
