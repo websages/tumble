@@ -58,6 +58,17 @@ fi
 check_200 "/v0/"
 check_200 "/v0/search.cgi?search=test"
 
+# 6. YouTube 404 Check
+echo -n "Checking YouTube value for missing video (Expect 200 OK + status: 404)... "
+resp=$(curl -s "$BASE_URL/ogpreview.cgi?url=https://www.youtube.com/watch?v=video_gone")
+# Check if response contains '"status": 404' (or 'status":404' depending on spacing)
+if [[ "$resp" == *'"status":404'* ]] || [[ "$resp" == *'"status": 404'* ]]; then
+   echo "OK"
+else
+   echo "FAIL (Got: $resp)"
+   FAIL=1
+fi
+
 if [ $FAIL -eq 0 ]; then
     echo "All tests passed!"
     exit 0

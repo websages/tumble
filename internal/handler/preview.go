@@ -80,6 +80,14 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(meta)
 			return
 		}
+		// If we detected a soft 404, stop here and return 404 so UI can render "missing" badge
+		if err != nil && err.Error() == "status 404" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":  "Video Unavailable",
+				"status": 404,
+			})
+			return
+		}
 	}
 
 	// 1. Try OEmbed
