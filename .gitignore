@@ -1,3 +1,4 @@
 tumble.sqlite
+tumble-test.sqlite
 bin/*
 *.log

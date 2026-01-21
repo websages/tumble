@@ -177,7 +177,10 @@ func main() {
 	mux.HandleFunc("/api/openapi.json", h.OpenAPISpecHandler)
 
 	// Start
-	addr := ":8080" // Default or from config? Perl was CGI so port wasn't in config.
+	addr := ":" + cfg.Port
+	if cfg.Port == "" {
+		addr = ":8080"
+	}
 	slog.Info("Starting tumble server", "addr", addr)
 	if err := http.ListenAndServe(addr, loggingMiddleware(mux)); err != nil {
 		slog.Error("Server failed", "error", err)

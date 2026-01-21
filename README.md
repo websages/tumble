@@ -12,13 +12,33 @@ The easiet way to deploy is type is to clone and type `make rpm` on an EL6 syste
 
 If you are not on EL, things should still work. Just `make install` or package it yourself.
 
-
 ## Database Support
 
 Tumble now supports both **MySQL** and **SQLite** databases. Choose the one that fits your needs:
 
 - **SQLite**: Recommended for development, testing, and small deployments. No separate database server required.
 - **MySQL**: Recommended for production deployments with higher traffic.
+
+## Development Workflows
+
+### Database Migrations
+
+Tumble uses [golang-migrate](https://github.com/golang-migrate/migrate) to manage database schemas. Migrations are automatically applied on application startup.
+
+- **Location**: Migration files are stored in `sql/mysql/` and `sql/sqlite/`.
+- **Versioning**: Files are named sequentially (e.g., `000001_init.up.sql`).
+- **Adding Migrations**: To change the schema, create a new numbered `.up.sql` file in the appropriate directory.
+
+### Testing Infrastructure
+
+A robust test infrastructure is available for rapid development:
+
+- **Run Tests**: `make test-api` runs the integration tests.
+- **Test Database**: `make test-db` creates a fresh, disposable SQLite database (`tumble-test.sqlite`), runs migrations, and loads sample fixtures.
+- **Run with Test DB**: `make run-test` starts the application using the test database.
+- **Backup/Restore**: `make backup` and `make restore` allow you to snapshot your current development database.
+
+To customize the test environment, you can edit `conf/config-test.yaml`.
 
 ## Quick Setup
 
@@ -27,6 +47,7 @@ Tumble now supports both **MySQL** and **SQLite** databases. Choose the one that
 Create or edit `config.yaml` in the htdocs directory:
 
 **For SQLite (easiest):**
+
 ```yaml
 driver: sqlite
 database_file: tumble.db
@@ -34,6 +55,7 @@ baseurl: your.domain.com
 ```
 
 **For MySQL:**
+
 ```yaml
 driver: mysql
 database: tumble
@@ -84,6 +106,7 @@ mysql -u tumble -p tumble < sql/schema.mysql
 ## Migration from MySQL to SQLite
 
 1. Export your MySQL data:
+
    ```bash
    mysqldump -u tumble -p tumble > tumble_backup.sql
    ```
@@ -91,6 +114,7 @@ mysql -u tumble -p tumble < sql/schema.mysql
 2. Update `config.yaml` to use SQLite
 
 3. Run setup script:
+
    ```bash
    perl scripts/setup_database.pl
    ```
@@ -127,11 +151,13 @@ export TUMBLE_DEBUG=1
 ```
 
 With debug mode enabled, you'll see:
+
 - All SQL queries being executed
 - Row counts for each query result
 - Detailed query execution information
 
 **Example:**
+
 ```bash
 # Enable debug mode
 export TUMBLE_DEBUG=1
@@ -143,6 +169,7 @@ perl -I htdocs/lib htdocs/index.cgi
 ### Log Output Examples
 
 **Successful MySQL connection:**
+
 ```
 [MySQL] Attempting to connect to database 'tumble' on host 'localhost' as user 'tumble'
 [MySQL] Connection SUCCESSFUL
@@ -151,6 +178,7 @@ perl -I htdocs/lib htdocs/index.cgi
 ```
 
 **SQLite with missing database file:**
+
 ```
 [SQLite] Attempting to connect to database file: tumble.db
 [SQLite] Database file DOES NOT EXIST
@@ -162,6 +190,7 @@ perl -I htdocs/lib htdocs/index.cgi
 ```
 
 **Connection failure with diagnostics:**
+
 ```
 [MySQL] Connection FAILED: Access denied for user 'tumble'@'localhost'
 [MySQL] Diagnostics:

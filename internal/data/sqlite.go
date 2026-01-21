@@ -391,15 +391,5 @@ func (s *SQLiteStore) GetGlobalTimeline(ctx context.Context, limit int, offset i
 }
 
 func (s *SQLiteStore) Bootstrap(ctx context.Context) error {
-	schema, err := SchemaFS.ReadFile("schema.sqlite")
-	if err != nil {
-		return err
-	}
-
-	// modernc.org/sqlite usually handles multiple statements in one Exec.
-	// Let's try executing the whole block.
-	if _, err := s.db.ExecContext(ctx, string(schema)); err != nil {
-		return err
-	}
-	return nil
+	return RunMigrations(s.db, "sqlite", "sqlite")
 }

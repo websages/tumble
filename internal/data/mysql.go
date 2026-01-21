@@ -394,33 +394,9 @@ func (s *MySQLStore) GetGlobalTimeline(ctx context.Context, limit int, offset in
 }
 
 func (s *MySQLStore) Bootstrap(ctx context.Context) error {
-	schema, err := SchemaFS.ReadFile("schema.mysql")
-	if err != nil {
-		return err
-	}
-	// Simple split by ; might fail on complex SQL, but for this schema it's fine.
-	// Actually, the schema has multi-line statements.
-	// A robust solution executes the whole script if the driver supports it, or splits carefully.
-	// MySQL driver often supports multiple statements if enabled, but better to execute one by one if split properly.
-	// For this specific schema, splitting by `;` works because there are no semicolons inside strings/triggers.
-	// HOWEVER, creating a new method to execute script is cleaner.
-
-	// Actually, just executing the whole thing might work if multiStatements=true in DSN, but let's assume not.
-	// We'll follow a simple split approach for now, or just execute the known CREATE statements.
-	// Since we want to use the embedded file, we should parse it.
-
-	// Simpler: Just execute the file content?
-	// Drivers behave differently.
-	// Let's rely on the file content being simple enough.
-
-	queries := splitSQL(string(schema))
-	for _, q := range queries {
-		if q == "" {
-			continue
-		}
-		if _, err := s.db.ExecContext(ctx, q); err != nil {
-			return fmt.Errorf("failed to execute query %q: %w", q, err)
-		}
-	}
-	return nil
+	// User databaseName "tumble" or extract from config?
+	// DSN parsing is complex. For now we assume "mysql" driver name is sufficient.
+	// Actually, RunMigrations needs databaseName to keep migrate logic happy implicitly?
+	// The driverName check we wrote just uses "mysql".
+	return RunMigrations(s.db, "mysql", "mysql")
 }
