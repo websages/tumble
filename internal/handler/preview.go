@@ -40,15 +40,16 @@ type OEmbedResponse struct {
 	AuthorURL    string `json:"author_url"`
 	ProviderName string `json:"provider_name"`
 	ProviderURL  string `json:"provider_url"`
-	CacheAge     int64  `json:"cache_age"`
+
+	// CacheAge     int64  `json:"cache_age"`
 	ThumbnailURL string `json:"thumbnail_url"`
 	ThumbnailW   int    `json:"thumbnail_width"`
 	ThumbnailH   int    `json:"thumbnail_height"`
 	HTML         string `json:"html"`
-	Width        int    `json:"width"`
-	Height       int    `json:"height"`
-	Description  string `json:"description"` // Non-standard but common
-	URL          string `json:"url"`         // Required for type=photo
+	// Width        int    `json:"width"`
+	// Height       int    `json:"height"`
+	Description string `json:"description"` // Non-standard but common
+	URL         string `json:"url"`         // Required for type=photo
 }
 
 // OGPreviewHandler handles /ogpreview.cgi
