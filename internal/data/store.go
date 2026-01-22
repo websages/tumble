@@ -8,7 +8,7 @@ import (
 type IRCLink struct {
 	ID          int       `json:"ircLinkID" gorm:"column:ircLinkID;primaryKey"`
 	Timestamp   time.Time `json:"timestamp" gorm:"column:timestamp"`
-	User        string    `json:"user" gorm:"column:user"`
+	User        string    `json:"user" gorm:"column:user;index"`
 	Title       string    `json:"title" gorm:"column:title"`
 	URL         string    `json:"url" gorm:"column:url"`
 	Clicks      int       `json:"clicks" gorm:"column:clicks;default:0"`
@@ -38,7 +38,7 @@ type Quote struct {
 	ID        int       `json:"quoteID" gorm:"column:quoteID;primaryKey"`
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 	Quote     string    `json:"quote" gorm:"column:quote"`
-	Author    string    `json:"author" gorm:"column:author"`
+	Author    string    `json:"author" gorm:"column:author;type:varchar(255);index"`
 }
 
 // TableName overrides the table name used by User to `quote`
