@@ -38,7 +38,12 @@ export API_BASE_URL="$BASE_URL"
 ./tests/load_fixtures.sh
 
 # Run API Tests
+
 echo "Running API Tests..."
 ./tests/api_test.sh
+
+echo "Running Preview Tests..."
+./tests/preview_test.sh "$BASE_URL"
+
 
 echo "Integration tests passed successfully."
