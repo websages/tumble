@@ -19,34 +19,28 @@
     :root {
       --bg-color: #ffffff;
       --text-color: #333333;
-      --header-bg: #f8f8f8;
-      --border-color: #ddd;
-      
-      /* Footer Variables from screen.css */
-      --footer-bg: #f5f5f5;
-      --footer-border: #eee;
-      --footer-text: #666;
-      --footer-link: #444;
-      --icon-fill: #000000;
-    }
-    [data-theme="dark"] {
-      --bg-color: #0d1117;
-      --text-color: #c9d1d9;
-      --header-bg: #161b22;
-      --border-color: #30363d;
+    /* Footer Variables from screen.css */
+    --footer-bg: #f5f5f5;
+    --footer-border: #eee;
+    --footer-text: #666;
+    --footer-link: #444;
+    --icon-fill: #000000;
+  }
+  [data-theme="dark"] {
+    --bg-color: #0d1117;
+    --text-color: #c9d1d9;
 
-      /* Footer Variables from screen.css */
-      --footer-bg: #1a1a1a;
-      --footer-border: #333;
-      --footer-text: #888;
-      --footer-link: #aaa;
-      --icon-fill: #ffffff;
-    }
-    body { margin: 0; padding: 0 0 60px 0; display: flex; flex-direction: column; min-height: 100vh; font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); }
-    #swagger-ui { flex: 1; }
-    .nav-header { padding: 10px 20px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-    .nav-header a { text-decoration: none; color: var(--text-color); font-weight: bold; }
-    .nav-header a:hover { color: var(--text-color); opacity: 0.8; }
+    /* Footer Variables from screen.css */
+    --footer-bg: #1a1a1a;
+    --footer-border: #333;
+    --footer-text: #888;
+    --footer-link: #aaa;
+    --icon-fill: #ffffff;
+  }
+  body { margin: 0; padding: 0 0 60px 0; display: flex; flex-direction: column; min-height: 100vh; font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+  #swagger-ui { flex: 1; }
+  
+  /* Footer Styles */
     
     /* Footer Styles */
     #footer {
@@ -75,20 +69,7 @@
     }
 
 
-    #theme-toggle {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: var(--text-color);
-        padding: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    #theme-toggle:hover {
-        background-color: rgba(128, 128, 128, 0.1);
-        border-radius: 50%;
-    }
+
 
     /* Dark Mode for Swagger UI */
     [data-theme="dark"] #swagger-ui {
@@ -98,12 +79,7 @@
 </head>
 <body>
 
-<div class="nav-header">
-    <a href="/">&larr; Back to Tumble</a>
-    <button id="theme-toggle" aria-label="Toggle Dark Mode">
-        <span class="material-symbols-rounded">contrast</span>
-    </button>
-</div>
+{{template "header" .}}
 
 <div id="swagger-ui"></div>
 
@@ -118,21 +94,7 @@
     });
   };
 
-  // Theme Toggle
-  (function () {
-    var toggle = document.getElementById("theme-toggle");
-    var html = document.documentElement;
 
-    toggle.addEventListener("click", function () {
-      if (html.getAttribute("data-theme") === "dark") {
-        html.removeAttribute("data-theme");
-        localStorage.setItem("theme", "light");
-      } else {
-        html.setAttribute("data-theme", "dark");
-        localStorage.setItem("theme", "dark");
-      }
-    });
-  })();
 </script>
 </body>
 </html>
