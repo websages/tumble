@@ -1,0 +1,61 @@
+{{define "header"}}
+<style>
+    :root {
+      --nav-header-bg: #f8f8f8;
+      --nav-border-color: #ddd;
+      --nav-text-color: #333333;
+    }
+    [data-theme="dark"] {
+      --nav-header-bg: #161b22;
+      --nav-border-color: #30363d;
+      --nav-text-color: #c9d1d9;
+    }
+    .nav-header { padding: 10px 20px; background: var(--nav-header-bg); border-bottom: 1px solid var(--nav-border-color); display: flex; justify-content: space-between; align-items: center; font-family: sans-serif; }
+    .nav-header a { text-decoration: none; color: var(--nav-text-color); font-weight: bold; }
+    .nav-header a:hover { color: var(--nav-text-color); opacity: 0.8; }
+    
+    #theme-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--nav-text-color);
+        padding: 5px;
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+    }
+    #theme-toggle:hover {
+        background-color: rgba(128, 128, 128, 0.1);
+        border-radius: 50%;
+    }
+</style>
+
+<div class="nav-header">
+    <a href="/">&larr; Back to Tumble</a>
+    <button id="theme-toggle" aria-label="Toggle Dark Mode">
+        <span class="material-symbols-rounded">contrast</span>
+    </button>
+</div>
+
+<!-- Theme Toggle Logic (Event Listener) -->
+<script>
+  (function () {
+    var toggle = document.getElementById("theme-toggle");
+    var html = document.documentElement;
+
+    if (toggle) {
+        toggle.addEventListener("click", function () {
+        if (html.getAttribute("data-theme") === "dark") {
+            html.removeAttribute("data-theme");
+            localStorage.setItem("theme", "light");
+        } else {
+            html.setAttribute("data-theme", "dark");
+            localStorage.setItem("theme", "dark");
+        }
+        });
+    }
+  })();
+</script>
+{{end}}
