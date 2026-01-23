@@ -328,7 +328,11 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 				s, _ := h.Renderer.RenderToString("tumble_item_top5.html", data)
 				hotHTML += s
 			}
+		} else {
+			slog.Error("Failed to get top links", "error", err)
 		}
+		// Debug logging for Hot Links window
+		slog.Info("Hot Links Debug", "count", len(topLinks), "start_days", 12, "end_days", 6)
 	}
 
 	// Navigation
