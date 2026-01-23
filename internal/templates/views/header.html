@@ -14,49 +14,49 @@
       --dropdown-bg: #161b22; /* Matches header or sidebar bg */
       --dropdown-shadow: rgba(0,0,0,0.5);
     }
-    
+
     /* Header fixed at top */
-    .nav-header { 
+    .nav-header {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 1000;
-        padding: 0 20px; 
+        padding: 0 20px;
         height: 50px;
-        background: var(--nav-header-bg); 
-        border-bottom: 1px solid var(--nav-border-color); 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        font-family: sans-serif; 
+        background: var(--nav-header-bg);
+        border-bottom: 1px solid var(--nav-border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: sans-serif;
     }
-    
+
     /* Compensate for fixed header */
     body {
         padding-top: 51px; /* 50px height + 1px border */
     }
-    
+
     .nav-left {
         display: flex;
         gap: 20px;
         align-items: center;
     }
-    
+
     .nav-right {
         display: flex;
         gap: 15px;
         align-items: center;
     }
 
-    .nav-header a { 
-        text-decoration: none; 
-        color: var(--nav-text-color); 
-        font-weight: bold; 
+    .nav-header a {
+        text-decoration: none;
+        color: var(--nav-text-color);
+        font-weight: bold;
         font-size: 14px;
     }
-    .nav-header a:hover { 
-        opacity: 0.8; 
+    .nav-header a:hover {
+        opacity: 0.8;
     }
 
     /* Search styling integration */
@@ -72,7 +72,7 @@
         color: #c9d1d9;
         border: 1px solid #30363d;
     }
-    
+
     #theme-toggle {
         background: none;
         border: none;
@@ -97,7 +97,7 @@
         display: flex;
         align-items: center;
     }
-    
+
     .dropdown-trigger {
         cursor: pointer;
         font-weight: bold;
@@ -119,12 +119,12 @@
         padding: 10px;
         text-align: left;
     }
-    
+
     /* Show on hover */
     .dropdown:hover .dropdown-content {
         display: block;
     }
-    
+
     /* Adjust styles for internal items passed from .Hot */
     .dropdown-content .sm {
         margin-bottom: 8px;
