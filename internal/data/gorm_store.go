@@ -89,7 +89,7 @@ func (s *GormStore) GetTopIRCLinks(ctx context.Context, startDays int, endDays i
 	endDate := now.AddDate(0, 0, -endDays)
 
 	err := s.db.WithContext(ctx).
-		Where("timestamp >= ? AND timestamp <= ? AND clicks > 1", startDate, endDate).
+		Where("timestamp >= ? AND timestamp <= ?", startDate, endDate).
 		Order("clicks DESC").
 		Limit(limit).
 		Find(&links).Error

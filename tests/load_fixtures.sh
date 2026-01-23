@@ -89,14 +89,15 @@ if [ "$DRIVER" == "mysql" ]; then
     MYSQL_USER="${MYSQL_USER:-tumble}"
     # Defaulting to no password for local dev if not set, or prompt? Better to rely on .my.cnf or env var.
     # We will assume MYSQL_PASSWORD is set if needed or it's empty.
-    CMD="mysql -h $MYSQL_HOST -u $MYSQL_USER"
+    MYSQL_PORT="${MYSQL_PORT:-3306}"
+    CMD="mysql -h $MYSQL_HOST -P $MYSQL_PORT -u $MYSQL_USER"
     if [ -n "$MYSQL_PASSWORD" ]; then
         CMD="$CMD -p$MYSQL_PASSWORD"
     fi
     # Use database from config or env?
     # We need the database name. Let's assume MYSQL_DATABASE env var or "tumble_test"
     DB_NAME="${MYSQL_DATABASE:-tumble_test}"
-    $CMD "$DB_NAME" < tests/fixtures_hot.sql
+    $CMD "$DB_NAME" < tests/fixtures_hot_mysql.sql
 else
     sqlite3 "$DB_PATH" < tests/fixtures_hot.sql
 fi
