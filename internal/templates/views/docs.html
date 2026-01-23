@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tumble API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script>
+    (function () {
+      var savedTheme = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --header-bg: #f8f8f8;
+      --border-color: #ddd;
+      
+      /* Footer Variables from screen.css */
+      --footer-bg: #f5f5f5;
+      --footer-border: #eee;
+      --footer-text: #666;
+      --footer-link: #444;
+      --icon-fill: #000000;
+    }
+    [data-theme="dark"] {
+      --bg-color: #0d1117;
+      --text-color: #c9d1d9;
+      --header-bg: #161b22;
+      --border-color: #30363d;
+
+      /* Footer Variables from screen.css */
+      --footer-bg: #1a1a1a;
+      --footer-border: #333;
+      --footer-text: #888;
+      --footer-link: #aaa;
+      --icon-fill: #ffffff;
+    }
+    body { margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+    #swagger-ui { flex: 1; }
+    .nav-header { padding: 10px 20px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .nav-header a { text-decoration: none; color: var(--text-color); font-weight: bold; }
+    .nav-header a:hover { color: var(--text-color); opacity: 0.8; }
+    
+    /* Footer Styles */
+    #footer {
+      padding: 10px;
+      text-align: center;
+      background: var(--footer-bg);
+      border-top: 1px solid var(--footer-border);
+      font-size: 12px;
+      color: var(--footer-text);
+      font-family: sans-serif;
+    }
+    #footer a {
+      color: var(--footer-link);
+      text-decoration: none;
+    }
+    #footer a:hover {
+      text-decoration: underline;
+    }
+    #footer svg {
+        fill: var(--icon-fill);
+    }
+
+
+    #theme-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-color);
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #theme-toggle:hover {
+        background-color: rgba(128, 128, 128, 0.1);
+        border-radius: 50%;
+    }
+
+    /* Dark Mode for Swagger UI */
+    [data-theme="dark"] #swagger-ui {
+        filter: invert(88%) hue-rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav-header">
+    <a href="/">&larr; Back to Tumble</a>
+    <button id="theme-toggle" aria-label="Toggle Dark Mode">
+        <span class="material-symbols-rounded">contrast</span>
+    </button>
+</div>
+
+<div id="swagger-ui"></div>
+
+{{template "footer" .}}
+
+<script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+<script>
+  window.onload = () => {
+    window.ui = SwaggerUIBundle({
+      url: '/api/openapi.json',
+      dom_id: '#swagger-ui',
+    });
+  };
+
+  // Theme Toggle
+  (function () {
+    var toggle = document.getElementById("theme-toggle");
+    var html = document.documentElement;
+
+    toggle.addEventListener("click", function () {
+      if (html.getAttribute("data-theme") === "dark") {
+        html.removeAttribute("data-theme");
+        localStorage.setItem("theme", "light");
+      } else {
+        html.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+      }
+    });
+  })();
+</script>
+</body>
+</html>
