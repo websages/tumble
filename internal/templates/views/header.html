@@ -4,15 +4,74 @@
       --nav-header-bg: #f8f8f8;
       --nav-border-color: #ddd;
       --nav-text-color: #333333;
+      --dropdown-bg: #ffffff;
+      --dropdown-shadow: rgba(0,0,0,0.2);
     }
     [data-theme="dark"] {
       --nav-header-bg: #161b22;
       --nav-border-color: #30363d;
       --nav-text-color: #c9d1d9;
+      --dropdown-bg: #161b22; /* Matches header or sidebar bg */
+      --dropdown-shadow: rgba(0,0,0,0.5);
     }
-    .nav-header { padding: 10px 20px; background: var(--nav-header-bg); border-bottom: 1px solid var(--nav-border-color); display: flex; justify-content: space-between; align-items: center; font-family: sans-serif; }
-    .nav-header a { text-decoration: none; color: var(--nav-text-color); font-weight: bold; }
-    .nav-header a:hover { color: var(--nav-text-color); opacity: 0.8; }
+    
+    /* Header fixed at top */
+    .nav-header { 
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 0 20px; 
+        height: 50px;
+        background: var(--nav-header-bg); 
+        border-bottom: 1px solid var(--nav-border-color); 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        font-family: sans-serif; 
+    }
+    
+    /* Compensate for fixed header */
+    body {
+        padding-top: 51px; /* 50px height + 1px border */
+    }
+    
+    .nav-left {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .nav-right {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .nav-header a { 
+        text-decoration: none; 
+        color: var(--nav-text-color); 
+        font-weight: bold; 
+        font-size: 14px;
+    }
+    .nav-header a:hover { 
+        opacity: 0.8; 
+    }
+
+    /* Search styling integration */
+    .nav-header input[type="text"] {
+        padding: 5px 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: 13px;
+        width: 150px; /* Fixed width */
+    }
+    [data-theme="dark"] .nav-header input[type="text"] {
+        background: #0d1117;
+        color: #c9d1d9;
+        border: 1px solid #30363d;
+    }
     
     #theme-toggle {
         background: none;
@@ -20,7 +79,6 @@
         cursor: pointer;
         color: var(--nav-text-color);
         padding: 5px;
-        margin-top: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -30,13 +88,91 @@
         background-color: rgba(128, 128, 128, 0.1);
         border-radius: 50%;
     }
+
+    /* Dropdown Styles */
+    .dropdown {
+        position: relative;
+        display: inline-block;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+    
+    .dropdown-trigger {
+        cursor: pointer;
+        font-weight: bold;
+        color: var(--nav-text-color);
+        font-size: 14px;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 40px; /* Below header */
+        right: 0;
+        background-color: var(--dropdown-bg);
+        min-width: 250px;
+        box-shadow: 0px 8px 16px 0px var(--dropdown-shadow);
+        z-index: 100;
+        border: 1px solid var(--nav-border-color);
+        border-radius: 4px;
+        padding: 10px;
+        text-align: left;
+    }
+    
+    /* Show on hover */
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+    
+    /* Adjust styles for internal items passed from .Hot */
+    .dropdown-content .sm {
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+    .dropdown-content .link a {
+        font-weight: normal; /* Override bold from header a */
+        color: var(--link-color, #1e90ff);
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    [data-theme="dark"] .dropdown-content .link a {
+        color: var(--link-color, #58a6ff);
+    }
 </style>
 
 <div class="nav-header">
-    <a href="/">&larr; Back to Tumble</a>
-    <button id="theme-toggle" aria-label="Toggle Dark Mode">
-        <span class="material-symbols-rounded">contrast</span>
-    </button>
+    <div class="nav-left">
+        <a href="/">home</a>
+        <a href="/buttons/">buttons</a>
+        <a href="/index.xml">feed</a>
+        <a href="/stats">stats</a>
+        <a href="/api/docs">api docs</a>
+    </div>
+
+    <div class="nav-right">
+        <!-- Hot Shit Dropdown -->
+        <div class="dropdown">
+            <span class="dropdown-trigger">Hot Shit &#9662;</span>
+            <div class="dropdown-content">
+                {{if .Hot}}
+                    {{.Hot}}
+                {{else}}
+                    <div style="padding:5px; color: var(--nav-text-color);">Nothing hot right now.</div>
+                {{end}}
+            </div>
+        </div>
+
+        <form action="/search.cgi" method="get" style="margin: 0;">
+            <input type="text" name="search" placeholder="search..." />
+        </form>
+
+        <button id="theme-toggle" aria-label="Toggle Dark Mode">
+            <span class="material-symbols-rounded">contrast</span>
+        </button>
+    </div>
 </div>
 
 <!-- Theme Toggle Logic (Event Listener) -->

@@ -151,7 +151,8 @@ func main() {
 	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Handles /irclink/?id and posts
 
 	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
-	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler)
+	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
+	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler) // Legacy explicit path
 
 	// v0 Routes (Aliased)
 	mux.HandleFunc("/v0/", h.Index)
@@ -171,7 +172,7 @@ func main() {
 	fileServer := http.FileServer(http.FS(assets.StaticFS))
 	mux.Handle("/css/", fileServer)
 	mux.Handle("/img/", fileServer)
-	mux.Handle("/buttons/", fileServer)
+	// mux.Handle("/buttons/", fileServer) // Removed in favor of ButtonHandler check
 	mux.Handle("/favicon.ico", fileServer)
 	// Legacy static files
 	mux.Handle("/robots.txt", fileServer)

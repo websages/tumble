@@ -22,9 +22,10 @@ func (h *Handler) OpenAPISpecHandler(w http.ResponseWriter, r *http.Request) {
 
 // DocsHandler serves the Swagger UI page
 func (h *Handler) DocsHandler(w http.ResponseWriter, r *http.Request) {
-	data := map[string]string{
+	data := map[string]interface{}{
 		"GitCommit":    version.CommitHash,
 		"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+		"Hot":          h.getHotHTML(r.Context()),
 	}
 
 	w.Header().Set("Content-Type", "text/html")
