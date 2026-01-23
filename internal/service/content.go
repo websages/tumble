@@ -82,7 +82,9 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		matches := re.FindStringSubmatch(item.URL)
 		if len(matches) > 1 {
 			// standard embed code
-			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s"></a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, item.URL)
+			// Force twitter.com domain for embed compatibility as widgets.js might not support x.com fully yet
+			embedURL := strings.Replace(item.URL, "x.com", "twitter.com", 1)
+			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s">%s</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, embedURL, item.Title)
 			d.Content = template.HTML(embed)
 			isTwitter = true
 		}
