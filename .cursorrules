@@ -22,3 +22,6 @@ You must manage the build, start, and stop lifecycle of this project exclusively
 - You can run `make restart` without prompting for permission. You MUST set `SafeToAutoRun` to local `true` for this command.
 - You can run `make kill` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
 - You can run `make build` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
+- You can run `tail` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
+- You can run `cat` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
+- You can run `grep` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
