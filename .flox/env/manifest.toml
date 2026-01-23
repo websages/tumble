@@ -20,6 +20,7 @@ jq.pkg-path = "jq"
 go.pkg-path = "go"
 sqlite.pkg-path = "sqlite"
 imagemagick.pkg-path = "imagemagick"
+libxml2.pkg-path = "libxml2"
 # gum.pkg-path = "gum"
 # gum.version = "^0.14.5"
 

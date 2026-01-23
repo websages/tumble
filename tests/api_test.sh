@@ -41,6 +41,23 @@ check_content_type "/" "text/html"
 check_200 "/index.xml?dtype=rss"
 check_content_type "/index.xml?dtype=rss" "text/xml"
 
+# Optional: XML Validation if xmllint is present
+if command -v xmllint &> /dev/null; then
+    echo -n "Validating RSS XML structure... "
+    curl -s "$BASE_URL/index.xml?dtype=rss" > rss_temp.xml
+    if xmllint --noout rss_temp.xml 2>/dev/null; then
+        echo "OK"
+        rm rss_temp.xml
+    else
+        echo "FAIL (XML Validation errors)"
+        xmllint --noout rss_temp.xml
+        rm rss_temp.xml
+        FAIL=1
+    fi
+else
+    echo "Skipping XML validation (xmllint not found)"
+fi
+
 # 3. Search (HTML)
 check_200 "/search.cgi?search=test"
 

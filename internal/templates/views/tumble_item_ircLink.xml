@@ -2,6 +2,6 @@
             <title>{{.Title}}</title>
             <link>http://{{.BaseURL}}/irclink/?{{.ID}}</link>
             <guid isPermaLink="false">tumble-{{.ID}}</guid>
-            <description>{{.Content}}</description>
+            <description><![CDATA[{{.Content}}]]></description>
             <pubDate>{{.Timestamp}}</pubDate>
         </item>
