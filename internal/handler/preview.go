@@ -75,6 +75,18 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(meta)
 			return
 		}
+		// If OEmbed returned ANY error (404, 403, etc.), we trust it. Do not fall back to scrape.
+		if strings.Contains(err.Error(), "oembed status") {
+			var code int
+			if n, _ := fmt.Sscanf(err.Error(), "oembed status %d", &code); n != 1 {
+				code = 404
+			}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"error":  "Tweet Unavailable",
+				"status": code,
+			})
+			return
+		}
 	} else if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
 		meta, err := h.GetYouTubePreview(urlParam)
 		if err == nil {
@@ -82,7 +94,7 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// If we detected a soft 404, stop here and return 404 so UI can render "missing" badge
-		if err != nil && err.Error() == "status 404" {
+		if err.Error() == "status 404" {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"error":  "Video Unavailable",
 				"status": 404,
@@ -197,7 +209,13 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"error": "HTTP Error",
 				// Extract status code if possible, or default to 400
-				"status": 400,
+				"status": func() int {
+					var code int
+					if n, _ := fmt.Sscanf(err.Error(), "status %d", &code); n == 1 {
+						return code
+					}
+					return 400
+				}(),
 			})
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch metadata"})
