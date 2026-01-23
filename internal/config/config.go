@@ -64,6 +64,11 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	// Normalize Mode
+	if cfg.Mode == "dev" {
+		cfg.Mode = "development"
+	}
+
 	return &cfg, nil
 }
 
