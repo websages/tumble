@@ -283,40 +283,13 @@
   </head>
 
   <body>
+{{template "header" .}}
     <div id="page">
       <div id="masthead">
         <a href="/">tumblefish.</a>
-        <button id="theme-toggle" aria-label="Toggle Dark Mode">
-          <span class="material-symbols-rounded">contrast</span>
-        </button>
       </div>
 
       <div id="sidebar">
-        <div class="item">
-          <div class="header">search it up</div>
-          <form action="/search.cgi" id="search-form" method="get">
-            <input type="text" id="search" name="search" value="" size="15" />
-          </form>
-        </div>
-        <div class="item">
-          <div class="header">last week's hot shit</div>
-          {{.Hot}}
-        </div>
-        <div class="item">
-          <div class="header">also</div>
-          <div class="sm">
-            <div class="link"><a href="/buttons/">buttons</a></div>
-          </div>
-          <div class="sm">
-            <div class="link"><a href="/index.xml">feed</a></div>
-          </div>
-          <div class="sm">
-            <div class="link"><a href="/stats">stats</a></div>
-          </div>
-          <div class="sm">
-            <div class="link"><a href="/api/docs">api docs</a></div>
-          </div>
-        </div>
       </div>
 
       <div id="content">
@@ -342,22 +315,6 @@
 
     {{template "footer" .}}
 
-    <!-- Theme Toggle Logic -->
-    <script>
-      (function () {
-        var toggle = document.getElementById("theme-toggle");
-        var html = document.documentElement;
 
-        toggle.addEventListener("click", function () {
-          if (html.getAttribute("data-theme") === "dark") {
-            html.removeAttribute("data-theme");
-            localStorage.setItem("theme", "light");
-          } else {
-            html.setAttribute("data-theme", "dark");
-            localStorage.setItem("theme", "dark");
-          }
-        });
-      })();
-    </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -57,6 +58,28 @@ type IndexPageData struct {
 	Poster            string
 	FilterType        string
 	IsFallbackContent bool
+}
+
+// Helper to fetch and render Hot Shit links
+func (h *Handler) getHotHTML(ctx context.Context) template.HTML {
+	topLinks, err := h.Store.GetTopIRCLinks(ctx, 12, 6, 5)
+	if err != nil {
+		slog.Error("Failed to get top links", "error", err)
+		return ""
+	}
+	hotHTML := ""
+	for _, l := range topLinks {
+		if len(l.Title) > 30 {
+			l.Title = l.Title[:30] + "..."
+		}
+		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
+		data := map[string]interface{}{
+			"Content": template.HTML(content),
+		}
+		s, _ := h.Renderer.RenderToString("tumble_item_top5.html", data)
+		hotHTML += s
+	}
+	return template.HTML(hotHTML)
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
@@ -311,28 +334,9 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Hot Links (Side bar) - Only for HTML
-	hotHTML := ""
+	hotHTML := template.HTML("")
 	if dtype != "rss" && dtype != "xml" {
-		// Perl: 12 to 6 days ago.
-		topLinks, err := h.Store.GetTopIRCLinks(ctx, 12, 6, 5)
-		if err == nil {
-			for _, l := range topLinks {
-				if len(l.Title) > 30 {
-					l.Title = l.Title[:30] + "..."
-				}
-				content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
-
-				data := map[string]interface{}{
-					"Content": template.HTML(content),
-				}
-				s, _ := h.Renderer.RenderToString("tumble_item_top5.html", data)
-				hotHTML += s
-			}
-		} else {
-			slog.Error("Failed to get top links", "error", err)
-		}
-		// Debug logging for Hot Links window
-		slog.Info("Hot Links Debug", "count", len(topLinks), "start_days", 12, "end_days", 6)
+		hotHTML = h.getHotHTML(ctx)
 	}
 
 	// Navigation
@@ -365,7 +369,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	viewData := IndexPageData{
 		PageTitle:         pageTitle,
 		Container:         template.HTML(containerHTML),
-		Hot:               template.HTML(hotHTML),
+		Hot:               hotHTML,
 		NavP:              template.HTML(navP),
 		NavN:              template.HTML(navN),
 		BaseURL:           template.HTML(h.Config.BaseURL),
@@ -391,15 +395,14 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	if user == "" {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("Oh no!  You didn't enter your name!"))
-		return
-	}
-
-	data := map[string]string{
-		"User":    user,
-		"BaseURL": h.Config.BaseURL,
+	// If user is empty, template will show the landing page (form)
+	// If user is present, template will show the bookmarklets
+	data := map[string]interface{}{
+		"User":         user,
+		"BaseURL":      h.Config.BaseURL,
+		"Hot":          h.getHotHTML(r.Context()),
+		"GitCommit":    version.CommitHash,
+		"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 	}
 
 	if err := h.Renderer.Render(w, "tumble_buttons.html", data); err != nil {
@@ -447,22 +450,13 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		containerHTML, _ = h.Renderer.RenderToString("tumble_item_text.html", data)
 	}
 
-	// Hot links (Same logic as Index)
-	hotHTML := ""
-	topLinks, err := h.Store.GetTopIRCLinks(ctx, 12, 6, 5)
-	if err == nil {
-		for _, l := range topLinks {
-			content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
-			data := map[string]interface{}{"Content": template.HTML(content)}
-			s, _ := h.Renderer.RenderToString("tumble_item_top5.html", data)
-			hotHTML += s
-		}
-	}
+	// Hot links
+	hotHTML := h.getHotHTML(ctx)
 
 	viewData := IndexPageData{
 		PageTitle: fmt.Sprintf(" &gt; %s", query),
 		Container: template.HTML(containerHTML),
-		Hot:       template.HTML(hotHTML),
+		Hot:       hotHTML,
 		BaseURL:   template.HTML(h.Config.BaseURL),
 	}
 
@@ -539,6 +533,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 		"PrevPage":     prevPage,
 		"HasNext":      hasNext,
 		"Sort":         sortBy,
+		"Hot":          h.getHotHTML(ctx),
 	}
 
 	if err := h.Renderer.Render(w, "stats.html", data); err != nil {
