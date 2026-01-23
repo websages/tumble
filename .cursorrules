@@ -19,6 +19,6 @@ You must manage the build, start, and stop lifecycle of this project exclusively
 
 - Do not leave trailing whitespace in files. This can be validated using `git diff --check`.
 - Do not use Docker without explicitly asking before putting it into a plan.
-- You can run `make restart` without prompting for permission.
-- You can run `make kill` without prompting for permission.
-- You can run `make build` without prompting for permission.
+- You can run `make restart` without prompting for permission. You MUST set `SafeToAutoRun` to local `true` for this command.
+- You can run `make kill` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
+- You can run `make build` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
