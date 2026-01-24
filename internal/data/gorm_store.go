@@ -264,15 +264,15 @@ func (s *GormStore) GetGlobalTimeline(ctx context.Context, limit int, offset int
 	var results []TimelineItem
 
 	query := `
-		SELECT 
+		SELECT
 			'link' as type, ircLinkID as id, timestamp, title, url, '' as content, user as author, '' as md5sum
 		FROM ircLink
 		UNION ALL
-		SELECT 
+		SELECT
 			'quote' as type, quoteID as id, timestamp, '' as title, '' as url, quote as content, author as author, '' as md5sum
 		FROM quote
 		UNION ALL
-		SELECT 
+		SELECT
 			'image' as type, imageID as id, timestamp, title, url, '' as content, '' as author, md5sum
 		FROM image
 		ORDER BY timestamp DESC

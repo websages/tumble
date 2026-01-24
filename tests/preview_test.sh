@@ -16,21 +16,21 @@ test_preview() {
 
     # URL Encode
     ENCODED_URL=$(jq -nr --arg v "$URL" '$v|@uri')
-    
+
     echo -n "  Test: $NAME... "
-    
+
     RESPONSE=$(curl -s "$ENDPOINT?url=$ENCODED_URL")
-    
+
     # Check if curl failed
     if [ $? -ne 0 ]; then
         echo "FAIL (curl error)"
         FAILURES=$((FAILURES + 1))
         return
     fi
-    
+
     # Check assertion
     MATCH=$(echo "$RESPONSE" | jq -e "$JQ_FILTER" 2>/dev/null)
-    
+
     if [ "$MATCH" = "true" ]; then
         echo "PASS"
     else
@@ -48,12 +48,12 @@ test_preview "Reddit Valid" \
     "https://www.reddit.com/r/valheim/comments/leqdj6/our_first_encounter_with_the_troll/" \
     '.provider_name == "Reddit" or .title != null'
 
-# Invalid: specific non-existent post. 
-# Note: Reddit might redirect 404s to search pages or return 200 with "Not Found" content, 
+# Invalid: specific non-existent post.
+# Note: Reddit might redirect 404s to search pages or return 200 with "Not Found" content,
 # so exact behavior is tricky. But tryOEmbed likely fails 404, scraper might find garbage or nothing.
 # We expect "error" or empty-ish response if strictly handled, but scraper might find "Reddit - Dive into..." title.
 # Let's rely on "custom" logic failing or returning generic "Reddit" title which might pass 'Valid' check?
-# For now, let's assume 'Invalid' means we check for absence of specific post content if possible, 
+# For now, let's assume 'Invalid' means we check for absence of specific post content if possible,
 # OR just that it doesn't crash. But user requested testing 404 logic.
 # If preview_reddit.go fails, it falls back.
 test_preview "Reddit Invalid" \
@@ -68,7 +68,7 @@ test_preview "Spotify Valid" \
 
 
 # Invalid
-# Spotify returns a 200 OK on invalid tracks with a "Spotify - Web Player" title, 
+# Spotify returns a 200 OK on invalid tracks with a "Spotify - Web Player" title,
 # so we expect a valid scrape fallback, not an error.
 test_preview "Spotify Invalid" \
     "https://open.spotify.com/track/INVALID_TRACK_ID" \

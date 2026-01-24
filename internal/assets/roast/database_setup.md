@@ -36,7 +36,7 @@ This guide explains how to set up the Tumble database for both MySQL and SQLite.
    ```bash
    mysql -u root -p < sql/sql_setup
    ```
-   
+
    Or let the setup script create the database automatically.
 
 3. Run the setup script:
