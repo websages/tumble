@@ -167,6 +167,7 @@ func main() {
 	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Handles /irclink/?id and posts
 
 	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
+	mux.HandleFunc("/api/caching/invalidate", h.InvalidateCacheHandler)
 	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
 	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler) // Legacy explicit path
 

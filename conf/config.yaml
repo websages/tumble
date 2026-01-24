@@ -7,3 +7,6 @@ mode: dev
 logging:
   level: debug
   output: tumble.log
+
+caching:
+  enabled: true

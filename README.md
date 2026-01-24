@@ -252,6 +252,14 @@ perl -I htdocs/lib htdocs/index.cgi
 [MySQL]   3. Verify user has permissions: GRANT ALL ON tumble.* TO 'tumble'@'localhost'
 ```
 
+### Caching
+
+Link previews are cached in the database to reduce external requests.
+
+- `caching.enabled`: Set to `false` to disable server-side caching.
+- To invalidate a cache entry manually:
+  `GET /api/caching/invalidate?url=<encoded_url>`
+
 ## Bugs
 
     * fix user-agent being hardy for link verification
