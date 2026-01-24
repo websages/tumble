@@ -86,6 +86,33 @@ else
    FAIL=1
 fi
 
+# 7. Delete Link Test (Create -> Delete -> Verify)
+echo -n "Testing DELETE /irclink/ flow... "
+# Create a link first
+CREATE_OUT=$(curl -s "$BASE_URL/irclink/?user=testdel&url=http://delete-test.com&source=irc")
+# Check if we got an ID (numeric)
+if [[ "$CREATE_OUT" =~ ^[0-9]+$ ]]; then
+    DEL_ID=$CREATE_OUT
+    # Delete it
+    DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL/irclink/?id=$DEL_ID")
+    if [ "$DEL_STATUS" == "200" ]; then
+        # Verify it's gone
+        GONE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/irclink/?id=$DEL_ID")
+        if [ "$GONE_STATUS" == "404" ]; then
+            echo "OK"
+        else
+            echo "FAIL (Expected 404 after delete, got $GONE_STATUS)"
+            FAIL=1
+        fi
+    else
+        echo "FAIL (Delete request failed with $DEL_STATUS)"
+        FAIL=1
+    fi
+else
+    echo "FAIL (Could not create test link: $CREATE_OUT)"
+    FAIL=1
+fi
+
 if [ $FAIL -eq 0 ]; then
     echo "All tests passed!"
     exit 0

@@ -132,6 +132,17 @@ func (s *GormStore) InsertIRCLink(ctx context.Context, user, title, url, content
 	return link.ID, err
 }
 
+func (s *GormStore) DeleteIRCLink(ctx context.Context, id int) error {
+	result := s.db.WithContext(ctx).Delete(&IRCLink{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("link not found")
+	}
+	return nil
+}
+
 func (s *GormStore) InsertQuote(ctx context.Context, quoteText, author string) error {
 	quote := Quote{
 		Quote:     quoteText,

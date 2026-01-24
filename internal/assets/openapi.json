@@ -94,6 +94,27 @@
             "description": "Server Error"
           }
         }
+      },
+      "delete": {
+        "summary": "Delete an IRC link",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+            "200": {
+                "description": "Link deleted successfully"
+            },
+            "404": {
+                "description": "Link not found"
+            }
+        }
       }
     },
     "/ogpreview.cgi": {

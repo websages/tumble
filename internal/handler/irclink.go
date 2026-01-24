@@ -20,6 +20,45 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.URL.Query().Get("user")
 	url := r.URL.Query().Get("url")
 
+	if r.Method == http.MethodDelete {
+		idStr := r.URL.Query().Get("id")
+		if idStr == "" {
+			// Try path if valid (though usually query param here)
+			// But wait, the router handles /irclink/ so path info might be the ID
+			// e.g. DELETE /irclink/123
+			segments := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+			if len(segments) > 1 {
+				idStr = segments[len(segments)-1]
+			}
+		}
+
+		if idStr == "" {
+			http.Error(w, "Missing ID", http.StatusBadRequest)
+			return
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		err = h.Store.DeleteIRCLink(ctx, id)
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				http.Error(w, "Link not found", http.StatusNotFound)
+			} else {
+				log.Printf("DeleteIRCLink error: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Link %d deleted", id)
+		return
+	}
+
 	if user != "" && url != "" {
 		// Handle link posting
 		// Fetch title (simple impl)
