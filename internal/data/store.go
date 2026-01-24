@@ -74,6 +74,7 @@ type Store interface {
 	GetIRCLinkURL(ctx context.Context, id int) (string, error)
 	IncrementClicks(ctx context.Context, id int) error
 	InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error)
+	DeleteIRCLink(ctx context.Context, id int) error
 	InsertQuote(ctx context.Context, quote, author string) error
 	GetRandomQuote(ctx context.Context) (*Quote, error)
 
