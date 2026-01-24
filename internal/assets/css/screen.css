@@ -629,3 +629,9 @@ body {
     opacity: 0.7;
 }
 
+/* Compact Mode Styles */
+.compact-mode .og-preview,
+.compact-mode .youtube-embed-wrapper {
+    display: none !important;
+}
+

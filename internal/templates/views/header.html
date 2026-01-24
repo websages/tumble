@@ -73,7 +73,7 @@
         border: 1px solid #30363d;
     }
 
-    #theme-toggle {
+    .nav-icon-btn {
         background: none;
         border: none;
         cursor: pointer;
@@ -84,7 +84,7 @@
         justify-content: center;
         opacity: 1;
     }
-    #theme-toggle:hover {
+    .nav-icon-btn:hover {
         background-color: rgba(128, 128, 128, 0.1);
         border-radius: 50%;
     }
@@ -184,27 +184,73 @@
             <input type="text" name="search" placeholder="search..." />
         </form>
 
-        <button id="theme-toggle" aria-label="Toggle Dark Mode">
+        <button id="compact-toggle" class="nav-icon-btn" aria-label="Toggle Compact Mode" title="Toggle Compact Mode">
+            <span class="material-symbols-rounded" id="compact-icon">view_headline</span>
+        </button>
+
+        <button id="theme-toggle" class="nav-icon-btn" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
             <span class="material-symbols-rounded">contrast</span>
         </button>
     </div>
 </div>
 
-<!-- Theme Toggle Logic (Event Listener) -->
+<!-- Theme & Compact Toggle Logic (Event Listeners) -->
 <script>
   (function () {
-    var toggle = document.getElementById("theme-toggle");
+    // Theme Toggle
+    var themeToggle = document.getElementById("theme-toggle");
     var html = document.documentElement;
 
-    if (toggle) {
-        toggle.addEventListener("click", function () {
-        if (html.getAttribute("data-theme") === "dark") {
-            html.removeAttribute("data-theme");
-            localStorage.setItem("theme", "light");
+    if (themeToggle) {
+        themeToggle.addEventListener("click", function () {
+            if (html.getAttribute("data-theme") === "dark") {
+                html.removeAttribute("data-theme");
+                localStorage.setItem("theme", "light");
+            } else {
+                html.setAttribute("data-theme", "dark");
+                localStorage.setItem("theme", "dark");
+            }
+        });
+    }
+
+    // Compact Mode Toggle
+    var compactToggle = document.getElementById("compact-toggle");
+    var compactIcon = document.getElementById("compact-icon");
+
+    function updateCompactIcon(isCompact) {
+        // While in compact mode (list view), show 'view_module' (card/expanded view) as the action to switch TO.
+        // Or vice versa. Let's stick to: Icon represents the CURRENT state or the ACTION?
+        // Usually buttons show the ACTION.
+        // If Compact -> Show "Expand" (view_module or view_stream)
+        // If Expanded -> Show "Compact" (view_headline or view_list)
+        if (isCompact) {
+            compactIcon.textContent = "view_agenda"; // Action: switch to expanded
         } else {
-            html.setAttribute("data-theme", "dark");
-            localStorage.setItem("theme", "dark");
+            compactIcon.textContent = "view_headline"; // Action: switch to compact
         }
+    }
+
+    // Init Icon
+    var isCompact = html.classList.contains("compact-mode") || localStorage.getItem("compact") === "true";
+    if (isCompact) {
+        html.classList.add("compact-mode");
+        updateCompactIcon(true);
+    } else {
+        updateCompactIcon(false);
+    }
+
+    if (compactToggle) {
+        compactToggle.addEventListener("click", function () {
+            var wasCompact = html.classList.contains("compact-mode");
+            if (wasCompact) {
+                html.classList.remove("compact-mode");
+                localStorage.setItem("compact", "false");
+                updateCompactIcon(false);
+            } else {
+                html.classList.add("compact-mode");
+                localStorage.setItem("compact", "true");
+                updateCompactIcon(true);
+            }
         });
     }
   })();
