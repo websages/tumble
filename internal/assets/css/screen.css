@@ -3,7 +3,7 @@
   --bg-body: white;
   --text-main: #222; /* Default text color */
   --text-muted: #aaa;
-  
+
   /* Masthead */
   --masthead-text: #000;
   --masthead-border: #000;
@@ -20,13 +20,13 @@
   --link-color: #2c6e2f;
   --quote-color: #d65a00;
   --header-color: #aaa;
-  
+
   /* OG Preview (Cards) */
   --og-border: #e1e8ed;
   --og-bg: #fff;
   --og-title: #14171a;
   --og-desc: #657786;
-  
+
   /* Slack-like OG */
   --slack-border: #e0e0e0;
   --slack-site-info: #696969;
@@ -39,7 +39,7 @@
   --footer-border: #eee;
   --footer-text: #666;
   --footer-link: #444;
-  
+
   /* Icon Fill */
   --icon-fill: #000000;
 }
@@ -49,7 +49,7 @@
   --bg-body: #121212;
   --text-main: #e0e0e0;
   --text-muted: #888;
-  
+
   /* Masthead */
   --masthead-text: #fff;
   --masthead-border: #fff;
@@ -66,13 +66,13 @@
   --link-color: #66bb6a;
   --quote-color: #ffb74d;
   --header-color: #888;
-  
+
   /* OG Preview (Cards) */
   --og-border: #333;
   --og-bg: #1e1e1e;
   --og-title: #e0e0e0;
   --og-desc: #aaa;
-  
+
   /* Slack-like OG */
   --slack-border: #444;
   --slack-site-info: #888;
@@ -112,7 +112,7 @@ body {
     margin: 0 auto;
     flex: 1;
     box-sizing: border-box; /* Include padding in width calculation */
-    
+
     /* CSS Grid Layout */
     display: grid;
     grid-template-columns: 1fr 250px;
@@ -128,7 +128,7 @@ body {
 #masthead {
   /* Span full width of the grid */
   grid-column: 1 / -1;
-  
+
   font-size: 72px;
   font-weight: bold;
   line-height: 68px;
@@ -139,9 +139,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
-  /* Reset previous negative margins/padding if they interfere, 
-     but keeping some padding might be desired for the text look. 
+
+  /* Reset previous negative margins/padding if they interfere,
+     but keeping some padding might be desired for the text look.
      Let's simplify for the grid context. */
   margin: 0 0 20px 0;
   padding: 0;
@@ -158,14 +158,14 @@ body {
   /* Grid placement */
   grid-column: 2;
   grid-row: 2; /* Starts after masthead */
-  
+
   width: 100%; /* Take full width of the column */
 }
 
 #content {
   /* Grid placement */
   grid-column: 1;
-  
+
   width: 100%; /* Take full width of the column */
 }
 
@@ -412,7 +412,7 @@ body {
 #navigation {
     /* Grid placement */
     grid-column: 1;
-    
+
     width: 100%;
     text-align: left;
     padding-bottom: 20px;
@@ -496,7 +496,7 @@ body {
 .og-image img {
     max-width: 100%;
     border-radius: 8px; /* Slack likes rounder corners on media */
-    border: 1px solid var(--slack-img-border); 
+    border: 1px solid var(--slack-img-border);
     display: block;
     /* Reset styles from .item img */
     padding: 0 !important;
