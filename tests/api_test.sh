@@ -59,7 +59,8 @@ else
 fi
 
 # 3. Search (HTML)
-check_200 "/search.cgi?search=test"
+check_200 "/search?search=test"      # New
+check_200 "/search.cgi?search=test"  # Legacy
 
 # 4. IRCLink Redirect (Setup needed for real test, checking 404/400 for bad ID)
 echo -n "Checking /irclink/?id=999999 (Expect 404/Redirect)... "
@@ -75,9 +76,11 @@ fi
 check_200 "/v0/"
 check_200 "/v0/search.cgi?search=test"
 
-# 6. YouTube 404 Check
-echo -n "Checking YouTube value for missing video (Expect 200 OK + status: 404)... "
-resp=$(curl -s "$BASE_URL/ogpreview.cgi?url=https://www.youtube.com/watch?v=video_gone")
+# 6. OGPreview Routes
+check_200 "/ogpreview.cgi?url=https://example.com" # Legacy
+# YouTube 404 Check (New Route)
+echo -n "Checking YouTube value for missing video (Expect 200 OK + status: 404) on /ogpreview... "
+resp=$(curl -s "$BASE_URL/ogpreview?url=https://www.youtube.com/watch?v=video_gone")
 # Check if response contains '"status": 404' (or 'status":404' depending on spacing)
 if [[ "$resp" == *'"status":404'* ]] || [[ "$resp" == *'"status": 404'* ]]; then
    echo "OK"

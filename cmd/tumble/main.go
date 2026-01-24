@@ -163,9 +163,11 @@ func main() {
 	mux.HandleFunc("/", h.Index)
 	mux.HandleFunc("/index.cgi", h.Index)
 	mux.HandleFunc("/stats", h.Stats)
+	mux.HandleFunc("/search", h.Search)
 	mux.HandleFunc("/search.cgi", h.Search)
 	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Handles /irclink/?id and posts
 
+	mux.HandleFunc("/ogpreview", h.OGPreviewHandler)
 	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
 	mux.HandleFunc("/api/caching/invalidate", h.InvalidateCacheHandler)
 	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
