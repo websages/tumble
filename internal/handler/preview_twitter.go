@@ -1,8 +1,6 @@
 package handler
 
-import (
-	"strings"
-)
+import "strings"
 
 // GetTwitterPreview handles preview logic for Twitter/X.
 // Currently, it leverages the default OEmbed behavior but suppresses the output

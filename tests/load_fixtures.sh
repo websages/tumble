@@ -6,6 +6,17 @@ BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 DB_PATH="${DB_PATH:-tumble.sqlite}"
 ADD_LINK_SCRIPT="./tests/add_link.sh"
 
+# Detect Driver from Config if not se
+if [ -z "$DRIVER" ]; then
+    if [ -f "conf/config.yaml" ]; then
+        DETECTED_DRIVER=$(grep "driver:" conf/config.yaml | awk '{print $2}')
+        if [ -n "$DETECTED_DRIVER" ]; then
+            DRIVER=$DETECTED_DRIVER
+            echo "Auto-detected driver: $DRIVER"
+        fi
+    fi
+fi
+
 echo "Using BASE_URL: $BASE_URL"
 echo "Using DB_PATH: $DB_PATH"
 
@@ -17,7 +28,7 @@ $ADD_LINK_SCRIPT "video_fan" "https://youtu.be/rgDcbP4Hem4?si=YdwaAMNTiD9PXKzH"
 # Image
 $ADD_LINK_SCRIPT "pic_poster" "https://cdn.tinnies.club/accounts/avatars/109/626/500/076/902/223/original/2a4a0d1a4ce728c4.jpg"
 
-# Mastodon Post
+# Mastodon Pos
 $ADD_LINK_SCRIPT "social_butterfly" "https://fosstodon.org/@genebean/113945244453254504"
 
 # Standard Link
@@ -29,7 +40,7 @@ $ADD_LINK_SCRIPT "gamer_girl" "https://www.reddit.com/r/valheim/comments/leqdj6/
 # Imgur (Animated)
 $ADD_LINK_SCRIPT "meme_lord" "https://imgur.com/only-one-jack-black-0qetp3u"
 
-# Twitter Post
+# Twitter Pos
 $ADD_LINK_SCRIPT "tweet_master" "https://x.com/jcockhren/status/1229101594505097216?s=20"
 
 # Wikipedia (Go)
@@ -82,22 +93,47 @@ $ADD_LINK_SCRIPT "speaker" "https://speakerdeck.com/mislav/git"
 # Giphy
 $ADD_LINK_SCRIPT "gif_master" "https://giphy.com/gifs/cant-hardly-wait-kW8mnYSNkUYKc"
 
-echo "Loading backdated 'Hot Links' directly into DB..."
+# Kevin's Broken Twitter Link (Sad Path)
+# Use the specific broken ID if possible, but add_link auto-increments.
+# We will just assert on content behavior for "kevin".
+$ADD_LINK_SCRIPT "kevin" "https://twitter.com/darkuncle/status/1483507577174441985"
+
+# Tester's Valid Twitter Link (Happy Path)
+$ADD_LINK_SCRIPT "tester" "https://twitter.com/jcockhren/status/1229101594505097216?s=20"
+
 echo "Loading backdated 'Hot Links' directly into DB..."
 if [ "$DRIVER" == "mysql" ]; then
     MYSQL_HOST="${MYSQL_HOST:-localhost}"
     MYSQL_USER="${MYSQL_USER:-tumble}"
-    # Defaulting to no password for local dev if not set, or prompt? Better to rely on .my.cnf or env var.
-    # We will assume MYSQL_PASSWORD is set if needed or it's empty.
+    # Defaulting to no password for local dev if not se
+
+    # Try to detect port from config if not se
+    if [ -z "$MYSQL_PORT" ] && [ -f "conf/config.yaml" ]; then
+        # simple grep for host: ip:por
+        HOST_LINE=$(grep "host:" conf/config.yaml | awk '{print $2}')
+        if [[ "$HOST_LINE" == *":"* ]]; then
+            MYSQL_PORT=${HOST_LINE#*:}
+            echo "Auto-detected MySQL Port: $MYSQL_PORT"
+        fi
+    fi
     MYSQL_PORT="${MYSQL_PORT:-3306}"
+
     CMD="mysql -h $MYSQL_HOST -P $MYSQL_PORT -u $MYSQL_USER"
     if [ -n "$MYSQL_PASSWORD" ]; then
         CMD="$CMD -p$MYSQL_PASSWORD"
     fi
     # Use database from config or env?
-    # We need the database name. Let's assume MYSQL_DATABASE env var or "tumble_test"
-    DB_NAME="${MYSQL_DATABASE:-tumble_test}"
-    $CMD "$DB_NAME" < tests/fixtures_hot_mysql.sql
+    DB_NAME="${MYSQL_DATABASE:-tumble}"
+    # Check config for database name too if possible
+    if [ -z "$MYSQL_DATABASE" ] && [ -f "conf/config.yaml" ]; then
+         DETECTED_DB=$(grep "database:" conf/config.yaml | awk '{print $2}')
+         if [ -n "$DETECTED_DB" ]; then
+            DB_NAME=$DETECTED_DB
+         fi
+    fi
+
+    # Suppress password warning
+    $CMD "$DB_NAME" < tests/fixtures_hot_mysql.sql 2>/dev/null
 else
     sqlite3 "$DB_PATH" < tests/fixtures_hot.sql
 fi

@@ -13,6 +13,7 @@ deps: ## Download dependencies
 fmt: ## Run go fmt and cleanup whitespace
 	go fmt ./...
 	find internal/templates -type f \( -name "*.html" -o -name "*.xml" \) -exec sed -i '' 's/[ \t]*$$//' {} +
+	find tests -type f -name "*.sh" -exec sed -i '' 's/[ \t]*$$//' {} +
 
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 LDFLAGS=-ldflags "-X tumble/internal/version.CommitHash=$(GIT_COMMIT)"
@@ -60,12 +61,12 @@ restore: ## Restore the database from backup
 load-fixtures: ## Load test fixtures
 	./tests/load_fixtures.sh
 
-run-test: build ## Run the application with the test database
+run-test: kill build ## Run the application with the test database
 	$(BUILD_DIR)/$(BINARY_NAME) conf/config-test.yaml
 
 
 
-test-db: build ## Create a fresh test database with fixtures
+test-db: kill build ## Create a fresh test database with fixtures
 	./tests/setup_test_db.sh
 
 help: ## Show this help message

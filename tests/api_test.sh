@@ -41,7 +41,7 @@ check_content_type "/" "text/html"
 check_200 "/index.xml?dtype=rss"
 check_content_type "/index.xml?dtype=rss" "text/xml"
 
-# Optional: XML Validation if xmllint is present
+# Optional: XML Validation if xmllint is presen
 if command -v xmllint &> /dev/null; then
     echo -n "Validating RSS XML structure... "
     curl -s "$BASE_URL/index.xml?dtype=rss" > rss_temp.xml
@@ -88,12 +88,12 @@ fi
 
 # 7. Delete Link Test (Create -> Delete -> Verify)
 echo -n "Testing DELETE /irclink/ flow... "
-# Create a link first
+# Create a link firs
 CREATE_OUT=$(curl -s "$BASE_URL/irclink/?user=testdel&url=http://delete-test.com&source=irc")
 # Check if we got an ID (numeric)
 if [[ "$CREATE_OUT" =~ ^[0-9]+$ ]]; then
     DEL_ID=$CREATE_OUT
-    # Delete it
+    # Delete i
     DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL/irclink/?id=$DEL_ID")
     if [ "$DEL_STATUS" == "200" ]; then
         # Verify it's gone
