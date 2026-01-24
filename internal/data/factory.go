@@ -2,7 +2,9 @@ package data
 
 import (
 	"fmt"
+	"log"
 	"strings"
+	"time"
 
 	"tumble/internal/config"
 
@@ -31,8 +33,20 @@ func NewStore(cfg *config.Config) (Store, error) {
 		logLevel = logger.Info
 	}
 
+	// Use the global log writer which main.go has configured
+	// regardless of whether it's stdout or a file.
+	newLogger := logger.New(
+		log.New(log.Writer(), "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  logLevel,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  false,
+		},
+	)
+
 	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger: logger.Default.LogMode(logLevel),
+		Logger: newLogger,
 	})
 	if err != nil {
 		return nil, err

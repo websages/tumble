@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"io/fs"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -80,6 +81,21 @@ func main() {
 			defer f.Close()
 			output = f
 		}
+	}
+
+	// Redirect standard log library to the same output
+	// This captures logs from libraries or legacy code (like irclink.go)
+	// preventing them from leaking to stdout/stderr if a file is configured.
+	// We only do this if we aren't writing to stdout/stderr to match expected behavior
+	// of "if log file is specified, do not output to stdout"
+	if cfg.Mode == "development" || cfg.Mode == "dev" {
+		// If we are in dev mode and have a specific file output, we force standard log to that file too
+		// If output is already stdout/stderr, this is a no-op effectively
+		log.SetOutput(output)
+	} else {
+		// In production/other modes, we also likely want to capture standard logs into our structured log stream
+		// or at least to the same destination.
+		log.SetOutput(output)
 	}
 
 	var level slog.Level
