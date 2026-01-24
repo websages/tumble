@@ -44,3 +44,10 @@ CREATE TABLE IF NOT EXISTS schema_version (
   applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   description TEXT
 );
+
+CREATE TABLE IF NOT EXISTS link_previews (
+  url TEXT PRIMARY KEY,
+  data TEXT,
+  created_at DATETIME,
+  updated_at DATETIME
+);

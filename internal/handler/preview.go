@@ -62,6 +62,19 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check Cache (if enabled)
+	if h.Config.Caching.Enabled {
+		if cached, err := h.Store.GetLinkPreview(r.Context(), urlParam); err == nil && cached != nil {
+			var meta map[string]string
+			if err := json.Unmarshal(cached.Data, &meta); err == nil {
+				// Client-side Caching Header (24h)
+				w.Header().Set("Cache-Control", "public, max-age=86400")
+				json.NewEncoder(w).Encode(meta)
+				return
+			}
+		}
+	}
+
 	// 0. Special Hybrid Handlers
 	if strings.Contains(urlParam, "reddit.com") {
 		meta, err := h.GetRedditPreview(urlParam)
@@ -105,12 +118,24 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 1. Try OEmbed
 	if meta, err := h.tryOEmbed(urlParam); err == nil {
-		json.NewEncoder(w).Encode(meta)
+		h.cacheAndRespond(w, r, urlParam, meta)
 		return
 	}
 
 	// 2. Fallback to generic scraping
-	h.fetchOGScrape(w, urlParam)
+	h.fetchOGScrape(w, r, urlParam)
+}
+
+func (h *Handler) cacheAndRespond(w http.ResponseWriter, r *http.Request, urlParam string, meta map[string]string) {
+	// Cache if enabled
+	if h.Config.Caching.Enabled {
+		if data, err := json.Marshal(meta); err == nil {
+			h.Store.InsertLinkPreview(r.Context(), urlParam, data)
+		}
+	}
+	// Client-side Caching Header (24h)
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	json.NewEncoder(w).Encode(meta)
 }
 
 func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
@@ -196,7 +221,7 @@ func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
 	return meta, nil
 }
 
-func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
+func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam string) {
 	// Default UA
 	ua := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
@@ -223,7 +248,7 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, urlParam string) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(meta)
+	h.cacheAndRespond(w, r, urlParam, meta)
 }
 
 func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]string, error) {

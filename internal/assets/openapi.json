@@ -117,6 +117,42 @@
         }
       }
     },
+    "/api/caching/invalidate": {
+      "get": {
+        "summary": "Invalidate Link Preview Cache",
+        "description": "Removes a URL from the server-side link preview cache.",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "description": "The URL to invalidate",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cache Invalidated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing URL"
+          }
+        }
+      }
+    },
     "/ogpreview.cgi": {
       "get": {
         "summary": "Get OpenGraph Preview",

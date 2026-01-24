@@ -17,6 +17,11 @@ type Config struct {
 	Port     string  `yaml:"port" mapstructure:"port"`
 	Mode     string  `yaml:"mode" mapstructure:"mode"`
 	Logging  Logging `yaml:"logging" mapstructure:"logging"`
+	Caching  Caching `yaml:"caching" mapstructure:"caching"`
+}
+
+type Caching struct {
+	Enabled bool `yaml:"enabled" mapstructure:"enabled"`
 }
 
 type Logging struct {
@@ -33,6 +38,7 @@ func Load(path string) (*Config, error) {
 	v.SetDefault("mode", "production")
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.output", "stdout")
+	v.SetDefault("caching.enabled", true)
 
 	// Environment Variables
 	v.SetEnvPrefix("TUMBLE")

@@ -26,6 +26,9 @@ func (h *Handler) DocsHandler(w http.ResponseWriter, r *http.Request) {
 		"GitCommit":    version.CommitHash,
 		"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 		"Hot":          h.getHotHTML(r.Context()),
+		// Potentially pass api docs specific data here if we had a dynamic docs page,
+		// but docs.html is currently static + swagger ui.
+		// If we want to mention the invalidated endpoint, we might need to modify docs.html or openapi.json
 	}
 
 	w.Header().Set("Content-Type", "text/html")

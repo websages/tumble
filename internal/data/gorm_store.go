@@ -26,7 +26,7 @@ func (s *GormStore) Close() error {
 }
 
 func (s *GormStore) Bootstrap(ctx context.Context) error {
-	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{})
+	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{})
 }
 
 func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int) ([]IRCLink, error) {
@@ -292,4 +292,33 @@ func (s *GormStore) GetGlobalTimeline(ctx context.Context, limit int, offset int
 
 	err := s.db.WithContext(ctx).Raw(query, limit, offset).Scan(&results).Error
 	return results, err
+}
+
+func (s *GormStore) GetLinkPreview(ctx context.Context, url string) (*LinkPreview, error) {
+	var preview LinkPreview
+	err := s.db.WithContext(ctx).Where("url = ?", url).First(&preview).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &preview, nil
+}
+
+func (s *GormStore) InsertLinkPreview(ctx context.Context, url string, data []byte) error {
+	preview := LinkPreview{
+		URL:  url,
+		Data: data,
+	}
+	// Use Save to handle upserts (update if exists) or explicit Replace
+	// Clause properties for Upsert
+	return s.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "url"}},
+		DoUpdates: clause.AssignmentColumns([]string{"data", "updated_at"}),
+	}).Create(&preview).Error
+}
+
+func (s *GormStore) DeleteLinkPreview(ctx context.Context, url string) error {
+	return s.db.WithContext(ctx).Delete(&LinkPreview{}, "url = ?", url).Error
 }

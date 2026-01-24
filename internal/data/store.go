@@ -63,6 +63,18 @@ type TimelineItem struct {
 	MD5Sum    string    `json:"md5sum"`  // For images
 }
 
+type LinkPreview struct {
+	URL       string    `json:"url" gorm:"column:url;primaryKey"`
+	Data      []byte    `json:"data" gorm:"column:data;type:text"` // JSON blob of the map[string]string metadata
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
+}
+
+// TableName overrides the table name to `link_previews`
+func (LinkPreview) TableName() string {
+	return "link_previews"
+}
+
 type Store interface {
 	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]IRCLink, error)
 	GetRecentImages(ctx context.Context, days int, offsetDays int) ([]Image, error)
@@ -83,6 +95,11 @@ type Store interface {
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)
 	GetGlobalTimeline(ctx context.Context, limit int, offset int) ([]TimelineItem, error)
+
+	// Caching
+	GetLinkPreview(ctx context.Context, url string) (*LinkPreview, error)
+	InsertLinkPreview(ctx context.Context, url string, data []byte) error
+	DeleteLinkPreview(ctx context.Context, url string) error
 
 	Bootstrap(ctx context.Context) error
 

@@ -51,3 +51,11 @@ CREATE TABLE IF NOT EXISTS `schema_version` (
 -- Record schema versions
 INSERT IGNORE INTO `schema_version` (`version`, `description`) VALUES (1, 'Initial schema');
 INSERT IGNORE INTO `schema_version` (`version`, `description`) VALUES (2, 'Added content_type to ircLink');
+
+CREATE TABLE IF NOT EXISTS `link_previews` (
+  `url` varchar(768) NOT NULL,
+  `data` MEDIUMTEXT,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`url`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
