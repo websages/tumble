@@ -114,10 +114,28 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		}
 	}
 
+	// Flickr
+	isFlickr := false
+	if strings.Contains(item.URL, "flickr.com") {
+		// Attempt to extract photo ID from URL
+		// Example: http://farm3.staticflickr.com/2362/2362225867_0a3b0b7e05.jpg
+		// ID is usually the first part of the filename: 2362225867
+		re := regexp.MustCompile(`\/([0-9]+)_[0-9a-z]+`)
+		matches := re.FindStringSubmatch(item.URL)
+		if len(matches) > 1 {
+			photoID := matches[1]
+			photoPage := fmt.Sprintf("https://www.flickr.com/photo.gne?id=%s", photoID)
+			// Use standard image tag but linked to photo page
+			embed := fmt.Sprintf(`<a href="%s"><img src="%s" alt="%s" /></a>`, photoPage, item.URL, item.Title)
+			d.Content = template.HTML(embed)
+			isFlickr = true
+		}
+	}
+
 	// YouTube logic removed: Handled client-side by OGPreview for "click to play" behavior
 	// and to correctly handle unavailable videos (404s).
 
-	if !isYoutube && !isTwitter && !isImgur {
+	if !isYoutube && !isTwitter && !isImgur && !isFlickr {
 		baseURL := s.Config.BaseURL
 		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, baseURL, item.ID, linkFiller)
 		d.Content = template.HTML(content)
@@ -136,6 +154,21 @@ func (s *ContentService) ProcessImage(item data.Image) DisplayItem {
 		BaseURL:   s.Config.BaseURL,
 	}
 	s.formatDate(&d)
+
+	// Flickr Logic for Images
+	if strings.Contains(item.URL, "flickr.com") {
+		// Attempt to extract photo ID from URL
+		re := regexp.MustCompile(`\/([0-9]+)_[0-9a-z]+`)
+		matches := re.FindStringSubmatch(item.URL)
+		if len(matches) > 1 {
+			photoID := matches[1]
+			photoPage := fmt.Sprintf("https://www.flickr.com/photo.gne?id=%s", photoID)
+			// Linked Thumbnail
+			d.Content = template.HTML(fmt.Sprintf(`<a href="%s"><img src="%s" alt="image" /></a>`, photoPage, item.URL))
+			return d
+		}
+	}
+
 	d.Content = template.HTML(fmt.Sprintf(`<img src="%s" alt="image" />`, item.URL))
 	return d
 }
