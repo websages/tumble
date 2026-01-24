@@ -39,6 +39,7 @@ type DisplayItem struct {
 	DateMonth  string `json:"date_month"`   // e.g. "Jan"
 	DateRawDay string `json:"date_raw_day"` // e.g. "01"
 	DateYear   string `json:"date_year"`    // e.g. "2026"
+	SuppressOG bool   `json:"suppress_og"`
 }
 
 func NewContentService(cfg *config.Config) *ContentService {
@@ -87,30 +88,57 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s" target="_blank">%s</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, embedURL, item.Title)
 			d.Content = template.HTML(embed)
 			isTwitter = true
+			d.SuppressOG = true
 		}
 	}
 
 	// Imgur
 	isImgur := false
 	if strings.Contains(item.URL, "imgur.com") {
-		// Regex for ID extraction
-		re := regexp.MustCompile(`imgur\.com\/(?:.*[\/-])?([a-zA-Z0-9]{5,})(?:\..*)?$`)
-		matches := re.FindStringSubmatch(item.URL)
-		if len(matches) > 1 {
-			id := matches[1]
-			videoURL := fmt.Sprintf("https://i.imgur.com/%s.mp4", id)
-			imgURL := fmt.Sprintf("https://i.imgur.com/%s.jpg", id)
-
-			// We render a video tag by default. If it fails to load (404 for static images, or other errors),
-			// the onerror handler swaps it for a standard image tag.
-			// This avoids server-side rate limits (HTTP 429) and speeds up response time.
-			// Note: We wrap it in the anchor tag in the Go code, but the onerror replaces the VIDEO tag specifically.
+		// Gallery Check
+		if strings.Contains(item.URL, "/gallery/") || strings.Contains(item.URL, "/a/") {
+			// It is a gallery
+			// Create a nice looking card for the gallery
+			// <i class="fa-regular fa-images"></i> is a font-awesome icon if available, but let's stick to text/SVG or existing styles.
+			// converting to simple link with a visual cue
 			embed := fmt.Sprintf(
-				`<a href="%s" target="_blank"><video autoplay loop muted playsinline style="max-width: 500px;" src="%s" onerror="this.onerror=null;this.outerHTML='<img src=\'%s\' style=\'max-width: 500px;\' />'"></video></a>`,
-				item.URL, videoURL, imgURL)
+				`<span class="imgur-gallery-card" style="display: inline-block; overflow: hidden; border: 1px solid #444; border-radius: 5px; background-color: #222; max-width: 400px; width: 100%%; vertical-align: top;">
+					<a href="%s" target="_blank" style="color: #fff; text-decoration: none; display: block;">
+						<span class="gallery-image-container" style="display: block; background-color: #000; text-align: center; min-height: 200px; line-height: 200px;">
+							<span style="font-size: 48px;">📸</span>
+						</span>
+						<span style="display: block; padding: 10px;">
+							<span style="font-weight: bold; display: block;">Imgur Gallery</span>
+							<span style="font-size: 0.9em; opacity: 0.8; display: block;">%s</span>
+						</span>
+					</a>
+				</span>`, item.URL, item.Title)
 
 			d.Content = template.HTML(embed)
 			isImgur = true
+			d.SuppressOG = true
+
+		} else {
+			// Single Image / Video Detection
+			re := regexp.MustCompile(`imgur\.com\/(?:.*[\/-])?([a-zA-Z0-9]{5,})(?:\..*)?$`)
+			matches := re.FindStringSubmatch(item.URL)
+			if len(matches) > 1 {
+				id := matches[1]
+				videoURL := fmt.Sprintf("https://i.imgur.com/%s.mp4", id)
+				imgURL := fmt.Sprintf("https://i.imgur.com/%s.jpg", id)
+
+				// We render a video tag by default. If it fails to load (404 for static images, or other errors),
+				// the onerror handler swaps it for a standard image tag.
+				// This avoids server-side rate limits (HTTP 429) and speeds up response time.
+				// Note: We wrap it in the anchor tag in the Go code, but the onerror replaces the VIDEO tag specifically.
+				embed := fmt.Sprintf(
+					`<a href="%s" target="_blank"><video autoplay loop muted playsinline style="max-width: 500px;" src="%s" onerror="this.onerror=null;this.outerHTML='<img src=\'%s\' style=\'max-width: 500px;\' />'"></video></a>`,
+					item.URL, videoURL, imgURL)
+
+				d.Content = template.HTML(embed)
+				isImgur = true
+				d.SuppressOG = true
+			}
 		}
 	}
 
@@ -129,6 +157,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			embed := fmt.Sprintf(`<a href="%s" target="_blank"><img src="%s" alt="%s" /></a>`, photoPage, item.URL, item.Title)
 			d.Content = template.HTML(embed)
 			isFlickr = true
+			d.SuppressOG = true
 		}
 	}
 
