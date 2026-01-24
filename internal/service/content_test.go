@@ -56,13 +56,22 @@ func TestProcessIRCLink_Flickr(t *testing.T) {
 				if !strings.Contains(html, tt.wantURL) {
 					t.Errorf("ProcessIRCLink() html = %v, want to contain %v", html, tt.wantURL)
 				}
+
 				// Verify it's an anchor tag
 				if !strings.HasPrefix(html, "<a href=") {
 					t.Errorf("ProcessIRCLink() html should start with anchor tag, got %v", html)
 				}
+				// Verify target blank
+				if !strings.Contains(html, `target="_blank"`) {
+					t.Errorf("ProcessIRCLink() html should contain target=_blank, got %v", html)
+				}
 			} else {
 				if !strings.Contains(html, tt.wantURL) {
 					t.Errorf("ProcessIRCLink() html = %v, want to contain %v", html, tt.wantURL)
+				}
+				// Verify target blank for default links too
+				if !strings.Contains(html, `target="_blank"`) {
+					t.Errorf("ProcessIRCLink() html should contain target=_blank, got %v", html)
 				}
 			}
 		})
@@ -115,6 +124,10 @@ func TestProcessImage_Flickr(t *testing.T) {
 				// Verify it's an anchor tag
 				if !strings.HasPrefix(html, "<a href=") {
 					t.Errorf("ProcessImage() html should start with anchor tag, got %v", html)
+				}
+				// Verify target blank
+				if !strings.Contains(html, `target="_blank"`) {
+					t.Errorf("ProcessImage() html should contain target=_blank, got %v", html)
 				}
 			} else {
 				if !strings.Contains(html, tt.wantURL) {
