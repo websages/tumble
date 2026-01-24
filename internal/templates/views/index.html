@@ -45,9 +45,16 @@
           var contentType = item.getAttribute("data-content-type");
           var ircId = item.getAttribute("data-irc-link-id");
           var previewDiv = item.querySelector(".og-preview");
+          var imgurCard = item.querySelector(".imgur-gallery-card");
 
           // Only load preview for non-image content (text/html)
-          if (!url || (contentType && contentType.match(/image/))) {
+          // Exception: Imgur Gallery Cards need to fetch the cover image even if "image" is in content type
+          if (!url || (contentType && contentType.match(/image/) && !imgurCard)) {
+            return;
+          }
+
+          // If no preview div AND no imgur card, nothing to do
+          if (!previewDiv && !imgurCard) {
             return;
           }
 
@@ -84,11 +91,11 @@
              if (data.error || (data.status && data.status >= 400)) {
                 var status = data.status || 404;
                 var linkSpan = item.querySelector(".link");
-                if (linkSpan) {
+                if (linkSpan && !imgurCard) {
                      var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
                      linkSpan.innerHTML = '<a href="' + escapeHtml(url) + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
                 }
-                previewDiv.remove();
+                if (previewDiv) previewDiv.remove();
                 return;
              }
 
@@ -124,6 +131,29 @@
                 var imageUrl = data.image || data.twitter_image || null;
                 var title = data.title || data.twitter_title || null;
                 var description = data.description || data.twitter_description || null;
+
+                // SPECIAL HANDLING: Imgur Gallery Card
+                if (imgurCard) {
+                    if (imageUrl) {
+                        // Find the placeholder container
+                        // .gallery-image-container
+                        var imgContainer = imgurCard.querySelector(".gallery-image-container");
+                        if (imgContainer) {
+                            // Replace specific placeholder or just set innerHTML
+                            // We want to replace the whole container contents (camera icon) with the image
+                            // and ensure styles are good.
+                            var imgHtml = '<img src="' + escapeHtml(imageUrl) + '" style="width: 100%; height: auto; display: block; object-fit: cover;" />';
+                            imgContainer.innerHTML = imgHtml;
+                            // Remove min-height/centering styles from container if needed, or keeping them is fine if image covers it.
+                            imgContainer.style.minHeight = "auto";
+                            imgContainer.style.lineHeight = "normal";
+                            imgContainer.style.backgroundColor = "transparent";
+                        }
+                    }
+                    return;
+                }
+
+                if (!previewDiv) return;
 
                 // Only show preview if we have at least an image, title, or description
                 if (!imageUrl && !title && !description && !data.embed_html) {

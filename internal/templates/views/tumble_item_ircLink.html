@@ -1,5 +1,5 @@
     <div class="item" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}">
         <span class="link">{{.Content}}</span>
         <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a></span>
-        <div class="og-preview" id="og-preview-{{.ID}}"></div>
+        {{ if not .SuppressOG }}<div class="og-preview" id="og-preview-{{.ID}}"></div>{{ end }}
     </div>
