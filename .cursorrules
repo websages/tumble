@@ -25,3 +25,4 @@ You must manage the build, start, and stop lifecycle of this project exclusively
 - You can run `tail` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
 - You can run `cat` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
 - You can run `grep` without prompting for permission. You MUST set `SafeToAutoRun` to `true` for this command.
+- **Batching Commands:** When batching commands, if ANY command in the batch is unsafe (`SafeToAutoRun: false`), the ENTIRE batch will typically require user approval. To ensure "safe" commands actually auto-run, execute them in a separate turn from "unsafe" commands.
