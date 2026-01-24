@@ -43,6 +43,7 @@
         function loadOGPreview(item) {
           var url = item.getAttribute("data-url");
           var contentType = item.getAttribute("data-content-type");
+          var ircId = item.getAttribute("data-irc-link-id");
           var previewDiv = item.querySelector(".og-preview");
 
           // Only load preview for non-image content (text/html)
@@ -66,7 +67,7 @@
               if (xhr.status === 200) {
                 try {
                   var data = JSON.parse(xhr.responseText);
-                  handlePreviewData(data);
+                  handlePreviewData(data, ircId);
                 } catch (e) {
                   // Silently fail or remove
                   previewDiv.remove();
@@ -78,7 +79,7 @@
           };
           xhr.send();
 
-          function handlePreviewData(data) {
+          function handlePreviewData(data, ircId) {
              // Handle Errors
              if (data.error || (data.status && data.status >= 400)) {
                 var status = data.status || 404;
@@ -106,19 +107,19 @@
                           if (oembedData.title) data.title = oembedData.title;
                           if (oembedData.provider_name) data.provider_name = oembedData.provider_name;
                           data.type = "video";
-                          renderPreview(data);
+                          renderPreview(data, ircId);
                       })
                       .catch(function(e) {
                           console.log("Fallback failed", e);
-                          renderPreview(data);
+                          renderPreview(data, ircId);
                       });
                   return;
              }
 
-             renderPreview(data);
+             renderPreview(data, ircId);
           }
 
-          function renderPreview(data) {
+          function renderPreview(data, ircId) {
                 // Use Open Graph image, Twitter image, or nothing
                 var imageUrl = data.image || data.twitter_image || null;
                 var title = data.title || data.twitter_title || null;
@@ -161,11 +162,21 @@
                       embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
                   }
 
+                  var innerContent = imageContent;
+                  // If we have an IRCLink ID, the image is not a video/rich embed (so no click-to-play),
+                  // and we want it clickable (e.g. Flickr), wrap in anchor.
+                  // We restrict this to Flickr specifically per user request, or generally?
+                  // User "The thumbnail image still isn't clickable... for links from Flickr".
+                  // Let's do it if ircId exists and not video.
+                  if (ircId && !data.embed_html && (data.type === 'photo' ||  provider === 'Flickr')) {
+                       innerContent = '<a href="/irclink/?id=' + ircId + '" target="_blank">' + imageContent + '</a>';
+                  }
+
                   previewHTML +=
                     '<div class="og-image ' +
                     (data.type === "video" || data.type === "rich" ? "is-video" : "") +
                     '" ' + onClickAttr + embedHtmlAttr + '>' +
-                    imageContent +
+                    innerContent +
                     "</div>";
                 }
 
