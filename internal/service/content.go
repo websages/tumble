@@ -84,7 +84,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			// standard embed code
 			// Force twitter.com domain for embed compatibility as widgets.js might not support x.com fully yet
 			embedURL := strings.Replace(item.URL, "x.com", "twitter.com", 1)
-			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s">%s</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, embedURL, item.Title)
+			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s" target="_blank">%s</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, embedURL, item.Title)
 			d.Content = template.HTML(embed)
 			isTwitter = true
 		}
@@ -106,7 +106,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			// This avoids server-side rate limits (HTTP 429) and speeds up response time.
 			// Note: We wrap it in the anchor tag in the Go code, but the onerror replaces the VIDEO tag specifically.
 			embed := fmt.Sprintf(
-				`<a href="%s"><video autoplay loop muted playsinline style="max-width: 500px;" src="%s" onerror="this.onerror=null;this.outerHTML='<img src=\'%s\' style=\'max-width: 500px;\' />'"></video></a>`,
+				`<a href="%s" target="_blank"><video autoplay loop muted playsinline style="max-width: 500px;" src="%s" onerror="this.onerror=null;this.outerHTML='<img src=\'%s\' style=\'max-width: 500px;\' />'"></video></a>`,
 				item.URL, videoURL, imgURL)
 
 			d.Content = template.HTML(embed)
@@ -126,7 +126,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			photoID := matches[1]
 			photoPage := fmt.Sprintf("https://www.flickr.com/photo.gne?id=%s", photoID)
 			// Use standard image tag but linked to photo page
-			embed := fmt.Sprintf(`<a href="%s"><img src="%s" alt="%s" /></a>`, photoPage, item.URL, item.Title)
+			embed := fmt.Sprintf(`<a href="%s" target="_blank"><img src="%s" alt="%s" /></a>`, photoPage, item.URL, item.Title)
 			d.Content = template.HTML(embed)
 			isFlickr = true
 		}
@@ -137,7 +137,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 
 	if !isYoutube && !isTwitter && !isImgur && !isFlickr {
 		baseURL := s.Config.BaseURL
-		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d">%s</a>`, baseURL, item.ID, linkFiller)
+		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d" target="_blank">%s</a>`, baseURL, item.ID, linkFiller)
 		d.Content = template.HTML(content)
 	}
 
@@ -164,7 +164,7 @@ func (s *ContentService) ProcessImage(item data.Image) DisplayItem {
 			photoID := matches[1]
 			photoPage := fmt.Sprintf("https://www.flickr.com/photo.gne?id=%s", photoID)
 			// Linked Thumbnail
-			d.Content = template.HTML(fmt.Sprintf(`<a href="%s"><img src="%s" alt="image" /></a>`, photoPage, item.URL))
+			d.Content = template.HTML(fmt.Sprintf(`<a href="%s" target="_blank"><img src="%s" alt="image" /></a>`, photoPage, item.URL))
 			return d
 		}
 	}
