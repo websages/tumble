@@ -12,6 +12,9 @@ echo "Setting up $DB_PATH..."
 rm -f "$DB_PATH"
 
 # Start server
+# Explicitly set driver for load_fixtures
+export DRIVER="sqlite"
+
 # Start server
 echo "Starting server (logging to tumble-test.log)..."
 $BINARY "$CONFIG" > tumble-test.log 2>&1 &
@@ -19,7 +22,7 @@ PID=$!
 echo "Server PID: $PID"
 
 # Ensure cleanup
-trap "echo 'Stopping server...'; kill $PID || true" EXIT
+trap "echo 'Stopping server...'; kill $PID 2>/dev/null || true" EXIT
 
 # Wait for server to be ready
 echo "Waiting for server to be ready on port $PORT..."

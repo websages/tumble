@@ -88,7 +88,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s" target="_blank">%s</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, embedURL, item.Title)
 			d.Content = template.HTML(embed)
 			isTwitter = true
-			d.SuppressOG = true
+			d.SuppressOG = false
 		}
 	}
 

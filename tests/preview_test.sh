@@ -44,8 +44,8 @@ test_preview() {
 
 # --- REDDIT ---
 # Valid: Should have rich metadata (provider_name or type)
-test_preview "Reddit Valid" \
-    "https://www.reddit.com/r/valheim/comments/leqdj6/our_first_encounter_with_the_troll/" \
+test_preview "Reddit Valid"
+    "https://www.reddit.com/r/valheim/comments/leqdj6/our_first_encounter_with_the_troll/"
     '.provider_name == "Reddit" or .title != null'
 
 # Invalid: specific non-existent post.
@@ -56,67 +56,67 @@ test_preview "Reddit Valid" \
 # For now, let's assume 'Invalid' means we check for absence of specific post content if possible,
 # OR just that it doesn't crash. But user requested testing 404 logic.
 # If preview_reddit.go fails, it falls back.
-test_preview "Reddit Invalid" \
-    "https://www.reddit.com/r/valheim/comments/INVALID_ID_12345/" \
+test_preview "Reddit Invalid"
+    "https://www.reddit.com/r/valheim/comments/INVALID_ID_12345/"
     '.error != null or (.title | contains("Page not found") or contains("Reddit"))'
 
 # --- SPOTIFY ---
 # Valid
-test_preview "Spotify Valid" \
-    "https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5" \
+test_preview "Spotify Valid"
+    "https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5"
     '.provider_name == "Spotify" or .type == "rich"'
 
 
 # Invalid
 # Spotify returns a 200 OK on invalid tracks with a "Spotify - Web Player" title,
 # so we expect a valid scrape fallback, not an error.
-test_preview "Spotify Invalid" \
-    "https://open.spotify.com/track/INVALID_TRACK_ID" \
+test_preview "Spotify Invalid"
+    "https://open.spotify.com/track/INVALID_TRACK_ID"
     '.provider_name == "Spotify"'
 
 # --- IMGUR ---
 # Valid
-test_preview "Imgur Valid" \
-    "https://imgur.com/only-one-jack-black-0qetp3u" \
+test_preview "Imgur Valid"
+    "https://imgur.com/only-one-jack-black-0qetp3u"
     '.title != null'
 
 # Invalid
-test_preview "Imgur Invalid" \
-    "https://imgur.com/gallery/INVALID_GALLERY_ID" \
+test_preview "Imgur Invalid"
+    "https://imgur.com/gallery/INVALID_GALLERY_ID"
     '.error != null or (.title | contains("Imgur"))'
 
 # --- YOUTUBE ---
 # Valid
-test_preview "YouTube Valid" \
-    "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
+test_preview "YouTube Valid"
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     '.provider_name == "YouTube"'
 
 # Invalid (Video Unavailable) - Special handling in preview.go returning status 404
-test_preview "YouTube Invalid" \
-    "https://youtu.be/Ie_Wl9eNffE" \
+test_preview "YouTube Invalid"
+    "https://youtu.be/Ie_Wl9eNffE"
     '.status == 404 and .error == "Video Unavailable"'
 
 # --- TWITTER ---
 # Valid - Returns empty object {} on success per preview_twitter.go
-test_preview "Twitter Valid" \
-    "https://x.com/jcockhren/status/1229101594505097216" \
+test_preview "Twitter Valid"
+    "https://x.com/jcockhren/status/1229101594505097216"
     '. == {}'
 
 # Invalid - Falls back to scrape. Twitter returns a generic page title / icon.
-test_preview "Twitter Invalid" \
-    "https://x.com/jcockhren/status/0000000000000000000" \
-    '.provider_name != null'
+test_preview "Twitter Invalid"
+    "https://x.com/jcockhren/status/0000000000000000000"
+    '.error == "Tweet Unavailable" and .status == 404'
 
 # --- TIKTOK ---
 # Valid
-test_preview "TikTok Valid" \
-    "https://www.tiktok.com/@tiagogreis/video/6830059644233223429" \
+test_preview "TikTok Valid"
+    "https://www.tiktok.com/@tiagogreis/video/6830059644233223429"
     '.provider_name == "TikTok" or .type == "video"'
 
 
 # Invalid - Falls back to scrape.
-test_preview "TikTok Invalid" \
-    "https://www.tiktok.com/@user/video/1234567890123456789" \
+test_preview "TikTok Invalid"
+    "https://www.tiktok.com/@user/video/1234567890123456789"
     '.title | contains("TikTok")'
 
 
