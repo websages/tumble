@@ -99,6 +99,18 @@ test_preview "Twitter Invalid" \
     "https://x.com/jcockhren/status/0000000000000000000" \
     '.error == "Tweet Unavailable" and .status == 404'
 
+# --- FLICKR ---
+# Valid Single Photo - Should return type "photo" with render_inline flag
+test_preview "Flickr Single Photo" \
+    "https://www.flickr.com/photos/cwage/402950834/" \
+    '.type == "photo" and .render_inline == "true" and .image != null'
+
+# Note: Testing albums/photostreams would require valid URLs
+# If an album URL is available, add:
+# test_preview "Flickr Album" \
+#     "https://www.flickr.com/photos/username/albums/123456/" \
+#     '.provider_name == "Flickr" and .render_inline != "true"'
+
 # --- TIKTOK ---
 # Valid
 test_preview "TikTok Valid" \

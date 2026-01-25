@@ -191,9 +191,11 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 	// Flickr
 	isFlickr := false
 	if strings.Contains(item.URL, "flickr.com") {
-		// Attempt to extract photo ID from URL
+		baseURL := s.Config.BaseURL
+		imgURL := ""
+
+		// Case 1: Static Flickr image URL (farm*.staticflickr.com)
 		// Example: http://farm3.staticflickr.com/2362/2362225867_0a3b0b7e05.jpg
-		// ID is usually the first part of the filename: 2362225867
 		re := regexp.MustCompile(`\/([0-9]+)_[0-9a-z]+`)
 		matches := re.FindStringSubmatch(item.URL)
 		if len(matches) > 1 {
@@ -204,6 +206,26 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			d.Content = template.HTML(embed)
 			isFlickr = true
 			d.SuppressOG = true
+		} else {
+			// Case 2: Flickr photo page URL (www.flickr.com/photos/...)
+			// Example: https://www.flickr.com/photos/cwage/402950834/
+			photoPageRe := regexp.MustCompile(`flickr\.com/photos/[^/]+/(\d+)`)
+			photoMatches := photoPageRe.FindStringSubmatch(item.URL)
+
+			if len(photoMatches) > 1 {
+				// Fetch image URL directly from Flickr's OEmbed API
+				imgURL = s.fetchFlickrImageURL(item.URL)
+
+				// If we have an image URL, render inline
+				if imgURL != "" {
+					embed := fmt.Sprintf(
+						`<a href="http://%s/irclink/?%d" target="_blank"><img src="%s" style="max-width: 500px;" /></a>`,
+						baseURL, item.ID, imgURL)
+					d.Content = template.HTML(embed)
+					isFlickr = true
+					d.SuppressOG = true
+				}
+			}
 		}
 	}
 
@@ -292,4 +314,44 @@ func (s *ContentService) fetchOEmbed(url string) (string, error) {
 		return html, nil
 	}
 	return "", fmt.Errorf("no html")
+}
+
+// fetchFlickrImageURL fetches the direct image URL from Flickr's OEmbed API for a photo page URL
+func (s *ContentService) fetchFlickrImageURL(photoURL string) string {
+	// Build OEmbed URL
+	oembedURL := fmt.Sprintf("https://www.flickr.com/services/oembed?url=%s&format=json", photoURL)
+
+	// Create request
+	req, err := http.NewRequest("GET", oembedURL, nil)
+	if err != nil {
+		return ""
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
+
+	// Make request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return ""
+	}
+
+	// Parse response
+	var data map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return ""
+	}
+
+	// For photo type, extract the URL field
+	if typeVal, ok := data["type"].(string); ok && typeVal == "photo" {
+		if urlVal, ok := data["url"].(string); ok {
+			return urlVal
+		}
+	}
+
+	return ""
 }

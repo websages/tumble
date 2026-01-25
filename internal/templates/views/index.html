@@ -93,6 +93,12 @@
           xhr.send();
 
           function handlePreviewData(data, ircId) {
+              // Skip preview card for inline-rendered content (e.g., Flickr single photos)
+              if (data.render_inline === "true") {
+                  if (previewDiv) previewDiv.remove();
+                  return;
+              }
+
              // Handle Errors
              if (data.error || (data.status && data.status >= 400)) {
                 var status = data.status || 404;
