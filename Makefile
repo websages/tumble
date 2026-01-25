@@ -14,6 +14,7 @@ fmt: ## Run go fmt and cleanup whitespace
 	go fmt ./...
 	find internal/templates -type f \( -name "*.html" -o -name "*.xml" \) -exec sed -i '' 's/[ \t]*$$//' {} +
 	find tests -type f -name "*.sh" -exec sed -i '' 's/[ \t]*$$//' {} +
+	git diff --check
 
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 LDFLAGS=-ldflags "-X tumble/internal/version.CommitHash=$(GIT_COMMIT)"

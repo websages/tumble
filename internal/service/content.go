@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -16,6 +17,7 @@ import (
 
 type ContentService struct {
 	Config *config.Config
+	Store  data.Store
 }
 
 type DisplayItem struct {
@@ -42,8 +44,8 @@ type DisplayItem struct {
 	SuppressOG bool   `json:"suppress_og"`
 }
 
-func NewContentService(cfg *config.Config) *ContentService {
-	return &ContentService{Config: cfg}
+func NewContentService(cfg *config.Config, store data.Store) *ContentService {
+	return &ContentService{Config: cfg, Store: store}
 }
 
 func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
@@ -95,45 +97,89 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 	// Imgur
 	isImgur := false
 	if strings.Contains(item.URL, "imgur.com") {
+		baseURL := s.Config.BaseURL
+
 		// Gallery Check
 		if strings.Contains(item.URL, "/gallery/") || strings.Contains(item.URL, "/a/") {
-			// It is a gallery
-			// Create a nice looking card for the gallery
-			// <i class="fa-regular fa-images"></i> is a font-awesome icon if available, but let's stick to text/SVG or existing styles.
-			// converting to simple link with a visual cue
-			embed := fmt.Sprintf(
-				`<span class="imgur-gallery-card" style="display: inline-block; overflow: hidden; border: 1px solid #444; border-radius: 5px; background-color: #222; max-width: 400px; width: 100%%; vertical-align: top;">
-					<a href="%s" target="_blank" style="color: #fff; text-decoration: none; display: block;">
-						<span class="gallery-image-container" style="display: block; background-color: #000; text-align: center; min-height: 200px; line-height: 200px;">
-							<span style="font-size: 48px;">📸</span>
-						</span>
-						<span style="display: block; padding: 10px;">
-							<span style="font-weight: bold; display: block;">Imgur Gallery</span>
-							<span style="font-size: 0.9em; opacity: 0.8; display: block;">%s</span>
-						</span>
-					</a>
-				</span>`, item.URL, item.Title)
+			// Extract gallery ID
+			re := regexp.MustCompile(`imgur\.com/(?:gallery|a)/([a-zA-Z0-9]+)`)
+			matches := re.FindStringSubmatch(item.URL)
 
-			d.Content = template.HTML(embed)
-			isImgur = true
-			d.SuppressOG = true
+			if len(matches) > 1 {
+				baseURL := s.Config.BaseURL
 
+				// Try to get thumbnail from LinkPreview (OpenGraph og:image)
+				// Only render as gallery if we have a valid preview with an image
+				thumbnailURL := ""
+				if s.Store != nil {
+					if preview, err := s.Store.GetLinkPreview(context.TODO(), item.URL); err == nil && preview != nil {
+						var meta map[string]string
+						if err := json.Unmarshal(preview.Data, &meta); err == nil {
+							// Extract only the og:image, not description or other text
+							if imgURL, ok := meta["image"]; ok && imgURL != "" {
+								thumbnailURL = imgURL
+							}
+						}
+					}
+				}
+
+				// Only render gallery card if we have a valid thumbnail
+				// Otherwise, show 404 error for deleted/unavailable galleries
+				if thumbnailURL != "" {
+					// Build gallery card routing through IRC link handler
+					// Detect and hide Imgur placeholder to maintain zero-tolerance requirement
+					embed := fmt.Sprintf(
+						`<span class="imgur-gallery-card" style="display: inline-block; overflow: hidden; border: 1px solid #444; border-radius: 5px; background-color: #222; max-width: 400px; width: 100%%; vertical-align: top;">
+							<a href="http://%s/irclink/?%d" target="_blank" style="color: #fff; text-decoration: none; display: block;">
+								<span class="gallery-image-container" style="display: block; background-color: #000; text-align: center; min-height: 200px; position: relative;">
+									<img src="%s" style="max-width: 100%%; max-height: 200px; display: block; margin: 0 auto;"
+										onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='block';}"
+										onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+									<span style="font-size: 48px; line-height: 200px; display: none;">📸</span>
+								</span>
+								<span style="display: block; padding: 10px;">
+									<span style="font-weight: bold; display: block;">Imgur Gallery</span>
+									<span style="font-size: 0.9em; opacity: 0.8; display: block;">%s</span>
+								</span>
+							</a>
+						</span>`,
+						baseURL, item.ID, thumbnailURL, item.Title)
+
+					d.Content = template.HTML(embed)
+					isImgur = true
+					d.SuppressOG = true
+				} else {
+					// No valid preview - gallery is likely deleted/unavailable
+					// Render as 404 error with gray link, same as other broken images
+					d.Content = template.HTML(fmt.Sprintf(
+						`<a href="http://%s/irclink/?%d" target="_blank"><span class='http-error-badge'>404</span> <span class='missing-link'>%s</span></a>`,
+						baseURL, item.ID, item.URL))
+					isImgur = true
+					d.SuppressOG = true
+				}
+			}
 		} else {
 			// Single Image / Video Detection
-			re := regexp.MustCompile(`imgur\.com\/(?:.*[\/-])?([a-zA-Z0-9]{5,})(?:\..*)?$`)
+			re := regexp.MustCompile(`imgur\.com/(?:.*[\\/-])?([a-zA-Z0-9]{5,})(?:\..*)?$`)
 			matches := re.FindStringSubmatch(item.URL)
 			if len(matches) > 1 {
 				id := matches[1]
-				videoURL := fmt.Sprintf("https://i.imgur.com/%s.mp4", id)
 				imgURL := fmt.Sprintf("https://i.imgur.com/%s.jpg", id)
 
-				// We render a video tag by default. If it fails to load (404 for static images, or other errors),
-				// the onerror handler swaps it for a standard image tag.
-				// This avoids server-side rate limits (HTTP 429) and speeds up response time.
-				// Note: We wrap it in the anchor tag in the Go code, but the onerror replaces the VIDEO tag specifically.
+				// Render image wrapped in IRC link handler anchor
+				// Use visibility toggle pattern (same as gallery) to avoid race conditions
+				// Detect Imgur placeholder by dimensions (161x81px) or true 404 errors
 				embed := fmt.Sprintf(
-					`<a href="%s" target="_blank"><video autoplay loop muted playsinline style="max-width: 500px;" src="%s" onerror="this.onerror=null;this.outerHTML='<img src=\'%s\' style=\'max-width: 500px;\' />'"></video></a>`,
-					item.URL, videoURL, imgURL)
+					`<a href="http://%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
+						<img src="%s" style="max-width: 500px; display: block;"
+							onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
+							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+						<span style="display: none;">
+							<span class='http-error-badge'>404</span>
+							<span class='missing-link'>%s</span>
+						</span>
+					</a>`,
+					baseURL, item.ID, imgURL, item.URL)
 
 				d.Content = template.HTML(embed)
 				isImgur = true
