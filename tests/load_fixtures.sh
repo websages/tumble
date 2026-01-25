@@ -6,7 +6,7 @@ BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 DB_PATH="${DB_PATH:-tumble.sqlite}"
 ADD_LINK_SCRIPT="./tests/add_link.sh"
 
-# Detect Driver from Config if not set
+# Detect Driver from Config if not se
 if [ -z "$DRIVER" ]; then
     # Try test config first, then fall back to main config
     CONFIG_FILE=""

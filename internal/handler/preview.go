@@ -100,6 +100,13 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
+	} else if strings.Contains(urlParam, "flickr.com") {
+		meta, err := h.GetFlickrPreview(urlParam)
+		if err == nil {
+			json.NewEncoder(w).Encode(meta)
+			return
+		}
+		// If not a single photo, fall through to normal OEmbed
 	} else if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
 		meta, err := h.GetYouTubePreview(urlParam)
 		if err == nil {
