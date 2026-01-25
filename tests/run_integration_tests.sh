@@ -19,7 +19,7 @@ PID=$!
 echo "Server PID: $PID"
 
 # Ensure cleanup
-trap "echo 'Stopping server...'; kill $PID || true" EXIT
+trap "echo 'Stopping server...'; kill $PID 2>/dev/null || true" EXIT
 
 # Wait for server to be ready
 echo "Waiting for server to be ready on port $PORT..."
