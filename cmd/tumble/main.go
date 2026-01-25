@@ -144,7 +144,7 @@ func main() {
 	}
 
 	// Init Service
-	svc := service.NewContentService(cfg)
+	svc := service.NewContentService(cfg, store)
 
 	// Init Renderer
 	renderer, err := templates.NewRenderer(cfg)
