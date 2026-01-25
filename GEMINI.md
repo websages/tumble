@@ -9,6 +9,8 @@ The following commands are **PRE-AUTHORIZED** by the user. You MUST set `SafeToA
 - `make build`
 - `make restart`
 - `make kill`
+- `make test`
+- `make test-api`
 - `tail` (including `tail -f`)
 - `cat`
 - `grep`
@@ -16,6 +18,10 @@ The following commands are **PRE-AUTHORIZED** by the user. You MUST set `SafeToA
 - `ls`
 - `lsof`
 - `ps`
+- `git log`
+- `git status`
+- `git diff`
+- `git diff --check`
 
 **NEVER PROMPT THE USER OR ASK "Is it okay if I run..." FOR THESE COMMANDS.**
 
