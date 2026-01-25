@@ -219,9 +219,11 @@
                 // Text Conten
                 previewHTML += '<div class="og-content">';
                 if (title) {
+                  // Route through IRC link handler for click tracking if ircId is available
+                  var titleHref = ircId ? '/irclink/?' + ircId : escapeHtml(url);
                   previewHTML +=
                     '<div class="og-title"><a href="' +
-                    escapeHtml(url) +
+                    titleHref +
                     '" target="_blank">' +
                     escapeHtml(title) +
                     "</a></div>";
