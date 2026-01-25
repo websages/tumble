@@ -6,13 +6,21 @@ BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 DB_PATH="${DB_PATH:-tumble.sqlite}"
 ADD_LINK_SCRIPT="./tests/add_link.sh"
 
-# Detect Driver from Config if not se
+# Detect Driver from Config if not set
 if [ -z "$DRIVER" ]; then
-    if [ -f "conf/config.yaml" ]; then
-        DETECTED_DRIVER=$(grep "driver:" conf/config.yaml | awk '{print $2}')
+    # Try test config first, then fall back to main config
+    CONFIG_FILE=""
+    if [ -f "conf/config-test.yaml" ]; then
+        CONFIG_FILE="conf/config-test.yaml"
+    elif [ -f "conf/config.yaml" ]; then
+        CONFIG_FILE="conf/config.yaml"
+    fi
+
+    if [ -n "$CONFIG_FILE" ]; then
+        DETECTED_DRIVER=$(grep "driver:" "$CONFIG_FILE" | awk '{print $2}')
         if [ -n "$DETECTED_DRIVER" ]; then
             DRIVER=$DETECTED_DRIVER
-            echo "Auto-detected driver: $DRIVER"
+            echo "Auto-detected driver: $DRIVER (from $CONFIG_FILE)"
         fi
     fi
 fi
@@ -108,9 +116,9 @@ if [ "$DRIVER" == "mysql" ]; then
     # Defaulting to no password for local dev if not se
 
     # Try to detect port from config if not se
-    if [ -z "$MYSQL_PORT" ] && [ -f "conf/config.yaml" ]; then
+    if [ -z "$MYSQL_PORT" ] && [ -n "$CONFIG_FILE" ]; then
         # simple grep for host: ip:por
-        HOST_LINE=$(grep "host:" conf/config.yaml | awk '{print $2}')
+        HOST_LINE=$(grep "host:" "$CONFIG_FILE" | awk '{print $2}')
         if [[ "$HOST_LINE" == *":"* ]]; then
             MYSQL_PORT=${HOST_LINE#*:}
             echo "Auto-detected MySQL Port: $MYSQL_PORT"
@@ -125,8 +133,8 @@ if [ "$DRIVER" == "mysql" ]; then
     # Use database from config or env?
     DB_NAME="${MYSQL_DATABASE:-tumble}"
     # Check config for database name too if possible
-    if [ -z "$MYSQL_DATABASE" ] && [ -f "conf/config.yaml" ]; then
-         DETECTED_DB=$(grep "database:" conf/config.yaml | awk '{print $2}')
+    if [ -z "$MYSQL_DATABASE" ] && [ -n "$CONFIG_FILE" ]; then
+         DETECTED_DB=$(grep "database:" "$CONFIG_FILE" | awk '{print $2}')
          if [ -n "$DETECTED_DB" ]; then
             DB_NAME=$DETECTED_DB
          fi
