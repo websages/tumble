@@ -315,9 +315,11 @@ body {
 
 .item img {
   max-width: 800px;
+  max-height: 600px;
   width: auto;
   height: auto;
   display: block;
+  object-fit: contain;
 }
 
 .author {
@@ -358,14 +360,24 @@ body {
 
 .link-card-wrapper {
   max-width: 800px;
-  background: transparent;
-  overflow: visible;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
+  margin-bottom: var(--space-4);
+}
+
+.link-card-wrapper:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--card-border-hover);
 }
 
 .link-header {
-  padding: 0 0 var(--space-3) 0;
-  background: transparent;
+  padding: var(--space-4);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .link-header .link {
@@ -376,9 +388,10 @@ body {
 .link-header .author {
   display: block;
   text-align: right;
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-md);
   padding-left: 0;
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
 }
 
 .link a {
@@ -397,53 +410,54 @@ body {
 
 .quote-card {
   max-width: 800px;
-  margin: var(--space-6, 24px) 0;
-  padding: var(--space-6, 24px) var(--space-8, 32px);
-  border-left: 6px solid #f59e0b;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-  border-radius: 16px;
-  font-size: 20px;
-  line-height: 1.7;
-  color: var(--text-primary, #24292f);
-  box-shadow: var(--shadow-lg);
+  margin: var(--space-4) 0;
+  padding: var(--space-5) var(--space-6);
+  border-left: 4px solid #f59e0b;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--radius-lg);
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 [data-theme="dark"] .quote-card {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
   border-left-color: #fbbf24;
 }
 
 .quote-card:hover {
-  transform: translateX(4px);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-md);
+  border-color: var(--card-border-hover);
 }
 
 .quote-card::before {
   content: '"';
   position: absolute;
-  top: 12px;
-  left: 16px;
-  font-size: 64px;
-  color: rgba(245, 158, 11, 0.2);
+  top: 8px;
+  left: 12px;
+  font-size: 48px;
+  color: rgba(245, 158, 11, 0.15);
   font-family: Georgia, serif;
   line-height: 1;
 }
 
 .quote-text {
   font-style: italic;
-  margin-bottom: var(--space-4, 16px);
-  font-weight: var(--font-weight-medium);
-  padding-left: var(--space-6);
+  margin-bottom: var(--space-3);
+  font-weight: var(--font-weight-normal);
+  padding-left: var(--space-4);
 }
 
 .quote-author {
-  font-size: var(--font-size-md, 14px);
+  font-size: var(--font-size-sm);
   font-style: normal;
-  color: #f59e0b;
-  font-weight: var(--font-weight-semibold, 600);
-  padding-left: var(--space-6);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+  padding-left: var(--space-4);
 }
 
 [data-theme="dark"] .quote-author {
@@ -486,7 +500,7 @@ body {
 
 .og-preview {
   max-width: 800px;
-  background: transparent;
+  background: var(--card-bg);
 }
 
 .og-preview:empty {
@@ -494,30 +508,37 @@ body {
 }
 
 .og-preview-card {
-  overflow: visible;
-  background: transparent;
+  overflow: hidden;
+  background: var(--card-bg);
   max-width: 800px;
-  margin-top: var(--space-3);
   transition: all 0.2s ease;
 }
 
 .og-preview-image {
   width: 100%;
   max-width: 800px;
+  max-height: 600px;
   overflow: hidden;
-  display: block;
-  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-2);
 }
 
 .og-preview-image img {
   width: 100%;
   height: auto;
+  max-height: 600px;
   display: block;
-  max-width: 800px;
+  object-fit: contain;
 }
 
 .og-preview-content {
-  padding: var(--space-3);
+  padding: var(--space-4);
+}
+
+.og-content {
+  padding: var(--space-3) var(--space-4) var(--space-4);
 }
 
 .og-preview-title {
@@ -618,8 +639,8 @@ body {
 
 /* Link Preview Card Styles */
 .og-card {
-    padding: var(--space-4);
-    background: transparent;
+    padding: 0;
+    background: var(--card-bg);
     font-family: var(--font-sans);
     max-width: 800px;
 }
@@ -630,7 +651,8 @@ body {
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-bold);
     color: var(--text-secondary);
-    margin-bottom: var(--space-1);
+    margin-bottom: var(--space-2);
+    padding: var(--space-3) var(--space-4) 0;
 }
 
 .og-site-icon {
@@ -680,12 +702,14 @@ body {
 
 .og-image {
     position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     max-width: 800px;
+    max-height: 600px;
     overflow: hidden;
-    background: transparent;
-    border-radius: 0;
+    background: var(--gray-2);
 }
 
 .og-image.is-video {
@@ -695,8 +719,9 @@ body {
 .og-image img {
     width: 100%;
     height: auto;
-    max-width: 800px;
+    max-height: 600px;
     display: block;
+    object-fit: contain;
     padding: 0 !important;
     background: transparent !important;
     border: none;
@@ -802,22 +827,21 @@ body {
 
 /* Imgur Gallery Card Styles */
 .imgur-gallery-card {
-    display: inline-block;
+    display: block;
     overflow: hidden;
-    border: 2px solid var(--card-border);
-    border-radius: var(--radius-xl);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
     background-color: var(--card-bg);
     max-width: 800px;
     width: 100%;
-    vertical-align: top;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
+    margin-bottom: var(--space-4);
 }
 
 .imgur-gallery-card:hover {
-    border-color: var(--accent-primary);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    border-color: var(--card-border-hover);
+    box-shadow: var(--shadow-md);
 }
 
 .imgur-gallery-card a {
@@ -827,20 +851,25 @@ body {
 }
 
 .gallery-image-container {
-    display: block;
-    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gray-2);
     text-align: center;
     position: relative;
     max-width: 800px;
+    max-height: 600px;
+    min-height: 200px;
     overflow: hidden;
 }
 
 .gallery-image-container img {
     max-width: 100%;
+    max-height: 600px;
     height: auto;
     display: block;
     margin: 0 auto;
-    width: 100%;
+    object-fit: contain;
 }
 
 .gallery-image-placeholder {
@@ -936,12 +965,13 @@ iframe[src*="open.spotify.com"] {
     height: 152px !important;
     border-radius: var(--radius-lg);
     display: block;
-    background: transparent;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .item iframe[src*="spotify.com"],
 .item iframe[src*="open.spotify.com"] {
-    margin: 0 !important;
+    margin: var(--space-2) 0 !important;
     padding: 0 !important;
 }
 
@@ -956,21 +986,23 @@ blockquote[class*="tiktok"],
 blockquote[class*="reddit"],
 iframe[src*="reddit.com/r/"] {
     max-width: 800px !important;
-    margin: 0 !important;
+    margin: var(--space-2) 0 !important;
+    border-radius: var(--radius-lg) !important;
+    overflow: hidden;
 }
 
 /* Twitter/X embeds */
 blockquote[class*="twitter"],
 .twitter-tweet {
     max-width: 550px !important;
-    margin: 0 !important;
+    margin: var(--space-2) auto !important;
 }
 
 /* Instagram embeds */
 blockquote[class*="instagram"],
 iframe[src*="instagram.com"] {
     max-width: 540px !important;
-    margin: 0 auto !important;
+    margin: var(--space-2) auto !important;
 }
 
 /* Compact Mode Styles */
