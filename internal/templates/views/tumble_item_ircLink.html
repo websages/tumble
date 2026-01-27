@@ -1,5 +1,9 @@
     <div class="item" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}">
-        <span class="link">{{.Content}}</span>
-        <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a></span>
-        {{ if not .SuppressOG }}<div class="og-preview" id="og-preview-{{.ID}}"></div>{{ end }}
+        <div class="link-card-wrapper">
+            <div class="link-header">
+                <span class="link">{{.Content}}</span>
+                <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a></span>
+            </div>
+            {{ if not .SuppressOG }}<div class="og-preview" id="og-preview-{{.ID}}"></div>{{ end }}
+        </div>
     </div>
