@@ -314,11 +314,10 @@ body {
 }
 
 .item img {
-  padding: 3px;
-  background: var(--img-placeholder);
-  max-height: 400px;
-  max-width: 400px;
-  overflow: hidden;
+  max-width: 800px;
+  width: auto;
+  height: auto;
+  display: block;
 }
 
 .author {
@@ -359,25 +358,14 @@ body {
 
 .link-card-wrapper {
   max-width: 800px;
-  border: 2px solid var(--card-border);
-  border-radius: var(--radius-xl);
   background: transparent;
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.2s ease;
 }
 
-.link-card-wrapper:hover {
-  border-color: var(--accent-primary);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-
 .link-header {
-  padding: var(--space-4);
-  background: var(--card-bg);
-  border-top-left-radius: var(--radius-xl);
-  border-top-right-radius: var(--radius-xl);
+  padding: 0 0 var(--space-3) 0;
+  background: transparent;
 }
 
 .link-header .link {
@@ -388,8 +376,9 @@ body {
 .link-header .author {
   display: block;
   text-align: right;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-lg);
   padding-left: 0;
+  margin-top: var(--space-2);
 }
 
 .link a {
@@ -496,48 +485,35 @@ body {
 }
 
 .og-preview {
-  max-width: 100%;
+  max-width: 800px;
+  background: transparent;
 }
 
 .og-preview:empty {
   display: none;
 }
 
-.link-card-wrapper .og-preview:empty + .link-header {
-  border-bottom: none;
-}
-
 .og-preview-card {
-  border: 2px solid var(--card-border);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  background: var(--card-bg);
+  overflow: visible;
+  background: transparent;
   max-width: 800px;
-  margin-top: var(--space-4);
-  box-shadow: var(--shadow-md);
+  margin-top: var(--space-3);
   transition: all 0.2s ease;
-}
-
-.og-preview-card:hover {
-  border-color: var(--accent-primary);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
 }
 
 .og-preview-image {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 400px;
+  max-width: 800px;
   overflow: hidden;
   display: block;
-  background: var(--img-placeholder);
+  background: transparent;
 }
 
 .og-preview-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
+  max-width: 800px;
 }
 
 .og-preview-content {
@@ -568,15 +544,12 @@ body {
 
 .youtube-embed-wrapper {
   position: relative;
-  /* Match OG Card properties */
-  max-width: 600px;
+  max-width: 800px;
   width: 100%;
-  margin-top: 8px;
+  margin: 0;
   background: #000;
-
-  /* Modern Aspect Ratio */
   aspect-ratio: 16 / 9;
-  height: auto; /* Let aspect-ratio drive height */
+  height: auto;
   overflow: hidden;
 }
 
@@ -646,9 +619,9 @@ body {
 /* Link Preview Card Styles */
 .og-card {
     padding: var(--space-4);
-    background: var(--bg-canvas);
+    background: transparent;
     font-family: var(--font-sans);
-    max-width: 100%;
+    max-width: 800px;
 }
 
 .og-site-info {
@@ -709,11 +682,10 @@ body {
     position: relative;
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
-    max-height: 450px;
+    max-width: 800px;
     overflow: hidden;
-    background: var(--img-placeholder);
-    border-radius: var(--radius-lg);
+    background: transparent;
+    border-radius: 0;
 }
 
 .og-image.is-video {
@@ -722,61 +694,29 @@ body {
 
 .og-image img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-default);
+    height: auto;
+    max-width: 800px;
     display: block;
     padding: 0 !important;
     background: transparent !important;
+    border: none;
 }
 
-/* Variants for different content types */
-.og-image[data-aspect="photo"] {
-    aspect-ratio: 4 / 3;
-    max-height: 450px;
+/* Let content determine its own height naturally */
+.og-image[data-aspect="photo"],
+.og-image[data-aspect="video"],
+.og-image[data-aspect="portrait"],
+.og-image[data-aspect="tiktok"] {
+    /* No aspect ratio forcing - let images be natural size */
+    max-width: 800px;
 }
 
-.og-image[data-aspect="video"] {
-    aspect-ratio: 16 / 9;
-    max-height: 338px;
-}
-
-.og-image[data-aspect="portrait"] {
-    aspect-ratio: 9 / 16;
-    max-height: 700px;
-}
-
-.og-image[data-aspect="tiktok"],
 .tiktok-embed {
-    aspect-ratio: 9 / 16;
-    max-height: 700px;
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: 400px !important;
+    margin: 0 auto !important;
 }
 
-/* Fallback for browsers without aspect-ratio support */
-@supports not (aspect-ratio: 16 / 9) {
-    .og-image {
-        height: 0;
-        padding-bottom: 56.25%; /* 16:9 */
-        position: relative;
-    }
-
-    .og-image[data-aspect="photo"] {
-        padding-bottom: 75%; /* 4:3 */
-    }
-
-    .og-image[data-aspect="portrait"] {
-        padding-bottom: 133.33%; /* 3:4 */
-    }
-
-    .og-image img {
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-}
+/* No aspect ratio fallback needed - using natural sizing */
 
 .og-play-button {
     position: absolute;
@@ -888,23 +828,19 @@ body {
 
 .gallery-image-container {
     display: block;
-    background-color: var(--img-placeholder);
+    background-color: transparent;
     text-align: center;
-    min-height: 200px;
     position: relative;
-    aspect-ratio: 2 / 1;
-    max-height: 300px;
+    max-width: 800px;
     overflow: hidden;
 }
 
 .gallery-image-container img {
     max-width: 100%;
-    max-height: 100%;
+    height: auto;
     display: block;
     margin: 0 auto;
-    object-fit: cover;
     width: 100%;
-    height: 100%;
 }
 
 .gallery-image-placeholder {
@@ -992,13 +928,15 @@ body {
     opacity: 0.7;
 }
 
-/* Spotify and other embed styles */
+/* Spotify embed styles */
 iframe[src*="spotify.com"],
 iframe[src*="open.spotify.com"] {
     max-width: 800px !important;
     width: 100% !important;
+    height: 152px !important;
     border-radius: var(--radius-lg);
     display: block;
+    background: transparent;
 }
 
 .item iframe[src*="spotify.com"],
@@ -1018,14 +956,21 @@ blockquote[class*="tiktok"],
 blockquote[class*="reddit"],
 iframe[src*="reddit.com/r/"] {
     max-width: 800px !important;
+    margin: 0 !important;
 }
 
 /* Twitter/X embeds */
 blockquote[class*="twitter"],
 .twitter-tweet {
-    max-width: 800px !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    max-width: 550px !important;
+    margin: 0 !important;
+}
+
+/* Instagram embeds */
+blockquote[class*="instagram"],
+iframe[src*="instagram.com"] {
+    max-width: 540px !important;
+    margin: 0 auto !important;
 }
 
 /* Compact Mode Styles */
