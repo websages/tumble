@@ -1,93 +1,171 @@
 :root {
-  /* Core Colors */
-  --bg-body: white;
-  --text-main: #222; /* Default text color */
-  --text-muted: #aaa;
+  /* Neutrals - GitHub inspired */
+  --gray-0: #ffffff;
+  --gray-1: #f6f8fa;
+  --gray-2: #eaeef2;
+  --gray-3: #d0d7de;
+  --gray-4: #8c959f;
+  --gray-5: #57606a;
+  --gray-6: #24292f;
+  --gray-7: #1c2128;
 
-  /* Masthead */
-  --masthead-text: #000;
-  --masthead-border: #000;
+  /* Semantic Colors */
+  --bg-canvas: var(--gray-0);
+  --bg-surface: var(--gray-1);
+  --bg-body: var(--gray-0);
+  --border-default: var(--gray-3);
+  --text-primary: var(--gray-6);
+  --text-secondary: var(--gray-5);
+  --text-main: var(--gray-6);
+  --text-muted: var(--gray-5);
 
-  /* Date Widget */
-  --date-number: #e0e0e0;
-  --date-text: #444;
-  --date-shadow: white;
-  --date-year: #888;
+  /* Accent */
+  --accent-primary: #0969da;
+  --accent-hover: #0860ca;
+  --link-color: #0969da;
 
-  /* Content Elements */
-  --img-placeholder: #bbb;
-  --author-color: #aaa;
-  --link-color: #2c6e2f;
+  /* Card System */
+  --card-bg: var(--gray-0);
+  --card-border: var(--gray-3);
+  --card-border-hover: var(--gray-4);
+  --card-shadow: rgba(31, 35, 40, 0.04);
+
+  /* Spacing System (4px base unit) */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography Scale */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-size-base: 14px;
+  --line-height-base: 1.5;
+
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Font Families */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.16);
+
+  /* Legacy Compatibility (map old variables to new) */
+  --masthead-text: var(--text-primary);
+  --masthead-border: var(--text-primary);
+  --date-number: var(--gray-2);
+  --date-text: var(--text-secondary);
+  --date-shadow: var(--gray-0);
+  --date-year: var(--gray-5);
+  --img-placeholder: var(--gray-3);
+  --author-color: var(--text-secondary);
   --quote-color: #d65a00;
-  --header-color: #aaa;
-
-  /* OG Preview (Cards) */
-  --og-border: #e1e8ed;
-  --og-bg: #fff;
-  --og-title: #14171a;
-  --og-desc: #657786;
-
-  /* Slack-like OG */
-  --slack-border: #e0e0e0;
-  --slack-site-info: #696969;
-  --slack-title: #1264a3;
-  --slack-desc: #2d2d2d;
-  --slack-img-border: #e0e0e0;
-
-  /* Footer */
-  --footer-bg: #f5f5f5;
-  --footer-border: #eee;
-  --footer-text: #666;
-  --footer-link: #444;
-
-  /* Icon Fill */
-  --icon-fill: #000000;
+  --header-color: var(--text-secondary);
+  --og-border: var(--border-default);
+  --og-bg: var(--card-bg);
+  --og-title: var(--text-primary);
+  --og-desc: var(--text-secondary);
+  --slack-border: var(--border-default);
+  --slack-site-info: var(--text-secondary);
+  --slack-title: var(--accent-primary);
+  --slack-desc: var(--text-primary);
+  --slack-img-border: var(--border-default);
+  --footer-bg: var(--gray-1);
+  --footer-border: var(--gray-2);
+  --footer-text: var(--text-secondary);
+  --footer-link: var(--text-primary);
+  --icon-fill: var(--text-primary);
 }
 
 [data-theme="dark"] {
-  /* Core Colors */
-  --bg-body: #121212;
-  --text-main: #e0e0e0;
-  --text-muted: #888;
+  /* Neutrals - Reddit dark mode inspired */
+  --gray-0: #0d1117;
+  --gray-1: #161b22;
+  --gray-2: #21262d;
+  --gray-3: #30363d;
+  --gray-4: #484f58;
+  --gray-5: #8b949e;
+  --gray-6: #c9d1d9;
+  --gray-7: #f0f6fc;
 
-  /* Masthead */
-  --masthead-text: #fff;
-  --masthead-border: #fff;
+  /* Semantic Colors */
+  --bg-canvas: var(--gray-0);
+  --bg-surface: var(--gray-1);
+  --bg-body: var(--gray-0);
+  --border-default: var(--gray-3);
+  --text-primary: var(--gray-6);
+  --text-secondary: var(--gray-5);
+  --text-main: var(--gray-6);
+  --text-muted: var(--gray-5);
 
-  /* Date Widget */
-  --date-number: #333;
-  --date-text: #ccc;
-  --date-shadow: #000;
-  --date-year: #666;
+  /* Accent */
+  --accent-primary: #58a6ff;
+  --accent-hover: #79b8ff;
+  --link-color: #58a6ff;
 
-  /* Content Elements */
-  --img-placeholder: #333;
-  --author-color: #888;
-  --link-color: #66bb6a;
+  /* Card System */
+  --card-bg: var(--gray-1);
+  --card-border: var(--gray-3);
+  --card-border-hover: var(--gray-4);
+  --card-shadow: rgba(0, 0, 0, 0.3);
+
+  /* Shadows (darker for dark mode) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /* Legacy Compatibility (map old variables to new) */
+  --masthead-text: var(--gray-7);
+  --masthead-border: var(--gray-7);
+  --date-number: var(--gray-2);
+  --date-text: var(--gray-6);
+  --date-shadow: var(--gray-0);
+  --date-year: var(--gray-5);
+  --img-placeholder: var(--gray-2);
+  --author-color: var(--text-secondary);
   --quote-color: #ffb74d;
-  --header-color: #888;
-
-  /* OG Preview (Cards) */
-  --og-border: #333;
-  --og-bg: #1e1e1e;
-  --og-title: #e0e0e0;
-  --og-desc: #aaa;
-
-  /* Slack-like OG */
-  --slack-border: #444;
-  --slack-site-info: #888;
-  --slack-title: #5af;
-  --slack-desc: #ccc;
-  --slack-img-border: #444;
-
-  /* Footer */
-  --footer-bg: #1a1a1a;
-  --footer-border: #333;
-  --footer-text: #888;
-  --footer-link: #aaa;
-
-  /* Icon Fill */
-  --icon-fill: #ffffff;
+  --header-color: var(--text-secondary);
+  --og-border: var(--border-default);
+  --og-bg: var(--card-bg);
+  --og-title: var(--text-primary);
+  --og-desc: var(--text-secondary);
+  --slack-border: var(--border-default);
+  --slack-site-info: var(--text-secondary);
+  --slack-title: var(--accent-primary);
+  --slack-desc: var(--text-primary);
+  --slack-img-border: var(--border-default);
+  --footer-bg: var(--gray-1);
+  --footer-border: var(--gray-2);
+  --footer-text: var(--text-secondary);
+  --footer-link: var(--text-primary);
+  --icon-fill: var(--gray-7);
 }
 
 body {
@@ -98,25 +176,41 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Accessibility: Focus States */
+*:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 #page {
-    padding: 15px 20px 80px 100px; /* Added left padding for hanging elements */
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: 12px;
-    line-height: 18px;
+    padding: var(--space-4) var(--space-5) 80px var(--space-5);
     position: relative;
-    width: 95%;             /* Dynamic width */
-    max-width: 1400px;      /* Reasonable maximum */
+    width: 100%;
+    max-width: 680px;
     margin: 0 auto;
     flex: 1;
-    box-sizing: border-box; /* Include padding in width calculation */
-
-    /* CSS Grid Layout */
-    display: grid;
-    grid-template-columns: 1fr 250px;
-    column-gap: 40px;
+    box-sizing: border-box;
 }
 
 #masthead,
@@ -126,24 +220,17 @@ body {
 }
 
 #masthead {
-  /* Span full width of the grid */
-  grid-column: 1 / -1;
-
-  font-size: 72px;
+  font-size: clamp(48px, 8vw, 72px);
   font-weight: bold;
-  line-height: 68px;
-  letter-spacing: -5px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
   border-bottom: solid 2px;
   border-color: var(--masthead-border);
   color: var(--masthead-text);
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  /* Reset previous negative margins/padding if they interfere,
-     but keeping some padding might be desired for the text look.
-     Let's simplify for the grid context. */
-  margin: 0 0 20px 0;
+  margin: 0 0 var(--space-6) 0;
   padding: 0;
 }
 
@@ -152,69 +239,36 @@ body {
   color: var(--masthead-text);
 }
 
-
-
 #sidebar {
-  /* Grid placement */
-  grid-column: 2;
-  grid-row: 2; /* Starts after masthead */
-
-  width: 100%; /* Take full width of the column */
+  display: none; /* Hide unused sidebar */
 }
 
 #content {
-  /* Grid placement */
-  grid-column: 1;
-
-  width: 100%; /* Take full width of the column */
-}
-
-.date-icon {
-  margin-top: 23px;
-  margin-left: -85px;
-  float: left;
-  clear: left; /* Prevent overlap with previous dates */
-  position: relative;
-  width: 60px;
-  text-align: center;
-}
-
-.date-date {
-  font-size: 52px;
-  line-height: 1;
-  color: var(--date-number); /* Light grey background number */
-  font-weight: bold;
-}
-
-.date-meta {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100%;
-  line-height: 1.1;
 }
 
-.date-day,
-.date-month {
-  margin: 0;
-  padding: 0;
-  font-size: 13px;
-  font-weight: bold;
-  color: var(--date-text); /* Darker text for visibility over grey */
-  text-transform: uppercase;
-  text-shadow: 0px 0px 2px var(--date-shadow); /* Halo to ensure readability */
+.date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-6) 0 var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  clear: both;
 }
 
-.date-year {
-  margin: 2px 0 0 0;
-  padding: 0;
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--date-year);
+.date-badge-icon {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.date-badge-text {
+  line-height: 1;
 }
 
 .item {
@@ -281,6 +335,35 @@ body {
   color: var(--text-muted);
 }
 
+.quote-card {
+  max-width: 600px;
+  margin: var(--space-4, 16px) 0;
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  border-left: 4px solid var(--accent-primary, #0969da);
+  background: var(--bg-surface, #f6f8fa);
+  border-radius: var(--radius-md, 6px);
+  font-size: var(--font-size-lg, 16px);
+  line-height: 1.6;
+  color: var(--text-primary, #24292f);
+}
+
+.quote-text {
+  font-style: italic;
+  margin-bottom: var(--space-3, 12px);
+}
+
+.quote-author {
+  font-size: var(--font-size-sm, 13px);
+  font-style: normal;
+  color: var(--text-secondary, #57606a);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.quote-author::before {
+  content: "— ";
+}
+
+/* Legacy support for old .quote class */
 .quote {
   padding-left: 30px;
   font-weight: bold;
@@ -311,8 +394,8 @@ body {
 }
 
 .og-preview {
-  margin-top: 10px;
-  max-width: 500px;
+  margin-top: var(--space-3);
+  max-width: 600px;
 }
 
 .og-preview:empty {
@@ -320,44 +403,61 @@ body {
 }
 
 .og-preview-card {
-  border: 1px solid var(--og-border);
-  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--og-bg);
-  max-width: 500px;
-  margin-top: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: var(--card-bg);
+  max-width: 600px;
+  margin-top: var(--space-2);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.og-preview-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .og-preview-image {
   width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 400px;
   overflow: hidden;
   display: block;
+  background: var(--img-placeholder);
 }
 
 .og-preview-image img {
   width: 100%;
-  max-height: 400px;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
 .og-preview-content {
-  padding: 12px;
+  padding: var(--space-3);
 }
 
 .og-preview-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--og-title);
-  margin-bottom: 4px;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .og-preview-description {
-  font-size: 13px;
-  color: var(--og-desc);
-  line-height: 1.4;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .youtube-embed-wrapper {
@@ -428,65 +528,84 @@ body {
     color: var(--link-color);
 }
 
-/* Slack-like Link Preview Styles */
+/* Link Preview Card Styles */
 .og-card {
-    margin-top: 8px;
-    margin-bottom: 8px;
-    padding-left: 12px;
-    border-left: 4px solid var(--slack-border);
-    font-family: "Slack-Lato", "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    margin-top: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding-left: var(--space-3);
+    border-left: 4px solid var(--card-border);
+    font-family: var(--font-sans);
     max-width: 600px;
+    transition: border-color 0.2s ease;
+}
+
+.og-card:hover {
+    border-color: var(--accent-primary);
 }
 
 .og-site-info {
     display: flex;
     align-items: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--slack-site-info); /* Slack's lighter grey */
-    margin-bottom: 4px;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
 }
 
 .og-site-icon {
     width: 16px;
     height: 16px;
-    margin-right: 6px;
-    border-radius: 2px;
-    /* Reset styles from .item img */
+    margin-right: var(--space-2);
+    border-radius: var(--radius-sm);
     padding: 0 !important;
     background: transparent !important;
     border: none !important;
 }
 
 .og-title {
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 24px;
-    color: var(--slack-title);
-    margin-bottom: 2px;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .og-title a {
-    color: var(--slack-title);
+    color: var(--accent-primary);
     text-decoration: none;
+    transition: color 0.15s ease;
 }
 
 .og-title a:hover {
+    color: var(--accent-hover);
     text-decoration: underline;
 }
 
 .og-description {
-    font-size: 15px;
-    line-height: 22px;
-    color: var(--slack-desc); /* Slightly softer than #1d1c1d */
-    margin-bottom: 8px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    letter-spacing: normal;
+    font-size: var(--font-size-md);
+    line-height: 1.5;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+    font-family: var(--font-sans);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .og-image {
-    position: relative; /* For absolute positioning of play button */
+    position: relative;
     display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 450px;
+    overflow: hidden;
+    background: var(--img-placeholder);
+    border-radius: var(--radius-lg);
 }
 
 .og-image.is-video {
@@ -494,13 +613,53 @@ body {
 }
 
 .og-image img {
-    max-width: 100%;
-    border-radius: 8px; /* Slack likes rounder corners on media */
-    border: 1px solid var(--slack-img-border);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-default);
     display: block;
-    /* Reset styles from .item img */
     padding: 0 !important;
     background: transparent !important;
+}
+
+/* Variants for different content types */
+.og-image[data-aspect="photo"] {
+    aspect-ratio: 4 / 3;
+    max-height: 450px;
+}
+
+.og-image[data-aspect="video"] {
+    aspect-ratio: 16 / 9;
+    max-height: 338px;
+}
+
+.og-image[data-aspect="portrait"] {
+    aspect-ratio: 3 / 4;
+    max-height: 600px;
+}
+
+/* Fallback for browsers without aspect-ratio support */
+@supports not (aspect-ratio: 16 / 9) {
+    .og-image {
+        height: 0;
+        padding-bottom: 56.25%; /* 16:9 */
+        position: relative;
+    }
+
+    .og-image[data-aspect="photo"] {
+        padding-bottom: 75%; /* 4:3 */
+    }
+
+    .og-image[data-aspect="portrait"] {
+        padding-bottom: 133.33%; /* 3:4 */
+    }
+
+    .og-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
 }
 
 .og-play-button {
@@ -512,10 +671,15 @@ body {
     height: 48px;
     background-color: rgba(0, 0, 0, 0.6);
     border-radius: 50%;
-    pointer-events: none; /* Let clicks pass through to the link/video */
+    pointer-events: none;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.og-image.is-video:hover .og-play-button {
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .og-play-button::after {
@@ -526,35 +690,120 @@ body {
     border-left: 14px solid white;
     border-top: 9px solid transparent;
     border-bottom: 9px solid transparent;
-    margin-left: 4px; /* Optical centering */
+    margin-left: 4px;
+}
+
+/* Loading States */
+.og-card.loading {
+    background: linear-gradient(
+        90deg,
+        var(--bg-surface) 0%,
+        var(--border-default) 50%,
+        var(--bg-surface) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 /* HTTP Error Styles */
 .og-error-compact {
-    margin-top: 4px;
-    margin-bottom: 4px;
-    font-size: 13px;
-    font-family: monospace;
+    margin-top: var(--space-1);
+    margin-bottom: var(--space-1);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-mono);
 }
 
 .http-error-badge {
     display: inline-block;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-bold);
     color: white;
-    background-color: #d72b3f; /* Red for errors */
+    background-color: #d72b3f;
 }
 
 .broken-link {
-    color: #868686;
+    color: var(--text-secondary);
     text-decoration: none;
-    margin-left: 5px;
+    margin-left: var(--space-2);
 }
 
 .broken-link:hover {
     text-decoration: underline;
-    color: #666;
+    color: var(--text-primary);
+}
+
+/* Imgur Gallery Card Styles */
+.imgur-gallery-card {
+    display: inline-block;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    background-color: var(--card-bg);
+    max-width: 600px;
+    width: 100%;
+    vertical-align: top;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.imgur-gallery-card:hover {
+    border-color: var(--card-border-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.imgur-gallery-card a {
+    color: var(--text-primary);
+    text-decoration: none;
+    display: block;
+}
+
+.gallery-image-container {
+    display: block;
+    background-color: var(--img-placeholder);
+    text-align: center;
+    min-height: 200px;
+    position: relative;
+    aspect-ratio: 2 / 1;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.gallery-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.gallery-image-placeholder {
+    font-size: 48px;
+    line-height: 200px;
+    display: none;
+}
+
+.gallery-card-content {
+    display: block;
+    padding: var(--space-3);
+}
+
+.gallery-card-title {
+    font-weight: var(--font-weight-semibold);
+    display: block;
+    margin-bottom: var(--space-1);
+}
+
+.gallery-card-subtitle {
+    font-size: var(--font-size-sm);
+    opacity: 0.8;
+    display: block;
 }
 
 /* Material Symbols Sizing */
@@ -563,58 +812,40 @@ body {
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     #page {
-        display: block; /* Stack everything */
-        padding: 15px; /* Reduce padding */
-        width: 100%;
+        padding: var(--space-3);
         max-width: 100%;
     }
 
     #masthead {
-        font-size: 48px; /* Smaller title */
+        font-size: 48px;
         line-height: 1.1;
         flex-direction: column;
         align-items: flex-start;
+        margin-bottom: var(--space-4);
     }
-
-
 
     #sidebar {
-        margin-bottom: 40px;
+        display: none;
     }
 
-    /* Date Widget Reset for Mobile */
-    .date-icon {
-        margin-top: 0;
-        margin-left: 0;
-        float: none;
-        width: 100%;
-        text-align: left;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    /* Date Badge on Mobile */
+    .date-badge {
+        margin: var(--space-4) 0 var(--space-3);
+        font-size: var(--font-size-xs);
     }
 
-    .date-meta {
-        position: static;
-        transform: none;
-        display: inline-block;
-        width: auto;
-    }
-
-    .date-date {
-        display: inline-block;
-        font-size: 24px; /* Smaller date number */
-    }
-
-    .date-day, .date-month, .date-year {
-        display: inline-block;
+    .date-badge-icon {
         font-size: 14px;
-        margin-left: 5px;
     }
 
+    .quote-card {
+        padding: var(--space-3, 12px);
+        font-size: var(--font-size-md, 14px);
+    }
+
+    /* Legacy quote mobile styles */
     .quote {
-        padding-left: 15px; /* Reduce quote padding */
+        padding-left: 15px;
     }
 
     .youtube-embed-wrapper {
@@ -631,6 +862,8 @@ body {
 
 /* Compact Mode Styles */
 .compact-mode .og-preview,
+.compact-mode .og-card .og-image,
+.compact-mode .og-preview-card .og-preview-image,
 .compact-mode .youtube-embed-wrapper {
     display: none !important;
 }

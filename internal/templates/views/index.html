@@ -205,6 +205,14 @@
                       embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
                   }
 
+                  // Determine aspect ratio based on content type
+                  var aspectAttr = '';
+                  if (data.type === "video" || data.type === "rich") {
+                    aspectAttr = ' data-aspect="video"';
+                  } else if (data.type === "photo" || provider === 'Flickr') {
+                    aspectAttr = ' data-aspect="photo"';
+                  }
+
                   var innerContent = imageContent;
                   // If we have an IRCLink ID, the image is not a video/rich embed (so no click-to-play),
                   // and we want it clickable (e.g. Flickr), wrap in anchor.
@@ -218,7 +226,7 @@
                   previewHTML +=
                     '<div class="og-image ' +
                     (data.type === "video" || data.type === "rich" ? "is-video" : "") +
-                    '" ' + onClickAttr + embedHtmlAttr + '>' +
+                    '" ' + onClickAttr + embedHtmlAttr + aspectAttr + '>' +
                     innerContent +
                     "</div>";
                 }
