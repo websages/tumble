@@ -20,9 +20,9 @@
   --text-muted: var(--gray-5);
 
   /* Accent */
-  --accent-primary: #8b5cf6;
-  --accent-hover: #7c3aed;
-  --link-color: #8b5cf6;
+  --accent-primary: #06b6d4;
+  --accent-hover: #0891b2;
+  --link-color: #06b6d4;
 
   /* Card System */
   --card-bg: var(--gray-0);
@@ -125,9 +125,9 @@
   --text-muted: var(--gray-5);
 
   /* Accent */
-  --accent-primary: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --link-color: #a78bfa;
+  --accent-primary: #22d3ee;
+  --accent-hover: #67e8f9;
+  --link-color: #22d3ee;
 
   /* Card System */
   --card-bg: var(--gray-1);
@@ -207,7 +207,7 @@ body {
     padding: var(--space-4) var(--space-5) 80px 110px;
     position: relative;
     width: 100%;
-    max-width: 680px;
+    max-width: 1000px;
     margin: 0 auto;
     flex: 1;
     box-sizing: border-box;
@@ -296,6 +296,14 @@ body {
   letter-spacing: 0.5px;
 }
 
+.date-year {
+  font-size: 8px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
 .item {
   padding-top: 10px;
   padding-bottom: 10px;
@@ -348,10 +356,37 @@ body {
   margin-bottom: 5px;
 }
 
+.link-card-wrapper {
+  max-width: 800px;
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.link-card-wrapper:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.link-header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .link a {
   font-weight: bold;
   text-decoration: none;
   color: var(--link-color);
+  font-size: var(--font-size-xl);
+  flex: 1;
 }
 
 .text {
@@ -361,7 +396,7 @@ body {
 }
 
 .quote-card {
-  max-width: 600px;
+  max-width: 800px;
   margin: var(--space-6, 24px) 0;
   padding: var(--space-6, 24px) var(--space-8, 32px);
   border-left: 6px solid #f59e0b;
@@ -450,12 +485,15 @@ body {
 }
 
 .og-preview {
-  margin-top: var(--space-3);
-  max-width: 600px;
+  max-width: 100%;
 }
 
 .og-preview:empty {
   display: none;
+}
+
+.link-card-wrapper .og-preview:empty + .link-header {
+  border-bottom: none;
 }
 
 .og-preview-card {
@@ -463,7 +501,7 @@ body {
   border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--card-bg);
-  max-width: 600px;
+  max-width: 800px;
   margin-top: var(--space-4);
   box-shadow: var(--shadow-md);
   transition: all 0.2s ease;
@@ -539,31 +577,40 @@ body {
   height: 100%;
 }
 #footer {
-  padding: 10px;
+  padding: var(--space-4);
   text-align: center;
-  background: var(--footer-bg);
-  border-top: 1px solid var(--footer-border);
-  font-size: 12px;
-  color: var(--footer-text);
-  font-family: sans-serif;
+  background: var(--card-bg);
+  border-top: 2px solid var(--border-default);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 #footer a {
-  color: var(--footer-link);
+  color: var(--accent-primary);
   text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color 0.15s ease;
 }
 
 #footer a:hover {
+  color: var(--accent-hover);
   text-decoration: underline;
 }
 
 #footer svg {
     fill: var(--icon-fill);
+    transition: fill 0.15s ease;
+}
+
+#footer a:hover svg {
+    fill: var(--accent-primary);
 }
 
 #navigation {
@@ -587,22 +634,10 @@ body {
 
 /* Link Preview Card Styles */
 .og-card {
-    margin-top: var(--space-4);
-    margin-bottom: var(--space-4);
     padding: var(--space-4);
-    border: 2px solid var(--card-border);
-    background: var(--card-bg);
+    background: var(--bg-canvas);
     font-family: var(--font-sans);
-    max-width: 600px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    transition: all 0.2s ease;
-}
-
-.og-card:hover {
-    border-color: var(--accent-primary);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    max-width: 100%;
 }
 
 .og-site-info {
@@ -793,6 +828,12 @@ body {
     color: var(--text-secondary);
     text-decoration: none;
     margin-left: var(--space-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 400px;
+    vertical-align: bottom;
 }
 
 .broken-link:hover {
@@ -807,7 +848,7 @@ body {
     border: 2px solid var(--card-border);
     border-radius: var(--radius-xl);
     background-color: var(--card-bg);
-    max-width: 600px;
+    max-width: 800px;
     width: 100%;
     vertical-align: top;
     box-shadow: var(--shadow-md);
