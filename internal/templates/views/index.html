@@ -191,7 +191,23 @@
 
                 // Image
                 if (imageUrl) {
-                  var imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
+                  // Special handling for Imgur animated content
+                  // Imgur's OG metadata returns .jpg even for animated GIFs
+                  // Replace with .mp4 (video) or .gif if it's an i.imgur.com URL
+                  var isImgurAnimated = false;
+                  if (url.match(/imgur\.com/) && imageUrl.match(/i\.imgur\.com.*\.jpg/)) {
+                    // Try .mp4 first (Imgur's preferred animated format)
+                    imageUrl = imageUrl.replace(/\.jpg.*$/, '.mp4');
+                    isImgurAnimated = true;
+                  }
+
+                  var imageContent;
+                  if (isImgurAnimated) {
+                    // Render as video tag for Imgur animated content
+                    imageContent = '<video autoplay loop muted playsinline style="width: 100%; height: auto; display: block;"><source src="' + escapeHtml(imageUrl) + '" type="video/mp4" /></video>';
+                  } else {
+                    imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
+                  }
                   var onClickAttr = '';
 
                   // If it's a video, add the play button overlay

@@ -249,7 +249,7 @@ body {
 
 .date-widget {
   margin-top: 30px;
-  margin-left: -110px;
+  margin-left: -130px;
   float: left;
   clear: left;
   width: 90px;
@@ -664,8 +664,10 @@ body {
 }
 
 .og-site-icon {
-    width: 16px;
-    height: 16px;
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
     margin-right: var(--space-2);
     border-radius: var(--radius-sm);
     padding: 0 !important;
