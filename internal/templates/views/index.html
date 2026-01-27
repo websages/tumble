@@ -371,6 +371,9 @@
             <div style="font-size: 14px;">Here is some content from the archives. Why not <a href="/buttons/" style="font-weight: bold; color: var(--link-color);">share something new</a>?</div>
         </div>
         {{end}}
+        {{if or .NavP .NavN}}
+        <div id="navigation-top" style="margin-bottom: 24px;">{{.NavP}} {{.NavN}}</div>
+        {{end}}
         {{.Container}}
       </div>
 

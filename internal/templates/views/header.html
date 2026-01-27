@@ -136,7 +136,8 @@
     .dropdown-content {
         display: none;
         position: absolute;
-        top: 48px;
+        top: 100%;
+        margin-top: 4px;
         right: 0;
         background-color: var(--card-bg, #ffffff);
         min-width: 300px;
@@ -148,6 +149,17 @@
         border-radius: var(--radius-lg, 8px);
         padding: var(--space-3, 12px);
         text-align: left;
+    }
+
+    /* Bridge the gap between trigger and dropdown */
+    .dropdown-content::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: transparent;
     }
 
     /* Show on hover */
