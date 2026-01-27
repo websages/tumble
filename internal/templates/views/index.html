@@ -105,7 +105,8 @@
                 var linkSpan = item.querySelector(".link");
                 if (linkSpan && !imgurCard) {
                      var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
-                     linkSpan.innerHTML = '<a href="' + escapeHtml(url) + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
+                     var linkHref = ircId ? '/irclink/?' + ircId : escapeHtml(url);
+                     linkSpan.innerHTML = '<a href="' + linkHref + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
                 }
                 if (previewDiv) previewDiv.remove();
                 return;
