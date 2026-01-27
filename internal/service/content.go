@@ -176,7 +176,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 				// Detect Imgur placeholder by dimensions (161x81px) or true 404 errors
 				embed := fmt.Sprintf(
 					`<a href="http://%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
-						<img src="%s" style="max-width: 500px; display: block;"
+						<img src="%s" class="imgur-image"
 							onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
 							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
 						<span style="display: none;">
