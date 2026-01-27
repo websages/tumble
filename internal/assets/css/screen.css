@@ -322,6 +322,13 @@ body {
   object-fit: contain;
 }
 
+/* Imgur inline images - ensure they display properly */
+.imgur-image {
+  max-width: 800px !important;
+  display: block !important;
+  height: auto !important;
+}
+
 .author {
   padding-left: 5px;
   font-size: 18px;
@@ -664,6 +671,8 @@ body {
     padding: 0 !important;
     background: transparent !important;
     border: none !important;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .og-title {
@@ -1005,6 +1014,14 @@ iframe[src*="reddit.com/r/"] {
 .link-card-wrapper:has(iframe[src*="reddit.com/r/"]) .link-header {
     border-bottom: none;
     padding-bottom: 0;
+}
+
+/* Hide redundant info for Reddit embeds - the embed is self-contained */
+.link-card-wrapper:has(blockquote[class*="reddit"]) .og-site-info,
+.link-card-wrapper:has(blockquote[class*="reddit"]) .og-content,
+.link-card-wrapper:has(iframe[src*="reddit.com/r/"]) .og-site-info,
+.link-card-wrapper:has(iframe[src*="reddit.com/r/"]) .og-content {
+    display: none;
 }
 
 /* Twitter/X embeds */
