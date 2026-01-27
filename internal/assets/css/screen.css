@@ -20,9 +20,9 @@
   --text-muted: var(--gray-5);
 
   /* Accent */
-  --accent-primary: #0969da;
-  --accent-hover: #0860ca;
-  --link-color: #0969da;
+  --accent-primary: #8b5cf6;
+  --accent-hover: #7c3aed;
+  --link-color: #8b5cf6;
 
   /* Card System */
   --card-bg: var(--gray-0);
@@ -65,16 +65,16 @@
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.2);
 
   /* Legacy Compatibility (map old variables to new) */
   --masthead-text: var(--text-primary);
@@ -125,9 +125,9 @@
   --text-muted: var(--gray-5);
 
   /* Accent */
-  --accent-primary: #58a6ff;
-  --accent-hover: #79b8ff;
-  --link-color: #58a6ff;
+  --accent-primary: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --link-color: #a78bfa;
 
   /* Card System */
   --card-bg: var(--gray-1);
@@ -136,10 +136,10 @@
   --card-shadow: rgba(0, 0, 0, 0.3);
 
   /* Shadows (darker for dark mode) */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.6);
 
   /* Legacy Compatibility (map old variables to new) */
   --masthead-text: var(--gray-7);
@@ -204,7 +204,7 @@ body {
 }
 
 #page {
-    padding: var(--space-4) var(--space-5) 80px var(--space-5);
+    padding: var(--space-4) var(--space-5) 80px 110px;
     position: relative;
     width: 100%;
     max-width: 680px;
@@ -247,28 +247,53 @@ body {
   width: 100%;
 }
 
-.date-badge {
-  display: inline-flex;
+.date-widget {
+  margin-top: 30px;
+  margin-left: -100px;
+  float: left;
+  clear: left;
+  width: 70px;
+  height: 70px;
+  background: var(--card-bg);
+  border: 2px solid var(--border-default);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  margin: var(--space-6) 0 var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  clear: both;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.date-badge-icon {
-  font-size: 16px;
-  opacity: 0.7;
+.date-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
 }
 
-.date-badge-text {
+.date-number {
+  font-size: 32px;
+  font-weight: var(--font-weight-bold);
   line-height: 1;
+  color: var(--accent-primary);
+  margin-bottom: var(--space-1);
+}
+
+.date-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.date-day,
+.date-month {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  line-height: 1;
+  letter-spacing: 0.5px;
 }
 
 .item {
@@ -337,26 +362,57 @@ body {
 
 .quote-card {
   max-width: 600px;
-  margin: var(--space-4, 16px) 0;
-  padding: var(--space-4, 16px) var(--space-5, 20px);
-  border-left: 4px solid var(--accent-primary, #0969da);
-  background: var(--bg-surface, #f6f8fa);
-  border-radius: var(--radius-md, 6px);
-  font-size: var(--font-size-lg, 16px);
-  line-height: 1.6;
+  margin: var(--space-6, 24px) 0;
+  padding: var(--space-6, 24px) var(--space-8, 32px);
+  border-left: 6px solid #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border-radius: 16px;
+  font-size: 20px;
+  line-height: 1.7;
   color: var(--text-primary, #24292f);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="dark"] .quote-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border-left-color: #fbbf24;
+}
+
+.quote-card:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.quote-card::before {
+  content: '"';
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 64px;
+  color: rgba(245, 158, 11, 0.2);
+  font-family: Georgia, serif;
+  line-height: 1;
 }
 
 .quote-text {
   font-style: italic;
-  margin-bottom: var(--space-3, 12px);
+  margin-bottom: var(--space-4, 16px);
+  font-weight: var(--font-weight-medium);
+  padding-left: var(--space-6);
 }
 
 .quote-author {
-  font-size: var(--font-size-sm, 13px);
+  font-size: var(--font-size-md, 14px);
   font-style: normal;
-  color: var(--text-secondary, #57606a);
-  font-weight: var(--font-weight-medium, 500);
+  color: #f59e0b;
+  font-weight: var(--font-weight-semibold, 600);
+  padding-left: var(--space-6);
+}
+
+[data-theme="dark"] .quote-author {
+  color: #fbbf24;
 }
 
 .quote-author::before {
@@ -403,19 +459,20 @@ body {
 }
 
 .og-preview-card {
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--card-bg);
   max-width: 600px;
-  margin-top: var(--space-2);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-top: var(--space-4);
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
 }
 
 .og-preview-card:hover {
-  border-color: var(--card-border-hover);
-  box-shadow: var(--shadow-md);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .og-preview-image {
@@ -530,17 +587,22 @@ body {
 
 /* Link Preview Card Styles */
 .og-card {
-    margin-top: var(--space-3);
-    margin-bottom: var(--space-3);
-    padding-left: var(--space-3);
-    border-left: 4px solid var(--card-border);
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    border: 2px solid var(--card-border);
+    background: var(--card-bg);
     font-family: var(--font-sans);
     max-width: 600px;
-    transition: border-color 0.2s ease;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s ease;
 }
 
 .og-card:hover {
     border-color: var(--accent-primary);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
 }
 
 .og-site-info {
@@ -742,18 +804,20 @@ body {
 .imgur-gallery-card {
     display: inline-block;
     overflow: hidden;
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius-xl);
     background-color: var(--card-bg);
     max-width: 600px;
     width: 100%;
     vertical-align: top;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s ease;
 }
 
 .imgur-gallery-card:hover {
-    border-color: var(--card-border-hover);
-    box-shadow: var(--shadow-md);
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
 }
 
 .imgur-gallery-card a {
@@ -812,7 +876,7 @@ body {
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     #page {
-        padding: var(--space-3);
+        padding: var(--space-3) var(--space-3) 80px var(--space-3);
         max-width: 100%;
     }
 
@@ -828,14 +892,22 @@ body {
         display: none;
     }
 
-    /* Date Badge on Mobile */
-    .date-badge {
-        margin: var(--space-4) 0 var(--space-3);
-        font-size: var(--font-size-xs);
+    /* Date Widget on Mobile */
+    .date-widget {
+        margin-left: 0;
+        float: none;
+        margin-bottom: var(--space-3);
+        width: 60px;
+        height: 60px;
     }
 
-    .date-badge-icon {
-        font-size: 14px;
+    .date-number {
+        font-size: 24px;
+    }
+
+    .date-day,
+    .date-month {
+        font-size: 9px;
     }
 
     .quote-card {
