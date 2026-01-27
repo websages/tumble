@@ -160,11 +160,16 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			}
 		} else {
 			// Single Image / Video Detection
-			re := regexp.MustCompile(`imgur\.com/(?:.*[\\/-])?([a-zA-Z0-9]{5,})(?:\..*)?$`)
+			re := regexp.MustCompile(`imgur\.com/(?:.*[\\/-])?([a-zA-Z0-9]{5,})(?:\.(gif|gifv|jpg|jpeg|png|mp4))?`)
 			matches := re.FindStringSubmatch(item.URL)
 			if len(matches) > 1 {
 				id := matches[1]
-				imgURL := fmt.Sprintf("https://i.imgur.com/%s.jpg", id)
+				ext := matches[2]
+				// Preserve original extension if present, otherwise default to .gif to support animations
+				if ext == "" {
+					ext = "gif"
+				}
+				imgURL := fmt.Sprintf("https://i.imgur.com/%s.%s", id, ext)
 
 				// Render image wrapped in IRC link handler anchor
 				// Use visibility toggle pattern (same as gallery) to avoid race conditions
