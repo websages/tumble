@@ -20,9 +20,9 @@
   --text-muted: var(--gray-5);
 
   /* Accent */
-  --accent-primary: #06b6d4;
-  --accent-hover: #0891b2;
-  --link-color: #06b6d4;
+  --accent-primary: #10b981;
+  --accent-hover: #059669;
+  --link-color: #10b981;
 
   /* Card System */
   --card-bg: var(--gray-0);
@@ -125,9 +125,9 @@
   --text-muted: var(--gray-5);
 
   /* Accent */
-  --accent-primary: #22d3ee;
-  --accent-hover: #67e8f9;
-  --link-color: #22d3ee;
+  --accent-primary: #34d399;
+  --accent-hover: #6ee7b7;
+  --link-color: #34d399;
 
   /* Card System */
   --card-bg: var(--gray-1);
@@ -204,7 +204,7 @@ body {
 }
 
 #page {
-    padding: var(--space-4) var(--space-5) 80px 110px;
+    padding: var(--space-4) var(--space-5) 80px 120px;
     position: relative;
     width: 100%;
     max-width: 1000px;
@@ -249,11 +249,11 @@ body {
 
 .date-widget {
   margin-top: 30px;
-  margin-left: -100px;
+  margin-left: -110px;
   float: left;
   clear: left;
-  width: 70px;
-  height: 70px;
+  width: 90px;
+  height: 90px;
   background: var(--card-bg);
   border: 2px solid var(--border-default);
   border-radius: 16px;
@@ -262,6 +262,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: var(--space-2);
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -272,7 +273,7 @@ body {
 }
 
 .date-number {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: var(--font-weight-bold);
   line-height: 1;
   color: var(--accent-primary);
@@ -297,11 +298,11 @@ body {
 }
 
 .date-year {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
-  opacity: 0.7;
-  margin-top: 2px;
+  opacity: 0.8;
+  margin-top: var(--space-1);
 }
 
 .item {
@@ -360,7 +361,7 @@ body {
   max-width: 800px;
   border: 2px solid var(--card-border);
   border-radius: var(--radius-xl);
-  background: var(--card-bg);
+  background: transparent;
   box-shadow: var(--shadow-md);
   overflow: hidden;
   transition: all 0.2s ease;
@@ -374,11 +375,21 @@ body {
 
 .link-header {
   padding: var(--space-4);
-  border-bottom: 1px solid var(--border-default);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
+  background: var(--card-bg);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+}
+
+.link-header .link {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.link-header .author {
+  display: block;
+  text-align: right;
+  font-size: var(--font-size-sm);
+  padding-left: 0;
 }
 
 .link a {
@@ -732,8 +743,16 @@ body {
 }
 
 .og-image[data-aspect="portrait"] {
-    aspect-ratio: 3 / 4;
-    max-height: 600px;
+    aspect-ratio: 9 / 16;
+    max-height: 700px;
+}
+
+.og-image[data-aspect="tiktok"],
+.tiktok-embed {
+    aspect-ratio: 9 / 16;
+    max-height: 700px;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
 /* Fallback for browsers without aspect-ratio support */
@@ -971,6 +990,42 @@ body {
     color: #999 !important;
     font-size: 0.9em;
     opacity: 0.7;
+}
+
+/* Spotify and other embed styles */
+iframe[src*="spotify.com"],
+iframe[src*="open.spotify.com"] {
+    max-width: 800px !important;
+    width: 100% !important;
+    border-radius: var(--radius-lg);
+    display: block;
+}
+
+.item iframe[src*="spotify.com"],
+.item iframe[src*="open.spotify.com"] {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* TikTok embeds */
+blockquote[class*="tiktok"],
+.tiktok-embed {
+    max-width: 400px !important;
+    margin: 0 auto !important;
+}
+
+/* Reddit embeds */
+blockquote[class*="reddit"],
+iframe[src*="reddit.com/r/"] {
+    max-width: 800px !important;
+}
+
+/* Twitter/X embeds */
+blockquote[class*="twitter"],
+.twitter-tweet {
+    max-width: 800px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 /* Compact Mode Styles */
