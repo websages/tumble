@@ -252,7 +252,40 @@ perl -I htdocs/lib htdocs/index.cgi
 [MySQL]   3. Verify user has permissions: GRANT ALL ON tumble.* TO 'tumble'@'localhost'
 ```
 
-### Caching
+### API Features
+
+#### Link Submission with Duplicate Detection
+
+When submitting links via `/irclink/`, the API automatically detects if a URL has been previously posted and provides contextual information:
+
+- **Behavior**: Links are always added to the database, even if duplicates exist
+- **JSON API** (`Accept: application/json` or `source=api`):
+  - **201 Created**: New link (first time posted)
+  - **208 Already Reported**: Duplicate detected, includes details of all previous submissions
+- **IRC Source** (`source=irc`): Returns ID with duplicate marker if applicable
+  - New: `"123"`
+  - Duplicate: `"123 (duplicate, previously posted by alice)"`
+- **HTML Response**: Shows duplicate notification with original poster and timestamp
+
+**Example JSON Response (Duplicate):**
+```json
+{
+  "link_id": 456,
+  "is_duplicate": true,
+  "previous_submissions": [
+    {
+      "link_id": 123,
+      "user": "alice",
+      "timestamp": "2026-01-15T10:30:00Z",
+      "title": "Example Page"
+    }
+  ]
+}
+```
+
+For complete API documentation, visit `/docs` on your running instance or see `internal/assets/openapi.json`.
+
+#### Caching
 
 Link previews are cached in the database to reduce external requests.
 
