@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,21 @@ import (
 	"strings"
 	"time"
 )
+
+// LinkSubmissionResponse represents the response when a link is submitted
+type LinkSubmissionResponse struct {
+	LinkID           int                  `json:"link_id"`
+	IsDuplicate      bool                 `json:"is_duplicate"`
+	PreviousSubmissions []PreviousSubmission `json:"previous_submissions,omitempty"`
+}
+
+// PreviousSubmission contains information about a previous submission of the same URL
+type PreviousSubmission struct {
+	LinkID    int       `json:"link_id"`
+	User      string    `json:"user"`
+	Timestamp time.Time `json:"timestamp"`
+	Title     string    `json:"title"`
+}
 
 // IRCLinkHandler handles /irclink/?id (redirect) and POSTing new links
 func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
@@ -61,6 +77,16 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	if user != "" && url != "" {
 		// Handle link posting
+		// Check for existing submissions first
+		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url)
+		if err != nil {
+			log.Printf("GetIRCLinksByURL error: %v", err)
+			http.Error(w, fmt.Sprintf("Database Error: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		isDuplicate := len(existingLinks) > 0
+
 		// Fetch title (simple impl)
 		title := url // Default to URL
 		client := &http.Client{Timeout: 10 * time.Second}
@@ -83,7 +109,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Insert
+		// Insert the link (always insert, even if duplicate)
 		id, err := h.Store.InsertIRCLink(ctx, user, title, url, contentType)
 		if err != nil {
 			log.Printf("InsertIRCLink error: %v", err)
@@ -92,14 +118,58 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		source := r.URL.Query().Get("source")
+		acceptHeader := r.Header.Get("Accept")
+
+		// If client accepts JSON or source is "api", return JSON response
+		if strings.Contains(acceptHeader, "application/json") || source == "api" {
+			response := LinkSubmissionResponse{
+				LinkID:      id,
+				IsDuplicate: isDuplicate,
+			}
+
+			if isDuplicate {
+				response.PreviousSubmissions = make([]PreviousSubmission, 0, len(existingLinks))
+				for _, link := range existingLinks {
+					response.PreviousSubmissions = append(response.PreviousSubmissions, PreviousSubmission{
+						LinkID:    link.ID,
+						User:      link.User,
+						Timestamp: link.Timestamp,
+						Title:     link.Title,
+					})
+				}
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			if isDuplicate {
+				// 208 Already Reported - indicates the resource has already been reported
+				w.WriteHeader(http.StatusAlreadyReported)
+			} else {
+				w.WriteHeader(http.StatusCreated)
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		// For IRC source, return plain text
 		if source == "irc" {
 			w.Header().Set("Content-Type", "text/plain")
-			fmt.Fprintf(w, "%d", id)
+			if isDuplicate {
+				// Return the ID with a marker indicating it's a duplicate
+				fmt.Fprintf(w, "%d (duplicate, previously posted by %s)", id, existingLinks[0].User)
+			} else {
+				fmt.Fprintf(w, "%d", id)
+			}
 			return
 		}
 
 		// HTML Redirect Page
 		w.Header().Set("Content-Type", "text/html")
+		duplicateMessage := ""
+		if isDuplicate {
+			duplicateMessage = fmt.Sprintf(`<br /><br /><font color="#ff9900"><i>Note: This link was previously posted by <b>%s</b> on %s</i></font>`,
+				existingLinks[0].User,
+				existingLinks[0].Timestamp.Format("2006-01-02 15:04:05"))
+		}
 		fmt.Fprintf(w, `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <title>tumblefish link posted</title>
@@ -108,11 +178,11 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 </head>
 <body>
     <font size="14px" color="#aaa" face="Helvetica, Arial, sand-serif">
-    <b>Your link has been posted!</b><br /><br />
+    <b>Your link has been posted!</b>%s<br /><br />
     Redirecting back to <b>%s</b> in 5 seconds...
     </font>
 </body>
-</html>`, url, url)
+</html>`, url, duplicateMessage, url)
 		return
 	}
 
