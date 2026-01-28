@@ -331,3 +331,13 @@ func (s *GormStore) InsertLinkPreview(ctx context.Context, url string, data []by
 func (s *GormStore) DeleteLinkPreview(ctx context.Context, url string) error {
 	return s.db.WithContext(ctx).Delete(&LinkPreview{}, "url = ?", url).Error
 }
+
+func (s *GormStore) GetLinksByPopularity(ctx context.Context, limit int, offset int) ([]IRCLink, error) {
+	var links []IRCLink
+	err := s.db.WithContext(ctx).
+		Order("clicks DESC, timestamp DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&links).Error
+	return links, err
+}

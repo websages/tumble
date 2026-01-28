@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"tumble/internal/config"
 	"tumble/internal/data"
@@ -467,6 +468,12 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// View mode: "users" (default) or "links"
+	view := r.URL.Query().Get("view")
+	if view == "" {
+		view = "users"
+	}
+
 	// Pagination
 	page := 1
 	pageParam := r.URL.Query().Get("page")
@@ -479,36 +486,6 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 	limit := 50
 	offset := (page - 1) * limit
 
-	// Sorting
-	sortBy := r.URL.Query().Get("sort")
-	if sortBy == "" {
-		sortBy = "links"
-	}
-
-	stats, err := h.Store.GetUserStats(ctx, sortBy, limit, offset)
-	if err != nil {
-		h.ServerError(w, r, err)
-		return
-	}
-
-	// Prepare View Data with Ranks
-	type StatViewItem struct {
-		Rank       int
-		User       string
-		LinkCount  int
-		QuoteCount int
-	}
-
-	var statsView []StatViewItem
-	for i, s := range stats {
-		statsView = append(statsView, StatViewItem{
-			Rank:       offset + i + 1,
-			User:       s.User,
-			LinkCount:  s.LinkCount,
-			QuoteCount: s.QuoteCount,
-		})
-	}
-
 	// Navigation
 	nextPage := page + 1
 	prevPage := page - 1
@@ -516,24 +493,103 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 		prevPage = 0
 	}
 
-	// Check if we need a next page (simplistic: if we got full limit, likely there's more)
-	hasNext := len(stats) == limit
+	var data map[string]interface{}
 
-	// Determine Sort Order for links
-	// Logic: If current sort is X, clicking X again should probably toggle or reset?
-	// For simplicity, headers always sort descending by that column.
+	if view == "links" {
+		// Link popularity view
+		links, err := h.Store.GetLinksByPopularity(ctx, limit, offset)
+		if err != nil {
+			h.ServerError(w, r, err)
+			return
+		}
 
-	data := map[string]interface{}{
-		"Stats":        statsView,
-		"PageTitle":    " &gt; Stats",
-		"GitCommit":    version.CommitHash,
-		"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
-		"Page":         page,
-		"NextPage":     nextPage,
-		"PrevPage":     prevPage,
-		"HasNext":      hasNext,
-		"Sort":         sortBy,
-		"Hot":          h.getHotHTML(ctx),
+		// Prepare View Data with Ranks
+		type LinkViewItem struct {
+			Rank        int
+			ID          int
+			User        string
+			Title       string
+			URL         string
+			Clicks      int
+			Timestamp   time.Time
+			ContentType string
+		}
+
+		var linksView []LinkViewItem
+		for i, link := range links {
+			linksView = append(linksView, LinkViewItem{
+				Rank:        offset + i + 1,
+				ID:          link.ID,
+				User:        link.User,
+				Title:       link.Title,
+				URL:         link.URL,
+				Clicks:      link.Clicks,
+				Timestamp:   link.Timestamp,
+				ContentType: link.ContentType,
+			})
+		}
+
+		hasNext := len(links) == limit
+
+		data = map[string]interface{}{
+			"Links":        linksView,
+			"PageTitle":    " &gt; Stats &gt; Link Popularity",
+			"GitCommit":    version.CommitHash,
+			"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+			"Page":         page,
+			"NextPage":     nextPage,
+			"PrevPage":     prevPage,
+			"HasNext":      hasNext,
+			"View":         view,
+			"Hot":          h.getHotHTML(ctx),
+		}
+	} else {
+		// User stats view (original)
+		// Sorting
+		sortBy := r.URL.Query().Get("sort")
+		if sortBy == "" {
+			sortBy = "links"
+		}
+
+		stats, err := h.Store.GetUserStats(ctx, sortBy, limit, offset)
+		if err != nil {
+			h.ServerError(w, r, err)
+			return
+		}
+
+		// Prepare View Data with Ranks
+		type StatViewItem struct {
+			Rank       int
+			User       string
+			LinkCount  int
+			QuoteCount int
+		}
+
+		var statsView []StatViewItem
+		for i, s := range stats {
+			statsView = append(statsView, StatViewItem{
+				Rank:       offset + i + 1,
+				User:       s.User,
+				LinkCount:  s.LinkCount,
+				QuoteCount: s.QuoteCount,
+			})
+		}
+
+		hasNext := len(stats) == limit
+
+		data = map[string]interface{}{
+			"Stats":        statsView,
+			"PageTitle":    " &gt; Stats",
+			"GitCommit":    version.CommitHash,
+			"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+			"Page":         page,
+			"NextPage":     nextPage,
+			"PrevPage":     prevPage,
+			"HasNext":      hasNext,
+			"Sort":         sortBy,
+			"View":         view,
+			"Hot":          h.getHotHTML(ctx),
+		}
 	}
 
 	if err := h.Renderer.Render(w, "stats.html", data); err != nil {

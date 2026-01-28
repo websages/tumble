@@ -30,6 +30,19 @@
             color: var(--link-color);
             text-decoration: underline;
         }
+        table.stats td a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+        table.stats td a:hover {
+            text-decoration: underline;
+        }
+        table.stats td.author a {
+            color: var(--author-color);
+        }
+        table.stats td.author a:hover {
+            color: var(--link-color);
+        }
     </style>
     <!-- Theme Init -->
     <script>
@@ -54,6 +67,40 @@
 
         <div id="content">
             <div class="item">
+                <!-- View Toggle -->
+                <div style="margin-bottom: 15px;">
+                    {{if eq .View "users"}}
+                    <strong>User Stats</strong> | <a href="?view=links">Link Popularity</a>
+                    {{else}}
+                    <a href="?view=users">User Stats</a> | <strong>Link Popularity</strong>
+                    {{end}}
+                </div>
+
+                {{if eq .View "links"}}
+                <!-- Link Popularity View -->
+                <div class="header">Link Popularity</div>
+                <table class="stats">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Title</th>
+                            <th>Posted By</th>
+                            <th>Clicks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Links}}
+                        <tr>
+                            <td>{{.Rank}}</td>
+                            <td><a href="/irclink/?{{.ID}}" style="color: var(--link-color); text-decoration: none;">{{.Title}}</a></td>
+                            <td class="author"><a href="/?poster={{.User}}">{{.User}}</a></td>
+                            <td>{{.Clicks}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <!-- User Stats View -->
                 <div class="header">User Stats</div>
                 <table class="stats">
                     <thead>
@@ -75,17 +122,26 @@
                         {{end}}
                     </tbody>
                 </table>
+                {{end}}
             </div>
 
             <div id="navigation" style="display: flex; justify-content: space-between; margin-top: 20px;">
                 {{if .PrevPage}}
-                <a href="?page={{.PrevPage}}&sort={{$.Sort}}"><img src="/img/prev.png" border="0" alt="Previous" /></a>
+                    {{if eq .View "links"}}
+                    <a href="?page={{.PrevPage}}&view=links"><img src="/img/prev.png" border="0" alt="Previous" /></a>
+                    {{else}}
+                    <a href="?page={{.PrevPage}}&sort={{$.Sort}}"><img src="/img/prev.png" border="0" alt="Previous" /></a>
+                    {{end}}
                 {{else}}
                 <div></div>
                 {{end}}
 
                 {{if .HasNext}}
-                <a href="?page={{.NextPage}}&sort={{$.Sort}}"><img src="/img/next.png" border="0" alt="Next" /></a>
+                    {{if eq .View "links"}}
+                    <a href="?page={{.NextPage}}&view=links"><img src="/img/next.png" border="0" alt="Next" /></a>
+                    {{else}}
+                    <a href="?page={{.NextPage}}&sort={{$.Sort}}"><img src="/img/next.png" border="0" alt="Next" /></a>
+                    {{end}}
                 {{end}}
             </div>
         </div>
