@@ -11,7 +11,7 @@ import (
 )
 
 func TestProcessIRCLink_Flickr(t *testing.T) {
-	cfg := &config.Config{BaseURL: "tumble.test"}
+	cfg := &config.Config{BaseURL: "http://tumble.test"}
 	svc := NewContentService(cfg, nil)
 
 	tests := []struct {
@@ -80,7 +80,7 @@ func TestProcessIRCLink_Flickr(t *testing.T) {
 }
 
 func TestProcessImage_Flickr(t *testing.T) {
-	cfg := &config.Config{BaseURL: "tumble.test"}
+	cfg := &config.Config{BaseURL: "http://tumble.test"}
 	svc := NewContentService(cfg, nil)
 
 	tests := []struct {
@@ -144,7 +144,7 @@ func TestProcessImage_Flickr(t *testing.T) {
 }
 
 func TestProcessIRCLink_Imgur(t *testing.T) {
-	cfg := &config.Config{BaseURL: "tumble.test"}
+	cfg := &config.Config{BaseURL: "http://tumble.test"}
 	svc := NewContentService(cfg, nil)
 
 	tests := []struct {
@@ -249,7 +249,7 @@ func TestProcessIRCLink_Imgur(t *testing.T) {
 
 			// CRITICAL: Verify IRC link handler routing (click tracking)
 			if tt.wantIRCLinkHandler {
-				expectedIRCLink := fmt.Sprintf("https://%s/irclink/?%d", cfg.BaseURL, tt.item.ID)
+				expectedIRCLink := fmt.Sprintf("%s/irclink/?%d", cfg.BaseURL, tt.item.ID)
 				if !strings.Contains(html, expectedIRCLink) {
 					t.Errorf("ProcessIRCLink() html should contain IRC link handler %v, got %v", expectedIRCLink, html)
 				}

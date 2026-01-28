@@ -1,7 +1,7 @@
 driver: sqlite
 database: tumble-test.sqlite
 port: "8080"
-baseurl: localhost:8080
+baseurl: http://localhost:8080
 logging:
   level: debug
   output: stdout
