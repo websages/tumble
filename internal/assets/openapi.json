@@ -41,6 +41,7 @@
       },
       "post": {
         "summary": "Submit a new IRC Link",
+        "description": "Submits a new link. Links are always added even if duplicates exist. Returns different status codes and contextual information about previous submissions when duplicates are detected.",
         "parameters": [
           {
             "name": "user",
@@ -63,11 +64,12 @@
           {
             "name": "source",
             "in": "query",
-            "description": "Source of submission. If 'irc', returns raw ID.",
+            "description": "Source of submission. 'irc' returns plain text ID with duplicate marker. 'api' or Accept: application/json returns JSON with duplicate context.",
             "schema": {
               "type": "string",
               "enum": [
                 "irc",
+                "api",
                 "web"
               ]
             }
@@ -75,17 +77,116 @@
         ],
         "responses": {
           "200": {
-            "description": "Link created successfully",
+            "description": "Link created successfully (HTML response)",
             "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string",
+                  "description": "HTML redirect page with optional duplicate notification"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New link created successfully (JSON response)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "link_id": {
+                      "type": "integer",
+                      "description": "ID of the newly created link"
+                    },
+                    "is_duplicate": {
+                      "type": "boolean",
+                      "description": "Always false for 201 responses"
+                    },
+                    "previous_submissions": {
+                      "type": "array",
+                      "description": "Empty for new links",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "example": {
+                    "link_id": 123,
+                    "is_duplicate": false,
+                    "previous_submissions": []
+                  }
+                }
+              },
               "text/plain": {
                 "schema": {
                   "type": "string",
-                  "example": "123"
+                  "example": "123",
+                  "description": "Link ID (IRC source)"
+                }
+              }
+            }
+          },
+          "208": {
+            "description": "Link already reported - duplicate detected (JSON response)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "link_id": {
+                      "type": "integer",
+                      "description": "ID of the newly created link"
+                    },
+                    "is_duplicate": {
+                      "type": "boolean",
+                      "description": "Always true for 208 responses"
+                    },
+                    "previous_submissions": {
+                      "type": "array",
+                      "description": "List of all previous submissions of this URL",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "link_id": {
+                            "type": "integer",
+                            "description": "ID of the previous submission"
+                          },
+                          "user": {
+                            "type": "string",
+                            "description": "Username who submitted previously"
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "When the link was previously submitted"
+                          },
+                          "title": {
+                            "type": "string",
+                            "description": "Title of the previous submission"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "link_id": 456,
+                    "is_duplicate": true,
+                    "previous_submissions": [
+                      {
+                        "link_id": 123,
+                        "user": "alice",
+                        "timestamp": "2026-01-15T10:30:00Z",
+                        "title": "Example Page"
+                      }
+                    ]
+                  }
                 }
               },
-              "text/html": {
+              "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "type": "string",
+                  "example": "456 (duplicate, previously posted by alice)",
+                  "description": "Link ID with duplicate marker (IRC source)"
                 }
               }
             }
