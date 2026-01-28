@@ -96,6 +96,7 @@ type Store interface {
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)
 	GetGlobalTimeline(ctx context.Context, limit int, offset int) ([]TimelineItem, error)
+	GetLinksByPopularity(ctx context.Context, limit int, offset int) ([]IRCLink, error)
 
 	// Caching
 	GetLinkPreview(ctx context.Context, url string) (*LinkPreview, error)
