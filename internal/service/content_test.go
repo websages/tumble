@@ -170,7 +170,7 @@ func TestProcessIRCLink_Imgur(t *testing.T) {
 			wantType:           "single",
 			wantIRCLinkHandler: true,
 			wantImgurCDN:       true,
-			wantErrorHandler:   true,
+			wantErrorHandler:   false, // Extensionless URLs default to .mp4 video (no error handler)
 			wantSuppressOG:     true,
 		},
 		{

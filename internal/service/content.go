@@ -165,26 +165,38 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			if len(matches) > 1 {
 				id := matches[1]
 				ext := matches[2]
-				// Use .jpg as default extension if none specified
+				// Default to .mp4 for animations (Imgur's preferred animated format)
 				if ext == "" {
-					ext = "jpg"
+					ext = "mp4"
 				}
 				imgURL := fmt.Sprintf("https://i.imgur.com/%s.%s", id, ext)
 
-				// Render image wrapped in IRC link handler anchor
-				// Use visibility toggle pattern (same as gallery) to avoid race conditions
-				// Detect Imgur placeholder by dimensions (161x81px) or true 404 errors
-				embed := fmt.Sprintf(
-					`<a href="%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
-						<img src="%s" class="imgur-image"
+				var mediaTag string
+				// Render as video tag for animated formats (.mp4, .gifv, .gif)
+				// Render as image tag for static formats (.jpg, .jpeg, .png)
+				if ext == "mp4" || ext == "gifv" || ext == "gif" {
+					mediaTag = fmt.Sprintf(
+						`<video autoplay loop muted playsinline style="width: 100%%; height: auto; display: block;">
+							<source src="%s" type="video/mp4" />
+						</video>`, imgURL)
+				} else {
+					// Static image with error detection
+					mediaTag = fmt.Sprintf(
+						`<img src="%s" class="imgur-image"
 							onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
 							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
 						<span style="display: none;">
 							<span class='http-error-badge'>404</span>
 							<span class='missing-link'>%s</span>
-						</span>
+						</span>`, imgURL, item.URL)
+				}
+
+				// Wrap in IRC link handler anchor for click tracking
+				embed := fmt.Sprintf(
+					`<a href="%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
+						%s
 					</a>`,
-					baseURL, item.ID, imgURL, item.URL)
+					baseURL, item.ID, mediaTag)
 
 				d.Content = template.HTML(embed)
 				isImgur = true
