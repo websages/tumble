@@ -84,6 +84,7 @@ type Store interface {
 	GetTopIRCLinks(ctx context.Context, startDays int, endDays int, limit int) ([]IRCLink, error)
 	GetIRCLinkByID(ctx context.Context, id int) (*IRCLink, error)
 	GetIRCLinkURL(ctx context.Context, id int) (string, error)
+	GetIRCLinksByURL(ctx context.Context, url string) ([]IRCLink, error)
 	IncrementClicks(ctx context.Context, id int) error
 	InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error)
 	DeleteIRCLink(ctx context.Context, id int) error

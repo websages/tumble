@@ -115,6 +115,15 @@ func (s *GormStore) GetIRCLinkURL(ctx context.Context, id int) (string, error) {
 	return link.URL, err
 }
 
+func (s *GormStore) GetIRCLinksByURL(ctx context.Context, url string) ([]IRCLink, error) {
+	var links []IRCLink
+	err := s.db.WithContext(ctx).
+		Where("url = ?", url).
+		Order("timestamp DESC").
+		Find(&links).Error
+	return links, err
+}
+
 func (s *GormStore) IncrementClicks(ctx context.Context, id int) error {
 	return s.db.WithContext(ctx).Model(&IRCLink{}).Where("ircLinkID = ?", id).UpdateColumn("clicks", gorm.Expr("clicks + ?", 1)).Error
 }
