@@ -7,7 +7,8 @@
       href="/css/screen.css"
       media="screen"
     />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" as="style" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
 
     <!-- Theme Init -->
     <script>
@@ -20,10 +21,22 @@
           document.documentElement.setAttribute("data-theme", "dark");
         }
 
-        // Compact Mode Ini
+        // Compact Mode Init
         var isCompact = localStorage.getItem("compact") === "true";
         if (isCompact) {
             document.documentElement.classList.add("compact-mode");
+        }
+
+        // Font loading detection
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(function() {
+            document.documentElement.classList.add("fonts-loaded");
+          });
+        } else {
+          // Fallback: show icons after short delay
+          setTimeout(function() {
+            document.documentElement.classList.add("fonts-loaded");
+          }, 100);
         }
       })();
     </script>
@@ -398,6 +411,130 @@
 
     {{template "footer" .}}
 
+    <!-- Sticky Date Widget Script -->
+    <script>
+      (function() {
+        // Check if page has enough content to scroll
+        function hasScrollableContent() {
+          return document.documentElement.scrollHeight > window.innerHeight;
+        }
+
+        // Only initialize if there's scrollable content
+        if (!hasScrollableContent()) {
+          return;
+        }
+
+        var sections = document.querySelectorAll('.date-section');
+        var navigationBottom = document.querySelector('#navigation');
+
+        if (sections.length === 0) {
+          return;
+        }
+
+        // Store original positions of all date widgets once at the start
+        sections.forEach(function(section, index) {
+          var dateWidget = section.querySelector('.date-widget');
+          if (dateWidget) {
+            var rect = dateWidget.getBoundingClientRect();
+            dateWidget.setAttribute('data-original-top', rect.top + window.pageYOffset);
+            dateWidget.setAttribute('data-original-left', rect.left);
+          }
+        });
+
+        function updateStickyDates() {
+          var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          var viewportHeight = window.innerHeight;
+
+          // Get navigation bottom position
+          var navBottomTop = navigationBottom ? navigationBottom.getBoundingClientRect().top + scrollTop : Infinity;
+
+          sections.forEach(function(section, index) {
+            var dateWidget = section.querySelector('.date-widget');
+            if (!dateWidget) return;
+
+            var sectionRect = section.getBoundingClientRect();
+            var sectionTop = sectionRect.top + scrollTop;
+            var sectionBottom = sectionRect.bottom + scrollTop;
+
+            // Get stored original positions
+            var originalDateTop = parseInt(dateWidget.getAttribute('data-original-top'));
+            var originalDateLeft = parseFloat(dateWidget.getAttribute('data-original-left'));
+
+            // Get next section if exists
+            var nextSection = sections[index + 1];
+            var nextSectionTop = nextSection ?
+              nextSection.getBoundingClientRect().top + scrollTop : Infinity;
+
+            // Calculate date widget height
+            var dateHeight = dateWidget.offsetHeight;
+
+            // Sticky top position (below the 56px fixed header + 20px spacing)
+            var stickyTop = 76;
+
+            // Determine if date should be sticky based on the date widget's original position
+            var shouldBeSticky = scrollTop + stickyTop >= originalDateTop &&
+                                 scrollTop < sectionBottom - dateHeight;
+
+            // Check if we should stop for next date (next date approaching)
+            var nextDateApproaching = nextSection &&
+              (scrollTop + stickyTop + dateHeight + 30) >= nextSectionTop;
+
+            // Check if we should stop for navigation (bottom pagination)
+            var navigationApproaching = navBottomTop !== Infinity &&
+              (scrollTop + stickyTop + dateHeight + 30) >= navBottomTop;
+
+            if (shouldBeSticky && !nextDateApproaching && !navigationApproaching) {
+              // Make sticky
+              dateWidget.classList.add('sticky');
+              dateWidget.classList.remove('at-bottom');
+              dateWidget.style.left = originalDateLeft + 'px';
+            } else if (shouldBeSticky && (nextDateApproaching || navigationApproaching)) {
+              // Pin at bottom of section
+              dateWidget.classList.remove('sticky');
+              dateWidget.classList.add('at-bottom');
+              dateWidget.style.left = '';
+            } else {
+              // Static position
+              dateWidget.classList.remove('sticky', 'at-bottom');
+              dateWidget.style.left = '';
+            }
+          });
+        }
+
+        // Throttle scroll events for performance
+        var scrollTimeout;
+        function throttledUpdate() {
+          if (scrollTimeout) {
+            return;
+          }
+          scrollTimeout = setTimeout(function() {
+            updateStickyDates();
+            scrollTimeout = null;
+          }, 10);
+        }
+
+        // Listen for scroll
+        window.addEventListener('scroll', throttledUpdate);
+        window.addEventListener('resize', function() {
+          // Check if content is still scrollable after resize
+          if (!hasScrollableContent()) {
+            // Remove all sticky classes if no longer scrollable
+            sections.forEach(function(section) {
+              var dateWidget = section.querySelector('.date-widget');
+              if (dateWidget) {
+                dateWidget.classList.remove('sticky', 'at-bottom');
+                dateWidget.style.left = '';
+              }
+            });
+          } else {
+            updateStickyDates();
+          }
+        });
+
+        // Initial check
+        updateStickyDates();
+      })();
+    </script>
 
   </body>
 </html>

@@ -313,10 +313,19 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	// Generate Container HTML
 	containerHTML := ""
 	lastDate := ""
+	sectionOpen := false
 
 	for _, p := range processedItems {
 		if dtype != "rss" && dtype != "xml" {
 			if p.FullDate != lastDate {
+				// Close previous section if open
+				if sectionOpen {
+					containerHTML += "</div>"
+				}
+				// Open new date section
+				containerHTML += fmt.Sprintf(`<div class="date-section" data-date="%s">`, p.FullDate)
+				sectionOpen = true
+
 				// Date Changed, Render Date Template
 				dateData := map[string]string{
 					"Date":  p.DateRawDay,
@@ -332,6 +341,11 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		containerHTML += p.HTML
+	}
+
+	// Close final section if open
+	if sectionOpen {
+		containerHTML += "</div>"
 	}
 
 	// Hot Links (Side bar) - Only for HTML
