@@ -95,9 +95,8 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 	}
 
 	// Imgur
-	// Skip Imgur-specific handling if ContentType is "image" - use original URL with extension preserved
 	isImgur := false
-	if strings.Contains(item.URL, "imgur.com") && !strings.Contains(item.ContentType, "image") {
+	if strings.Contains(item.URL, "imgur.com") {
 		baseURL := s.Config.BaseURL
 
 		// Gallery Check
@@ -166,33 +165,30 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			if len(matches) > 1 {
 				id := matches[1]
 				ext := matches[2]
-				// Only handle Imgur URLs that have an explicit extension
-				// For extensionless URLs, skip server-side rendering and let OG preview handle it
-				// (OG will fetch proper metadata from Imgur and get the right media URL)
+				// Use .jpg as default extension if none specified
 				if ext == "" {
-					isImgur = false
-				} else {
-					imgURL := fmt.Sprintf("https://i.imgur.com/%s.%s", id, ext)
-
-					// Render image wrapped in IRC link handler anchor
-					// Use visibility toggle pattern (same as gallery) to avoid race conditions
-					// Detect Imgur placeholder by dimensions (161x81px) or true 404 errors
-					embed := fmt.Sprintf(
-						`<a href="http://%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
-							<img src="%s" class="imgur-image"
-								onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
-								onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
-							<span style="display: none;">
-								<span class='http-error-badge'>404</span>
-								<span class='missing-link'>%s</span>
-							</span>
-						</a>`,
-						baseURL, item.ID, imgURL, item.URL)
-
-					d.Content = template.HTML(embed)
-					isImgur = true
-					d.SuppressOG = true
+					ext = "jpg"
 				}
+				imgURL := fmt.Sprintf("https://i.imgur.com/%s.%s", id, ext)
+
+				// Render image wrapped in IRC link handler anchor
+				// Use visibility toggle pattern (same as gallery) to avoid race conditions
+				// Detect Imgur placeholder by dimensions (161x81px) or true 404 errors
+				embed := fmt.Sprintf(
+					`<a href="http://%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
+						<img src="%s" class="imgur-image"
+							onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
+							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+						<span style="display: none;">
+							<span class='http-error-badge'>404</span>
+							<span class='missing-link'>%s</span>
+						</span>
+					</a>`,
+					baseURL, item.ID, imgURL, item.URL)
+
+				d.Content = template.HTML(embed)
+				isImgur = true
+				d.SuppressOG = true
 			}
 		}
 	}
