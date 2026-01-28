@@ -9,4 +9,4 @@ logging:
   output: tumble.log
 
 caching:
-  enabled: false
+  enabled: true
