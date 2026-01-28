@@ -247,6 +247,10 @@ body {
   width: 100%;
 }
 
+.date-section {
+  position: relative;
+}
+
 .date-widget {
   margin-top: 30px;
   margin-left: -130px;
@@ -270,6 +274,22 @@ body {
 .date-widget:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
+}
+
+.date-widget.sticky {
+  position: fixed;
+  top: 76px;
+  margin-top: 0;
+  margin-left: 0;
+  float: none;
+  z-index: 150;
+  box-shadow: var(--shadow-xl);
+}
+
+.date-widget.sticky.at-bottom {
+  position: absolute;
+  top: auto;
+  bottom: 0;
 }
 
 .date-number {
@@ -938,6 +958,14 @@ body {
         height: 60px;
     }
 
+    /* Disable sticky behavior on mobile */
+    .date-widget.sticky {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        margin-top: 30px !important;
+    }
+
     .date-number {
         font-size: 24px;
     }
@@ -1038,6 +1066,33 @@ blockquote[class*="instagram"],
 iframe[src*="instagram.com"] {
     max-width: 540px !important;
     margin: var(--space-2) auto !important;
+}
+
+/* Material Symbols - Hide text until font loads to prevent FOUT */
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal;
+    font-style: normal;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    /* Hide text until font loads */
+    color: transparent;
+    transition: color 0.1s;
+}
+
+/* Show icons when fonts are loaded (set by JS) */
+html.fonts-loaded .material-symbols-rounded {
+    color: inherit;
 }
 
 /* Compact Mode Styles */
