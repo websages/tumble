@@ -73,7 +73,7 @@ func (h *Handler) getHotHTML(ctx context.Context) template.HTML {
 		if len(l.Title) > 30 {
 			l.Title = l.Title[:30] + "..."
 		}
-		content := fmt.Sprintf(`<a href="https://%s/irclink/?%d" target="_blank">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
+		content := fmt.Sprintf(`<a href="%s/irclink/?%d" target="_blank">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
 		data := map[string]interface{}{
 			"Content": template.HTML(content),
 		}

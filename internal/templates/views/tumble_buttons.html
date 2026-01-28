@@ -14,7 +14,7 @@
       })();
     </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    <link rel="stylesheet" href="https://{{.BaseURL}}/css/screen.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="{{.BaseURL}}/css/screen.css" type="text/css" media="screen" />
     <!-- Theme Init -->
     <script>
       (function () {
@@ -55,7 +55,7 @@
             <div class="tumble_item_ircLink">
                 <div class="tumble_item_top"></div>
                 <span class="tumble_item_ircLink_title">
-                    Drag this link: <a href="javascript:location.href='https://{{.BaseURL}}/irclink/?user={{.User}}&source=web&url='+encodeURIComponent(location.href)" onclick="window.alert('No clicky! Drag this link to your Bookmarks toolbar or menu, or right-click it and choose Bookmark This Link...');return false;">post to tumblefish!</a> up to your Bookmarks toolbar or menu.
+                    Drag this link: <a href="javascript:location.href='{{.BaseURL}}/irclink/?user={{.User}}&source=web&url='+encodeURIComponent(location.href)" onclick="window.alert('No clicky! Drag this link to your Bookmarks toolbar or menu, or right-click it and choose Bookmark This Link...');return false;">post to tumblefish!</a> up to your Bookmarks toolbar or menu.
                 </span>
                 <div class="tumble_item_bottom"></div>
             </div>

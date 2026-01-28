@@ -1,6 +1,6 @@
         <item>
             <title>{{.Quote}}</title>
-            <link>https://{{.BaseURL}}/</link>
+            <link>{{.BaseURL}}/</link>
             <guid isPermaLink="false">tumble-quote-{{.ID}}</guid>
             <description>{{.Description}}</description>
             <pubDate>{{.Timestamp}}</pubDate>

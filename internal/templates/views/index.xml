@@ -2,8 +2,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>tumblefish.</title>
-        <link>https://{{.BaseURL}}</link>
-        <atom:link href="https://{{.BaseURL}}/index.xml" rel="self" type="application/rss+xml" />
+        <link>{{.BaseURL}}</link>
+        <atom:link href="{{.BaseURL}}/index.xml" rel="self" type="application/rss+xml" />
         <description>tumblefish.</description>
         <language>en-us</language>
         <generator>lsrfsh v2.00</generator>
