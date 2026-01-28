@@ -4,4 +4,4 @@ port: "8080"
 baseurl: http://localhost:8080
 logging:
   level: debug
-  output: stdout
+  output: tumble.log
