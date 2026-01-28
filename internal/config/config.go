@@ -81,7 +81,10 @@ func Load(path string) (*Config, error) {
 func (c *Config) DSN() string {
 	if c.Driver == "sqlite" || c.Driver == "sqlite3" {
 		// For SQLite, "Database" field is the file path
-		return c.Database
+		// Add connection parameters for proper write access:
+		// - journal_mode(WAL) enables Write-Ahead Logging for better concurrency
+		// - busy_timeout(5000) waits up to 5 seconds if database is locked
+		return c.Database + "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)"
 	}
 	// MySQL: username:password@tcp(host)/dbname?parseTime=true
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", c.Username, c.Password, c.Host, c.Database)
