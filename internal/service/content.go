@@ -130,7 +130,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 					// Detect and hide Imgur placeholder to maintain zero-tolerance requirement
 					embed := fmt.Sprintf(
 						`<span class="imgur-gallery-card">
-							<a href="http://%s/irclink/?%d" target="_blank">
+							<a href="https://%s/irclink/?%d" target="_blank">
 								<span class="gallery-image-container">
 									<img src="%s"
 										onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='block';}"
@@ -152,7 +152,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 					// No valid preview - gallery is likely deleted/unavailable
 					// Render as 404 error with gray link, same as other broken images
 					d.Content = template.HTML(fmt.Sprintf(
-						`<a href="http://%s/irclink/?%d" target="_blank"><span class='http-error-badge'>404</span> <span class='missing-link'>%s</span></a>`,
+						`<a href="https://%s/irclink/?%d" target="_blank"><span class='http-error-badge'>404</span> <span class='missing-link'>%s</span></a>`,
 						baseURL, item.ID, item.URL))
 					isImgur = true
 					d.SuppressOG = true
@@ -175,7 +175,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 				// Use visibility toggle pattern (same as gallery) to avoid race conditions
 				// Detect Imgur placeholder by dimensions (161x81px) or true 404 errors
 				embed := fmt.Sprintf(
-					`<a href="http://%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
+					`<a href="https://%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
 						<img src="%s" class="imgur-image"
 							onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
 							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
@@ -224,7 +224,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 				// If we have an image URL, render inline
 				if imgURL != "" {
 					embed := fmt.Sprintf(
-						`<a href="http://%s/irclink/?%d" target="_blank"><img src="%s" style="max-width: 500px;" /></a>`,
+						`<a href="https://%s/irclink/?%d" target="_blank"><img src="%s" style="max-width: 500px;" /></a>`,
 						baseURL, item.ID, imgURL)
 					d.Content = template.HTML(embed)
 					isFlickr = true
@@ -239,7 +239,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 
 	if !isYoutube && !isTwitter && !isImgur && !isFlickr {
 		baseURL := s.Config.BaseURL
-		content := fmt.Sprintf(`<a href="http://%s/irclink/?%d" target="_blank">%s</a>`, baseURL, item.ID, linkFiller)
+		content := fmt.Sprintf(`<a href="https://%s/irclink/?%d" target="_blank">%s</a>`, baseURL, item.ID, linkFiller)
 		d.Content = template.HTML(content)
 	}
 

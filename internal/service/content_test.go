@@ -249,7 +249,7 @@ func TestProcessIRCLink_Imgur(t *testing.T) {
 
 			// CRITICAL: Verify IRC link handler routing (click tracking)
 			if tt.wantIRCLinkHandler {
-				expectedIRCLink := fmt.Sprintf("http://%s/irclink/?%d", cfg.BaseURL, tt.item.ID)
+				expectedIRCLink := fmt.Sprintf("https://%s/irclink/?%d", cfg.BaseURL, tt.item.ID)
 				if !strings.Contains(html, expectedIRCLink) {
 					t.Errorf("ProcessIRCLink() html should contain IRC link handler %v, got %v", expectedIRCLink, html)
 				}
