@@ -2,6 +2,6 @@
             <title>{{.Quote}}</title>
             <link>{{.BaseURL}}/</link>
             <guid isPermaLink="false">tumble-quote-{{.ID}}</guid>
-            <description>{{.Description}}</description>
-            <pubDate>{{.Timestamp}}</pubDate>
+            <description>"{{.Quote}}" --{{.Author}}</description>
+            <pubDate>{{.FormattedDate}}</pubDate>
         </item>

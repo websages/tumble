@@ -1103,3 +1103,94 @@ html.fonts-loaded .material-symbols-rounded {
     display: none !important;
 }
 
+/* Navigation Links */
+.nav-link {
+    text-decoration: none;
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+}
+
+.nav-link:hover {
+    background: var(--bg-surface);
+    color: var(--accent-primary);
+}
+
+.nav-icon {
+    font-size: 36px;
+    vertical-align: middle;
+}
+
+/* Search Results - No Results */
+.search-fail-title {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-bold);
+}
+
+/* Imgur Media Link */
+.imgur-media-link {
+    display: inline-block;
+    position: relative;
+}
+
+/* Imgur Video */
+.imgur-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-width: 800px;
+}
+
+/* Imgur Error Fallback */
+.imgur-error-fallback {
+    display: none;
+}
+
+/* Flickr Image */
+.flickr-image {
+    max-width: 500px;
+    height: auto;
+    display: block;
+}
+
+/* Direct Image */
+.direct-image {
+    max-width: 800px;
+    max-height: 600px;
+    height: auto;
+    display: block;
+}
+
+/* Link Posted Page */
+.link-posted-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg-canvas);
+}
+
+.link-posted-message {
+    font-size: var(--font-size-md);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    text-align: center;
+    padding: var(--space-8);
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    max-width: 500px;
+}
+
+.link-posted-message b {
+    color: var(--text-primary);
+}
+
+.duplicate-notice {
+    color: #f59e0b;
+    font-style: italic;
+}
+

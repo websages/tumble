@@ -15,8 +15,8 @@ import (
 
 // LinkSubmissionResponse represents the response when a link is submitted
 type LinkSubmissionResponse struct {
-	LinkID           int                  `json:"link_id"`
-	IsDuplicate      bool                 `json:"is_duplicate"`
+	LinkID              int                  `json:"link_id"`
+	IsDuplicate         bool                 `json:"is_duplicate"`
 	PreviousSubmissions []PreviousSubmission `json:"previous_submissions,omitempty"`
 }
 
@@ -162,27 +162,21 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// HTML Redirect Page
+		// HTML Redirect Page - use template
 		w.Header().Set("Content-Type", "text/html")
-		duplicateMessage := ""
-		if isDuplicate {
-			duplicateMessage = fmt.Sprintf(`<br /><br /><font color="#ff9900"><i>Note: This link was previously posted by <b>%s</b> on %s</i></font>`,
-				existingLinks[0].User,
-				existingLinks[0].Timestamp.Format("2006-01-02 15:04:05"))
+		templateData := map[string]interface{}{
+			"RedirectURL": url,
+			"IsDuplicate": isDuplicate,
 		}
-		fmt.Fprintf(w, `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/><html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head>
-    <title>tumblefish link posted</title>
-    <META HTTP-EQUIV="Refresh"
-          CONTENT="5; URL=%s">
-</head>
-<body>
-    <font size="14px" color="#aaa" face="Helvetica, Arial, sand-serif">
-    <b>Your link has been posted!</b>%s<br /><br />
-    Redirecting back to <b>%s</b> in 5 seconds...
-    </font>
-</body>
-</html>`, url, duplicateMessage, url)
+		if isDuplicate {
+			templateData["PreviousUser"] = existingLinks[0].User
+			templateData["PreviousTimestamp"] = existingLinks[0].Timestamp.Format("2006-01-02 15:04:05")
+		}
+		if err := h.Renderer.Render(w, "link_posted.html", templateData); err != nil {
+			log.Printf("Error rendering link_posted template: %v", err)
+			// Fallback to simple response
+			fmt.Fprintf(w, "Link posted! Redirecting...")
+		}
 		return
 	}
 

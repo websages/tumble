@@ -1,3 +1,9 @@
     <div class="item">
-        {{.Content}}
+        {{if eq .EmbedType "flickr"}}
+            {{/* Flickr image with link to photo page */}}
+            <a href="{{.PhotoPageURL}}" target="_blank"><img src="{{.MediaURL}}" alt="image" /></a>
+        {{else}}
+            {{/* Standard image */}}
+            <img src="{{.MediaURL}}" alt="image" />
+        {{end}}
     </div>
