@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
-
-	"io/ioutil"
 	"strings"
 	"time"
+
+	"github.com/doyensec/safeurl"
 )
 
 // LinkSubmissionResponse represents the response when a link is submitted
@@ -93,26 +94,35 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 		isDuplicate := len(existingLinks) > 0
 
-		// Fetch title (simple impl)
+		// Fetch title using SSRF-safe client
 		title := url // Default to URL
-		client := &http.Client{Timeout: 10 * time.Second}
-		resp, err := client.Get(url)
 		contentType := "0"
+
+		// Configure safeurl to block private/internal IPs and restrict schemes
+		config := safeurl.GetConfigBuilder().
+			SetTimeout(10 * time.Second).
+			Build()
+		client := safeurl.Client(config)
+
+		resp, err := client.Get(url)
 		if err == nil {
 			defer resp.Body.Close()
 			// Basic title extraction (should improve for production)
 			if strings.Contains(resp.Header.Get("Content-Type"), "image") {
 				contentType = "image"
 			}
-			// Extract title logic omitted for brevity, using URL as fallback
-			// In real impl, read body and regex <title>
-			body, _ := ioutil.ReadAll(resp.Body)
+			// Limit response body to 1MB to prevent memory exhaustion
+			limitedBody := io.LimitReader(resp.Body, 1024*1024)
+			body, _ := io.ReadAll(limitedBody)
 			if idx := strings.Index(string(body), "<title>"); idx != -1 {
 				end := strings.Index(string(body)[idx:], "</title>")
 				if end != -1 {
 					title = string(body)[idx+7 : idx+end]
 				}
 			}
+		} else {
+			// Log blocked URLs for debugging (private IPs, etc.)
+			log.Printf("URL fetch blocked or failed for %s: %v", url, err)
 		}
 
 		// Insert the link (always insert, even if duplicate)
