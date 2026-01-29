@@ -37,6 +37,12 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 
 	if r.Method == http.MethodDelete {
+		// Restrict DELETE to localhost only until proper auth is implemented
+		if !isLocalhost(r) {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
 		idStr := r.URL.Query().Get("id")
 		if idStr == "" {
 			// Try path if valid (though usually query param here)
@@ -205,4 +211,25 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("id: [%d] Location: %s", id, redirectURL)
 	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+// isLocalhost checks if the request originates from localhost/127.0.0.1
+func isLocalhost(r *http.Request) bool {
+	host, _, err := strings.Cut(r.RemoteAddr, ":")
+	if err {
+		// No port separator found, use the whole string
+		host = r.RemoteAddr
+	}
+
+	// Check for IPv4 localhost
+	if host == "127.0.0.1" || host == "localhost" {
+		return true
+	}
+
+	// Check for IPv6 localhost
+	if host == "::1" || host == "[::1]" {
+		return true
+	}
+
+	return false
 }
