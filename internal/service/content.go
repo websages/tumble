@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -20,28 +19,61 @@ type ContentService struct {
 	Store  data.Store
 }
 
+// EmbedType identifies the type of embed for template rendering
+type EmbedType string
+
+const (
+	EmbedTypeGeneric      EmbedType = "generic"
+	EmbedTypeImage        EmbedType = "image"
+	EmbedTypeTwitter      EmbedType = "twitter"
+	EmbedTypeImgurGallery EmbedType = "imgur_gallery"
+	EmbedTypeImgurSingle  EmbedType = "imgur_single"
+	EmbedTypeFlickr       EmbedType = "flickr"
+	EmbedTypeQuote        EmbedType = "quote"
+)
+
+// DisplayItem is a data-only struct for template rendering.
+// Templates are responsible for generating HTML based on these fields.
 type DisplayItem struct {
-	ID            int           `json:"id"`
-	Type          string        `json:"type"`
-	Timestamp     time.Time     `json:"timestamp"`
-	FormattedDate string        `json:"formatted_date"`
-	User          string        `json:"user"`
-	Author        string        `json:"author"`
-	Title         string        `json:"title"`
-	URL           string        `json:"url"`
-	Clicks        int           `json:"clicks"`
-	Content       template.HTML `json:"content"`
-	Description   string        `json:"description,omitempty"`
-	ContentType   string        `json:"content_type"`
-	Quote         string        `json:"quote,omitempty"`
-	BaseURL       string        `json:"base_url"`
+	ID            int       `json:"id"`
+	Type          string    `json:"type"` // "ircLink", "image", "quote"
+	Timestamp     time.Time `json:"timestamp"`
+	FormattedDate string    `json:"formatted_date"`
+	User          string    `json:"user"`
+	Author        string    `json:"author"`
+	Title         string    `json:"title"`
+	URL           string    `json:"url"`
+	Clicks        int       `json:"clicks"`
+	Description   string    `json:"description,omitempty"`
+	ContentType   string    `json:"content_type"` // MIME type from HTTP response
+	BaseURL       string    `json:"base_url"`
+
+	// Embed rendering metadata (templates use these to decide how to render)
+	EmbedType    EmbedType `json:"embed_type"`
+	EmbedURL     string    `json:"embed_url,omitempty"`     // URL for embed (e.g., Twitter embed URL)
+	ThumbnailURL string    `json:"thumbnail_url,omitempty"` // For gallery cards
+	MediaURL     string    `json:"media_url,omitempty"`     // Direct media URL (image/video src)
+	MediaType    string    `json:"media_type,omitempty"`    // "video", "image"
+	PhotoPageURL string    `json:"photo_page_url,omitempty"`
+	IsAnimated   bool      `json:"is_animated,omitempty"` // mp4, gifv, gif
+	IsBroken     bool      `json:"is_broken,omitempty"`   // 404 detection
+	IsNSFW       bool      `json:"is_nsfw,omitempty"`     // NSFW flag
+
+	// Display text (truncated title for display)
+	DisplayTitle string `json:"display_title,omitempty"`
+
+	// Quote-specific fields
+	Quote string `json:"quote,omitempty"`
 
 	// Date components for grouping
 	DateDay    string `json:"date_day"`     // e.g. "Mon"
 	DateMonth  string `json:"date_month"`   // e.g. "Jan"
 	DateRawDay string `json:"date_raw_day"` // e.g. "01"
-	DateYear   string `json:"date_year"`    // e.g. "2026"
-	SuppressOG bool   `json:"suppress_og"`
+	DateYear   string `json:"date_year"`    // e.g. "2006"
+	FullDate   string `json:"full_date"`    // e.g. "20060102" for grouping
+
+	// OG preview control
+	SuppressOG bool `json:"suppress_og"`
 }
 
 func NewContentService(cfg *config.Config, store data.Store) *ContentService {
@@ -59,63 +91,79 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		Clicks:      item.Clicks,
 		ContentType: item.ContentType,
 		BaseURL:     s.Config.BaseURL,
+		EmbedType:   EmbedTypeGeneric, // Default
 	}
 	s.formatDate(&d)
 
-	linkFiller := item.Title
-	if len(item.Title) > 40 {
-		if strings.HasPrefix(item.Title, "http://") {
-			linkFiller = item.Title[:40] + "..."
-		}
+	// Set display title (truncated if needed)
+	d.DisplayTitle = item.Title
+	if len(item.Title) > 40 && strings.HasPrefix(item.Title, "http://") {
+		d.DisplayTitle = item.Title[:40] + "..."
 	}
 
-	// Image check
-	if strings.Contains(item.ContentType, "image") && !strings.Contains(item.User, "nsfw") && !strings.Contains(item.User, "otd") {
-		// Add onerror handler to replace broken images with text
-		linkFiller = fmt.Sprintf(`<img src="%s" onerror="this.parentNode.innerHTML='<span class=\'http-error-badge\'>404</span> <span class=\'missing-link\'>%s</span>'; this.parentNode.classList.add('missing-link');" />`, item.URL, item.URL)
-	}
+	// Check for NSFW content
+	d.IsNSFW = strings.Contains(item.User, "nsfw") || strings.Contains(item.User, "otd")
 
-	isYoutube := false
+	// IMPORTANT: Check for site-specific handlers BEFORE generic content type checks
+	// This ensures Flickr, Imgur, etc. are handled correctly even when content-type is image/*
 
 	// Twitter / X
-	isTwitter := false
 	if strings.Contains(item.URL, "twitter.com") || strings.Contains(item.URL, "x.com") {
-		// Extract ID to ensure it looks like a tweet URL
 		re := regexp.MustCompile(`(?:twitter\.com|x\.com)\/.*\/status\/([0-9]+)`)
 		matches := re.FindStringSubmatch(item.URL)
 		if len(matches) > 1 {
-			// standard embed code
-			// Force twitter.com domain for embed compatibility as widgets.js might not support x.com fully yet
-			embedURL := strings.Replace(item.URL, "x.com", "twitter.com", 1)
-			embed := fmt.Sprintf(`<blockquote class="twitter-tweet"><a href="%s" target="_blank">%s</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`, embedURL, item.Title)
-			d.Content = template.HTML(embed)
-			isTwitter = true
+			// Force twitter.com domain for embed compatibility
+			d.EmbedType = EmbedTypeTwitter
+			d.EmbedURL = strings.Replace(item.URL, "x.com", "twitter.com", 1)
 			d.SuppressOG = false
+			return d
 		}
 	}
 
-	// Imgur
-	isImgur := false
-	if strings.Contains(item.URL, "imgur.com") {
-		baseURL := s.Config.BaseURL
+	// Flickr - check before generic image handler
+	if strings.Contains(item.URL, "flickr.com") || strings.Contains(item.URL, "staticflickr.com") {
+		// Case 1: Static Flickr image URL (farm*.staticflickr.com)
+		re := regexp.MustCompile(`\/([0-9]+)_[0-9a-z]+`)
+		matches := re.FindStringSubmatch(item.URL)
+		if len(matches) > 1 {
+			photoID := matches[1]
+			d.EmbedType = EmbedTypeFlickr
+			d.MediaURL = item.URL
+			d.PhotoPageURL = "https://www.flickr.com/photo.gne?id=" + photoID
+			d.MediaType = "image"
+			d.SuppressOG = true
+			return d
+		}
 
+		// Case 2: Flickr photo page URL
+		photoPageRe := regexp.MustCompile(`flickr\.com/photos/[^/]+/(\d+)`)
+		photoMatches := photoPageRe.FindStringSubmatch(item.URL)
+		if len(photoMatches) > 1 {
+			imgURL := s.fetchFlickrImageURL(item.URL)
+			if imgURL != "" {
+				d.EmbedType = EmbedTypeFlickr
+				d.MediaURL = imgURL
+				d.MediaType = "image"
+				d.SuppressOG = true
+				return d
+			}
+		}
+	}
+
+	// Imgur - check before generic image handler
+	if strings.Contains(item.URL, "imgur.com") {
 		// Gallery Check
 		if strings.Contains(item.URL, "/gallery/") || strings.Contains(item.URL, "/a/") {
-			// Extract gallery ID
 			re := regexp.MustCompile(`imgur\.com/(?:gallery|a)/([a-zA-Z0-9]+)`)
 			matches := re.FindStringSubmatch(item.URL)
 
 			if len(matches) > 1 {
-				baseURL := s.Config.BaseURL
-
-				// Try to get thumbnail from LinkPreview (OpenGraph og:image)
-				// Only render as gallery if we have a valid preview with an image
+				// Try to get thumbnail from LinkPreview
 				thumbnailURL := ""
 				if s.Store != nil {
 					if preview, err := s.Store.GetLinkPreview(context.TODO(), item.URL); err == nil && preview != nil {
 						var meta map[string]string
 						if err := json.Unmarshal(preview.Data, &meta); err == nil {
-							// Extract only the og:image, not description or other text
 							if imgURL, ok := meta["image"]; ok && imgURL != "" {
 								thumbnailURL = imgURL
 							}
@@ -123,40 +171,11 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 					}
 				}
 
-				// Only render gallery card if we have a valid thumbnail
-				// Otherwise, show 404 error for deleted/unavailable galleries
-				if thumbnailURL != "" {
-					// Build gallery card routing through IRC link handler
-					// Detect and hide Imgur placeholder to maintain zero-tolerance requirement
-					embed := fmt.Sprintf(
-						`<span class="imgur-gallery-card">
-							<a href="%s/irclink/?%d" target="_blank">
-								<span class="gallery-image-container">
-									<img src="%s"
-										onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='block';}"
-										onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-									<span class="gallery-image-placeholder">📸</span>
-								</span>
-								<span class="gallery-card-content">
-									<span class="gallery-card-title">Imgur Gallery</span>
-									<span class="gallery-card-subtitle">%s</span>
-								</span>
-							</a>
-						</span>`,
-						baseURL, item.ID, thumbnailURL, item.Title)
-
-					d.Content = template.HTML(embed)
-					isImgur = true
-					d.SuppressOG = true
-				} else {
-					// No valid preview - gallery is likely deleted/unavailable
-					// Render as 404 error with gray link, same as other broken images
-					d.Content = template.HTML(fmt.Sprintf(
-						`<a href="%s/irclink/?%d" target="_blank"><span class='http-error-badge'>404</span> <span class='missing-link'>%s</span></a>`,
-						baseURL, item.ID, item.URL))
-					isImgur = true
-					d.SuppressOG = true
-				}
+				d.EmbedType = EmbedTypeImgurGallery
+				d.ThumbnailURL = thumbnailURL
+				d.IsBroken = thumbnailURL == ""
+				d.SuppressOG = true
+				return d
 			}
 		} else {
 			// Single Image / Video Detection
@@ -165,96 +184,35 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 			if len(matches) > 1 {
 				id := matches[1]
 				ext := matches[2]
-				// Default to .mp4 for animations (Imgur's preferred animated format)
+				// Default to .mp4 for animations
 				if ext == "" {
 					ext = "mp4"
 				}
-				imgURL := fmt.Sprintf("https://i.imgur.com/%s.%s", id, ext)
 
-				var mediaTag string
-				// Render as video tag for animated formats (.mp4, .gifv, .gif)
-				// Render as image tag for static formats (.jpg, .jpeg, .png)
-				if ext == "mp4" || ext == "gifv" || ext == "gif" {
-					mediaTag = fmt.Sprintf(
-						`<video autoplay loop muted playsinline style="width: 100%%; height: auto; display: block;">
-							<source src="%s" type="video/mp4" />
-						</video>`, imgURL)
-				} else {
-					// Static image with error detection
-					mediaTag = fmt.Sprintf(
-						`<img src="%s" class="imgur-image"
-							onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
-							onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
-						<span style="display: none;">
-							<span class='http-error-badge'>404</span>
-							<span class='missing-link'>%s</span>
-						</span>`, imgURL, item.URL)
+				d.EmbedType = EmbedTypeImgurSingle
+				d.MediaURL = "https://i.imgur.com/" + id + "." + ext
+				d.IsAnimated = ext == "mp4" || ext == "gifv" || ext == "gif"
+				d.MediaType = "image"
+				if d.IsAnimated {
+					d.MediaType = "video"
 				}
-
-				// Wrap in IRC link handler anchor for click tracking
-				embed := fmt.Sprintf(
-					`<a href="%s/irclink/?%d" target="_blank" style="display: inline-block; position: relative;">
-						%s
-					</a>`,
-					baseURL, item.ID, mediaTag)
-
-				d.Content = template.HTML(embed)
-				isImgur = true
 				d.SuppressOG = true
+				return d
 			}
 		}
 	}
 
-	// Flickr
-	isFlickr := false
-	if strings.Contains(item.URL, "flickr.com") {
-		baseURL := s.Config.BaseURL
-		imgURL := ""
-
-		// Case 1: Static Flickr image URL (farm*.staticflickr.com)
-		// Example: http://farm3.staticflickr.com/2362/2362225867_0a3b0b7e05.jpg
-		re := regexp.MustCompile(`\/([0-9]+)_[0-9a-z]+`)
-		matches := re.FindStringSubmatch(item.URL)
-		if len(matches) > 1 {
-			photoID := matches[1]
-			photoPage := fmt.Sprintf("https://www.flickr.com/photo.gne?id=%s", photoID)
-			// Use standard image tag but linked to photo page
-			embed := fmt.Sprintf(`<a href="%s" target="_blank"><img src="%s" alt="%s" /></a>`, photoPage, item.URL, item.Title)
-			d.Content = template.HTML(embed)
-			isFlickr = true
-			d.SuppressOG = true
-		} else {
-			// Case 2: Flickr photo page URL (www.flickr.com/photos/...)
-			// Example: https://www.flickr.com/photos/cwage/402950834/
-			photoPageRe := regexp.MustCompile(`flickr\.com/photos/[^/]+/(\d+)`)
-			photoMatches := photoPageRe.FindStringSubmatch(item.URL)
-
-			if len(photoMatches) > 1 {
-				// Fetch image URL directly from Flickr's OEmbed API
-				imgURL = s.fetchFlickrImageURL(item.URL)
-
-				// If we have an image URL, render inline
-				if imgURL != "" {
-					embed := fmt.Sprintf(
-						`<a href="%s/irclink/?%d" target="_blank"><img src="%s" style="max-width: 500px;" /></a>`,
-						baseURL, item.ID, imgURL)
-					d.Content = template.HTML(embed)
-					isFlickr = true
-					d.SuppressOG = true
-				}
-			}
-		}
+	// Generic image content type check (after all site-specific handlers)
+	// This handles direct image URLs that aren't from special sites
+	if strings.Contains(item.ContentType, "image") && !d.IsNSFW {
+		d.EmbedType = EmbedTypeImage
+		d.MediaURL = item.URL
+		d.MediaType = "image"
+		return d
 	}
 
-	// YouTube logic removed: Handled client-side by OGPreview for "click to play" behavior
-	// and to correctly handle unavailable videos (404s).
-
-	if !isYoutube && !isTwitter && !isImgur && !isFlickr {
-		baseURL := s.Config.BaseURL
-		content := fmt.Sprintf(`<a href="%s/irclink/?%d" target="_blank">%s</a>`, baseURL, item.ID, linkFiller)
-		d.Content = template.HTML(content)
-	}
-
+	// Default: generic link
+	d.EmbedType = EmbedTypeGeneric
 	return d
 }
 
@@ -266,24 +224,23 @@ func (s *ContentService) ProcessImage(item data.Image) DisplayItem {
 		Title:     item.Title,
 		URL:       item.URL,
 		BaseURL:   s.Config.BaseURL,
+		EmbedType: EmbedTypeImage,
+		MediaURL:  item.URL,
+		MediaType: "image",
 	}
 	s.formatDate(&d)
 
 	// Flickr Logic for Images
 	if strings.Contains(item.URL, "flickr.com") {
-		// Attempt to extract photo ID from URL
 		re := regexp.MustCompile(`\/([0-9]+)_[0-9a-z]+`)
 		matches := re.FindStringSubmatch(item.URL)
 		if len(matches) > 1 {
 			photoID := matches[1]
-			photoPage := fmt.Sprintf("https://www.flickr.com/photo.gne?id=%s", photoID)
-			// Linked Thumbnail
-			d.Content = template.HTML(fmt.Sprintf(`<a href="%s" target="_blank"><img src="%s" alt="image" /></a>`, photoPage, item.URL))
-			return d
+			d.EmbedType = EmbedTypeFlickr
+			d.PhotoPageURL = "https://www.flickr.com/photo.gne?id=" + photoID
 		}
 	}
 
-	d.Content = template.HTML(fmt.Sprintf(`<img src="%s" alt="image" />`, item.URL))
 	return d
 }
 
@@ -292,21 +249,17 @@ func (s *ContentService) ProcessQuote(item data.Quote) DisplayItem {
 		ID:        item.ID,
 		Type:      "quote",
 		Timestamp: item.Timestamp,
-		Author:    item.Author, // Quote author field
+		Author:    item.Author,
 		Quote:     item.Quote,
 		BaseURL:   s.Config.BaseURL,
+		EmbedType: EmbedTypeQuote,
 	}
 	s.formatDate(&d)
-	// For quotes, content is text + author
-	d.Content = template.HTML(fmt.Sprintf(`"%s" --%s`, item.Quote, item.Author))
-	d.Description = item.Quote // For separate usage
+	d.Description = item.Quote // For RSS usage
 	return d
 }
 
 func (s *ContentService) formatDate(d *DisplayItem) {
-	// Replicate Perl's timezone and formatting logic if needed.
-	// Perl: "Sun, 04 Jan 2026 15:04:05 +0000"
-	// Go's time.Time is already aware. we just format it.
 	d.FormattedDate = d.Timestamp.Format("Mon, 02 Jan 2006 15:04:05 -0700")
 
 	// Date components for grouping
@@ -314,6 +267,7 @@ func (s *ContentService) formatDate(d *DisplayItem) {
 	d.DateMonth = d.Timestamp.Format("Jan")
 	d.DateRawDay = d.Timestamp.Format("02")
 	d.DateYear = d.Timestamp.Format("2006")
+	d.FullDate = d.Timestamp.Format("20060102") // For date grouping comparisons
 }
 
 // FetchOEmbed (Optional helper, untranslated for now due to API changes)

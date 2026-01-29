@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -45,42 +46,80 @@ func (h *Handler) ServerError(w http.ResponseWriter, r *http.Request, err error)
 	}
 }
 
-// Index Page Data structure for the main template
+// IndexPageData is the data structure for the main template
 type IndexPageData struct {
-	PageTitle    string
-	Hot          template.HTML
-	Container    template.HTML
-	NavP         template.HTML
-	NavN         template.HTML
-	GitCommit    string // Placeholder
-	GitCommitURL string // Placeholder
-	// For XML
+	PageTitle         string
+	Hot               template.HTML
+	Container         template.HTML
+	NavP              template.HTML
+	NavN              template.HTML
+	GitCommit         string
+	GitCommitURL      string
 	BaseURL           template.HTML
 	Poster            string
 	FilterType        string
 	IsFallbackContent bool
 }
 
-// Helper to fetch and render Hot Shit links
-func (h *Handler) getHotHTML(ctx context.Context) template.HTML {
+// NavigationData holds pagination navigation info
+type NavigationData struct {
+	PrevPage    int
+	NextPage    int
+	CurrentPage int
+	HasPrev     bool
+	HasNext     bool
+	PosterParam string
+}
+
+// HotLinkItem is a simplified struct for hot links display
+type HotLinkItem struct {
+	ID      int
+	Title   string
+	BaseURL string
+}
+
+// getHotLinks returns hot link data for templates
+func (h *Handler) getHotLinks(ctx context.Context) []HotLinkItem {
 	topLinks, err := h.Store.GetTopIRCLinks(ctx, 12, 6, 5)
 	if err != nil {
 		slog.Error("Failed to get top links", "error", err)
+		return nil
+	}
+
+	items := make([]HotLinkItem, 0, len(topLinks))
+	for _, l := range topLinks {
+		items = append(items, HotLinkItem{
+			ID:      l.ID,
+			Title:   l.Title,
+			BaseURL: h.Config.BaseURL,
+		})
+	}
+	return items
+}
+
+// getHotHTML renders hot links to HTML (for backwards compatibility during transition)
+func (h *Handler) getHotHTML(ctx context.Context) template.HTML {
+	hotLinks := h.getHotLinks(ctx)
+	if len(hotLinks) == 0 {
 		return ""
 	}
+
 	hotHTML := ""
-	for _, l := range topLinks {
-		if len(l.Title) > 30 {
-			l.Title = l.Title[:30] + "..."
-		}
-		content := fmt.Sprintf(`<a href="%s/irclink/?%d" target="_blank">%s</a>`, h.Config.BaseURL, l.ID, l.Title)
-		data := map[string]interface{}{
-			"Content": template.HTML(content),
-		}
-		s, _ := h.Renderer.RenderToString("tumble_item_top5.html", data)
+	for _, link := range hotLinks {
+		s, _ := h.Renderer.RenderToString("tumble_item_top5.html", link)
 		hotHTML += s
 	}
 	return template.HTML(hotHTML)
+}
+
+// DateGroup represents a group of items for a single date
+type DateGroup struct {
+	FullDate   string
+	DateRawDay string
+	DateDay    string
+	DateMonth  string
+	DateYear   string
+	Items      []service.DisplayItem
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
@@ -106,8 +145,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Date interval logic:
-	// Perl: start_days = i * 6, end_days = (i - 1) * 6
+	// Date interval logic
 	startDays := i * 6
 	endDays := (i - 1) * 6
 
@@ -119,20 +157,18 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	var quotes []data.Quote
 
 	poster := params.Get("poster")
-	filterType := params.Get("type") // "links", "quotes", or empty/all
+	filterType := params.Get("type")
 	isFallback := false
 
 	if poster != "" {
 		// Filtered View: Only links/quotes by 'poster'
-		// Pagination for poster view is 30 items
 		limit := 30
 		offset := (i - 1) * 30
 
 		timelineItems, err := h.Store.GetUserTimeline(ctx, poster, filterType, limit, offset)
 		if err != nil {
-			errIrc = err // Propagate error
+			errIrc = err
 		} else {
-			// Unpack timeline items into respective slices
 			for _, item := range timelineItems {
 				if item.Type == "link" {
 					ircLinks = append(ircLinks, data.IRCLink{
@@ -162,14 +198,12 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errIrc != nil || errImg != nil || errQuote != nil {
-		// Consolidate errors for logging?
-		// Just picking one for now as example or joining them
 		err := fmt.Errorf("irc: %v, img: %v, quote: %v", errIrc, errImg, errQuote)
 		h.ServerError(w, r, err)
 		return
 	}
 
-	// Check for empty state on front page (standard view, page 1)
+	// Check for empty state on front page
 	if poster == "" && i == 1 && len(ircLinks) == 0 && len(images) == 0 && len(quotes) == 0 {
 		slog.Info("No recent content found, fetching global timeline fallback")
 		fallbackItems, err := h.Store.GetGlobalTimeline(ctx, 20, 0)
@@ -197,22 +231,9 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 						ID:        item.ID,
 						Timestamp: item.Timestamp,
 						Title:     item.Title,
-						Link:      item.URL, // In GetGlobalTimeline, we mapped URL to URL, but Image struct has Link and URL.
-						// Looking at mysql select: 'image' as type... url ...
-						// In Image struct: Link is usually the click-through, URL is the src.
-						// Let's re-verify image struct usage.
-						// Image struct: Link string `json:"link"`, URL string `json:"url"`
-						// In GetRecentImages: Scan(&i.Link, &i.URL...)
-						// In GetGlobalTimeline: SELECT ... url ...
-						// We might be missing the 'link' field in global timeline for images if we just select one 'url' column.
-						// TimelineItem has 'URL'.
-						// For now, let's map URL to URL and assume Link is same or empty?
-						// Revisiting GetGlobalTimeline query:
-						// SELECT 'image', ..., url, ...
-						// It seems we only selected URL. We might want to fix GetGlobalTimeline to include Link if essential.
-						// Assuming URL is the main thing for display.
-						URL:    item.URL,
-						MD5Sum: item.MD5Sum,
+						Link:      item.URL,
+						URL:       item.URL,
+						MD5Sum:    item.MD5Sum,
 					})
 				}
 			}
@@ -221,129 +242,81 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	type ProcessedItem struct {
-		Timestamp  string // for sorting
-		HTML       string
-		DateRawDay string
-		DateDay    string
-		DateMonth  string
-		DateYear   string
-		FullDate   string // YYYYMMDD for comparison
-	}
+	// Process all items into DisplayItems
+	var allItems []service.DisplayItem
 
-	processedItems := []ProcessedItem{}
-
-	// Process IRCLinks
 	for _, item := range ircLinks {
-		d := h.Service.ProcessIRCLink(item)
-		tmplName := "tumble_item_ircLink.html"
-		if dtype == "rss" || dtype == "xml" {
-			tmplName = "tumble_item_ircLink.xml"
-		}
-
-		html, err := h.Renderer.RenderToString(tmplName, d)
-		if err == nil {
-			processedItems = append(processedItems, ProcessedItem{
-				Timestamp:  item.Timestamp.Format("20060102150405"), // Sortable string
-				HTML:       html,
-				DateRawDay: d.DateRawDay,
-				DateDay:    d.DateDay,
-				DateMonth:  d.DateMonth,
-				DateYear:   d.DateYear,
-				FullDate:   item.Timestamp.Format("20060102"),
-			})
-		} else {
-			slog.Debug("Render Error for Link", "id", item.ID, "error", err)
-		}
+		allItems = append(allItems, h.Service.ProcessIRCLink(item))
 	}
-
-	// Process Images
 	for _, item := range images {
-		d := h.Service.ProcessImage(item)
-		tmplName := "tumble_item_image.html"
-		if dtype == "rss" || dtype == "xml" {
-			tmplName = "tumble_item_image.xml"
-		}
-
-		html, err := h.Renderer.RenderToString(tmplName, d)
-		if err == nil {
-			processedItems = append(processedItems, ProcessedItem{
-				Timestamp:  item.Timestamp.Format("20060102150405"),
-				HTML:       html,
-				DateRawDay: d.DateRawDay,
-				DateDay:    d.DateDay,
-				DateMonth:  d.DateMonth,
-				DateYear:   d.DateYear,
-				FullDate:   item.Timestamp.Format("20060102"),
-			})
-		}
+		allItems = append(allItems, h.Service.ProcessImage(item))
 	}
-
-	// Process Quotes
 	for _, item := range quotes {
-		d := h.Service.ProcessQuote(item)
-		tmplName := "tumble_item_quote.html"
-		if dtype == "rss" || dtype == "xml" {
-			tmplName = "tumble_item_quote.xml"
-		}
-
-		html, err := h.Renderer.RenderToString(tmplName, d)
-		if err == nil {
-			processedItems = append(processedItems, ProcessedItem{
-				Timestamp:  item.Timestamp.Format("20060102150405"),
-				HTML:       html,
-				DateRawDay: d.DateRawDay,
-				DateDay:    d.DateDay,
-				DateMonth:  d.DateMonth,
-				DateYear:   d.DateYear,
-				FullDate:   item.Timestamp.Format("20060102"),
-			})
-		}
+		allItems = append(allItems, h.Service.ProcessQuote(item))
 	}
 
-	// Sort items (descending)
-	for j := 0; j < len(processedItems); j++ {
-		for k := j + 1; k < len(processedItems); k++ {
-			if processedItems[j].Timestamp < processedItems[k].Timestamp {
-				processedItems[j], processedItems[k] = processedItems[k], processedItems[j]
-			}
-		}
-	}
+	// Sort items by timestamp descending
+	sort.Slice(allItems, func(i, j int) bool {
+		return allItems[i].Timestamp.After(allItems[j].Timestamp)
+	})
 
-	// Generate Container HTML
+	// Render items to HTML (still using RenderToString for now, but templates handle the logic)
 	containerHTML := ""
 	lastDate := ""
 	sectionOpen := false
 
-	for _, p := range processedItems {
+	for _, item := range allItems {
+		// Select template based on item type and output format
+		var tmplName string
+		switch item.Type {
+		case "ircLink":
+			tmplName = "tumble_item_ircLink.html"
+			if dtype == "rss" || dtype == "xml" {
+				tmplName = "tumble_item_ircLink.xml"
+			}
+		case "image":
+			tmplName = "tumble_item_image.html"
+			if dtype == "rss" || dtype == "xml" {
+				tmplName = "tumble_item_image.xml"
+			}
+		case "quote":
+			tmplName = "tumble_item_quote.html"
+			if dtype == "rss" || dtype == "xml" {
+				tmplName = "tumble_item_quote.xml"
+			}
+		}
+
+		// For HTML output, handle date grouping
 		if dtype != "rss" && dtype != "xml" {
-			if p.FullDate != lastDate {
-				// Close previous section if open
+			if item.FullDate != lastDate {
 				if sectionOpen {
 					containerHTML += "</div>"
 				}
-				// Open new date section
-				containerHTML += fmt.Sprintf(`<div class="date-section" data-date="%s">`, p.FullDate)
+				containerHTML += fmt.Sprintf(`<div class="date-section" data-date="%s">`, item.FullDate)
 				sectionOpen = true
 
-				// Date Changed, Render Date Template
 				dateData := map[string]string{
-					"Date":  p.DateRawDay,
-					"Day":   p.DateDay,
-					"Month": p.DateMonth,
-					"Year":  p.DateYear,
+					"Date":  item.DateRawDay,
+					"Day":   item.DateDay,
+					"Month": item.DateMonth,
+					"Year":  item.DateYear,
 				}
 				dateHTML, err := h.Renderer.RenderToString("tumble_date.html", dateData)
 				if err == nil {
 					containerHTML += dateHTML
 				}
-				lastDate = p.FullDate
+				lastDate = item.FullDate
 			}
 		}
-		containerHTML += p.HTML
+
+		html, err := h.Renderer.RenderToString(tmplName, item)
+		if err != nil {
+			slog.Debug("Render Error", "type", item.Type, "id", item.ID, "error", err)
+			continue
+		}
+		containerHTML += html
 	}
 
-	// Close final section if open
 	if sectionOpen {
 		containerHTML += "</div>"
 	}
@@ -354,26 +327,8 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		hotHTML = h.getHotHTML(ctx)
 	}
 
-	// Navigation
-	navP := ""
-	navN := ""
-	posterParam := ""
-	if poster != "" {
-		posterParam = fmt.Sprintf("&poster=%s", poster)
-		if filterType != "" {
-			posterParam += fmt.Sprintf("&type=%s", filterType)
-		}
-	}
-
-	if iParam != "" || i > 1 {
-		navP = fmt.Sprintf(`<a href="?i=%d%s" style="text-decoration:none;"><span class="material-symbols-rounded" style="font-size: 36px; vertical-align: middle;">chevron_left</span></a>`, i+1, posterParam)
-		navN = fmt.Sprintf(` &nbsp;<a href="?i=%d%s" style="text-decoration:none;"><span class="material-symbols-rounded" style="font-size: 36px; vertical-align: middle;">chevron_right</span></a>`, i-1, posterParam)
-	} else {
-		navP = fmt.Sprintf(`<a href="?i=2%s" style="text-decoration:none;"><span class="material-symbols-rounded" style="font-size: 36px; vertical-align: middle;">chevron_left</span></a>`, posterParam)
-	}
-	if i == 1 {
-		navN = ""
-	}
+	// Navigation - using template.HTML for now, will move to template later
+	nav := h.buildNavigation(i, poster, filterType)
 
 	// View Data
 	pageTitle := ""
@@ -385,8 +340,8 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		PageTitle:         pageTitle,
 		Container:         template.HTML(containerHTML),
 		Hot:               hotHTML,
-		NavP:              template.HTML(navP),
-		NavN:              template.HTML(navN),
+		NavP:              template.HTML(nav.prevHTML),
+		NavN:              template.HTML(nav.nextHTML),
 		BaseURL:           template.HTML(h.Config.BaseURL),
 		Poster:            poster,
 		FilterType:        filterType,
@@ -408,10 +363,35 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type navResult struct {
+	prevHTML string
+	nextHTML string
+}
+
+func (h *Handler) buildNavigation(page int, poster, filterType string) navResult {
+	posterParam := ""
+	if poster != "" {
+		posterParam = fmt.Sprintf("&poster=%s", poster)
+		if filterType != "" {
+			posterParam += fmt.Sprintf("&type=%s", filterType)
+		}
+	}
+
+	var prevHTML, nextHTML string
+
+	if page > 1 {
+		prevHTML = fmt.Sprintf(`<a href="?i=%d%s" class="nav-link"><span class="material-symbols-rounded nav-icon">chevron_left</span></a>`, page+1, posterParam)
+		nextHTML = fmt.Sprintf(`<a href="?i=%d%s" class="nav-link"><span class="material-symbols-rounded nav-icon">chevron_right</span></a>`, page-1, posterParam)
+	} else {
+		prevHTML = fmt.Sprintf(`<a href="?i=2%s" class="nav-link"><span class="material-symbols-rounded nav-icon">chevron_left</span></a>`, posterParam)
+		nextHTML = ""
+	}
+
+	return navResult{prevHTML: prevHTML, nextHTML: nextHTML}
+}
+
 func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	// If user is empty, template will show the landing page (form)
-	// If user is present, template will show the bookmarklets
 	data := map[string]interface{}{
 		"User":         user,
 		"BaseURL":      h.Config.BaseURL,
@@ -430,11 +410,9 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("search")
 
 	if query == "" {
-		// Perl behaviour: returns unless string?
 		return
 	}
 
-	// Perform Search
 	links, err := h.Store.SearchIRCLinks(ctx, query)
 	if err != nil {
 		h.ServerError(w, r, err)
@@ -449,30 +427,22 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 			containerHTML += s
 		}
 	} else {
-		// No results template (tumble_item_text)
-		msg := fmt.Sprintf(`
-            <font color="#000">Your search-fu is weak.</font><br /><br />
-            Your search for '%s' did not return any results.  Perhaps the following tips can help aid you on your quest:
-            <ul>
-                <li>Searches must be done using four or more characters.<br /><br />
-                <li>MySQL fulltext-searching is the magic behind this.  Stop blaming scott.<br /><br />
-                <li>Try not to be such a fucking idiot.
-            </ul>`, query)
-
+		// Use the new no_search_results template
 		data := map[string]interface{}{
-			"Content": template.HTML(msg),
+			"Query": query,
 		}
-		containerHTML, _ = h.Renderer.RenderToString("tumble_item_text.html", data)
+		containerHTML, _ = h.Renderer.RenderToString("no_search_results.html", data)
 	}
 
-	// Hot links
 	hotHTML := h.getHotHTML(ctx)
 
 	viewData := IndexPageData{
-		PageTitle: fmt.Sprintf(" &gt; %s", query),
-		Container: template.HTML(containerHTML),
-		Hot:       hotHTML,
-		BaseURL:   template.HTML(h.Config.BaseURL),
+		PageTitle:    fmt.Sprintf(" &gt; %s", query),
+		Container:    template.HTML(containerHTML),
+		Hot:          hotHTML,
+		BaseURL:      template.HTML(h.Config.BaseURL),
+		GitCommit:    version.CommitHash,
+		GitCommitURL: fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
@@ -482,13 +452,11 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// View mode: "users" (default) or "links"
 	view := r.URL.Query().Get("view")
 	if view == "" {
 		view = "users"
 	}
 
-	// Pagination
 	page := 1
 	pageParam := r.URL.Query().Get("page")
 	if pageParam != "" {
@@ -500,7 +468,6 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 	limit := 50
 	offset := (page - 1) * limit
 
-	// Navigation
 	nextPage := page + 1
 	prevPage := page - 1
 	if prevPage < 1 {
@@ -510,14 +477,12 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 	var data map[string]interface{}
 
 	if view == "links" {
-		// Link popularity view
 		links, err := h.Store.GetLinksByPopularity(ctx, limit, offset)
 		if err != nil {
 			h.ServerError(w, r, err)
 			return
 		}
 
-		// Prepare View Data with Ranks
 		type LinkViewItem struct {
 			Rank        int
 			ID          int
@@ -527,6 +492,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 			Clicks      int
 			Timestamp   time.Time
 			ContentType string
+			BaseURL     string
 		}
 
 		var linksView []LinkViewItem
@@ -540,6 +506,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 				Clicks:      link.Clicks,
 				Timestamp:   link.Timestamp,
 				ContentType: link.ContentType,
+				BaseURL:     h.Config.BaseURL,
 			})
 		}
 
@@ -556,10 +523,9 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 			"HasNext":      hasNext,
 			"View":         view,
 			"Hot":          h.getHotHTML(ctx),
+			"BaseURL":      h.Config.BaseURL,
 		}
 	} else {
-		// User stats view (original)
-		// Sorting
 		sortBy := r.URL.Query().Get("sort")
 		if sortBy == "" {
 			sortBy = "links"
@@ -571,7 +537,6 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Prepare View Data with Ranks
 		type StatViewItem struct {
 			Rank       int
 			User       string
@@ -603,6 +568,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 			"Sort":         sortBy,
 			"View":         view,
 			"Hot":          h.getHotHTML(ctx),
+			"BaseURL":      h.Config.BaseURL,
 		}
 	}
 

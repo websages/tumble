@@ -2,6 +2,6 @@
             <title>{{.Title}}</title>
             <link>{{.URL}}</link>
             <guid isPermaLink="false">tumble-image-{{.ID}}</guid>
-            <description><![CDATA[{{.Content}}]]></description>
-            <pubDate>{{.Timestamp}}</pubDate>
+            <description><![CDATA[<img src="{{.MediaURL}}" alt="{{.Title}}" />]]></description>
+            <pubDate>{{.FormattedDate}}</pubDate>
         </item>

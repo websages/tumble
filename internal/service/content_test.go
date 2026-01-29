@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,10 +13,11 @@ func TestProcessIRCLink_Flickr(t *testing.T) {
 	svc := NewContentService(cfg, nil)
 
 	tests := []struct {
-		name     string
-		item     data.IRCLink
-		wantURL  string
-		wantType string // "flickr" or "default" (internal link)
+		name          string
+		item          data.IRCLink
+		wantEmbedType EmbedType
+		wantPhotoPage string
+		wantMediaURL  string
 	}{
 		{
 			name: "Flickr Static URL",
@@ -30,11 +29,12 @@ func TestProcessIRCLink_Flickr(t *testing.T) {
 				User:        "photog",
 				Timestamp:   time.Now(),
 			},
-			wantURL:  "https://www.flickr.com/photo.gne?id=2362225867",
-			wantType: "flickr",
+			wantEmbedType: EmbedTypeFlickr,
+			wantPhotoPage: "https://www.flickr.com/photo.gne?id=2362225867",
+			wantMediaURL:  "http://farm3.staticflickr.com/2362/2362225867_0a3b0b7e05.jpg",
 		},
 		{
-			name: "Normal Image",
+			name: "Normal Image (direct link, not Flickr)",
 			item: data.IRCLink{
 				ID:          2,
 				Title:       "Just an Image",
@@ -43,37 +43,25 @@ func TestProcessIRCLink_Flickr(t *testing.T) {
 				User:        "user",
 				Timestamp:   time.Now(),
 			},
-			wantURL:  "http://tumble.test/irclink/?2",
-			wantType: "default",
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "http://example.com/image.jpg",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := svc.ProcessIRCLink(tt.item)
-			html := string(got.Content)
 
-			if tt.wantType == "flickr" {
-				if !strings.Contains(html, tt.wantURL) {
-					t.Errorf("ProcessIRCLink() html = %v, want to contain %v", html, tt.wantURL)
-				}
+			if got.EmbedType != tt.wantEmbedType {
+				t.Errorf("ProcessIRCLink() EmbedType = %v, want %v", got.EmbedType, tt.wantEmbedType)
+			}
 
-				// Verify it's an anchor tag
-				if !strings.HasPrefix(html, "<a href=") {
-					t.Errorf("ProcessIRCLink() html should start with anchor tag, got %v", html)
-				}
-				// Verify target blank
-				if !strings.Contains(html, `target="_blank"`) {
-					t.Errorf("ProcessIRCLink() html should contain target=_blank, got %v", html)
-				}
-			} else {
-				if !strings.Contains(html, tt.wantURL) {
-					t.Errorf("ProcessIRCLink() html = %v, want to contain %v", html, tt.wantURL)
-				}
-				// Verify target blank for default links too
-				if !strings.Contains(html, `target="_blank"`) {
-					t.Errorf("ProcessIRCLink() html should contain target=_blank, got %v", html)
-				}
+			if tt.wantPhotoPage != "" && got.PhotoPageURL != tt.wantPhotoPage {
+				t.Errorf("ProcessIRCLink() PhotoPageURL = %v, want %v", got.PhotoPageURL, tt.wantPhotoPage)
+			}
+
+			if tt.wantMediaURL != "" && got.MediaURL != tt.wantMediaURL {
+				t.Errorf("ProcessIRCLink() MediaURL = %v, want %v", got.MediaURL, tt.wantMediaURL)
 			}
 		})
 	}
@@ -84,10 +72,11 @@ func TestProcessImage_Flickr(t *testing.T) {
 	svc := NewContentService(cfg, nil)
 
 	tests := []struct {
-		name     string
-		item     data.Image
-		wantURL  string
-		wantType string // "flickr" or "default"
+		name          string
+		item          data.Image
+		wantEmbedType EmbedType
+		wantPhotoPage string
+		wantMediaURL  string
 	}{
 		{
 			name: "Flickr Static URL",
@@ -97,8 +86,9 @@ func TestProcessImage_Flickr(t *testing.T) {
 				URL:       "http://farm3.staticflickr.com/2362/2362225867_0a3b0b7e05.jpg",
 				Timestamp: time.Now(),
 			},
-			wantURL:  "https://www.flickr.com/photo.gne?id=2362225867",
-			wantType: "flickr",
+			wantEmbedType: EmbedTypeFlickr,
+			wantPhotoPage: "https://www.flickr.com/photo.gne?id=2362225867",
+			wantMediaURL:  "http://farm3.staticflickr.com/2362/2362225867_0a3b0b7e05.jpg",
 		},
 		{
 			name: "Normal Image",
@@ -108,36 +98,25 @@ func TestProcessImage_Flickr(t *testing.T) {
 				URL:       "http://example.com/image.jpg",
 				Timestamp: time.Now(),
 			},
-			wantURL:  "http://example.com/image.jpg",
-			wantType: "default",
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "http://example.com/image.jpg",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := svc.ProcessImage(tt.item)
-			html := string(got.Content)
 
-			if tt.wantType == "flickr" {
-				if !strings.Contains(html, tt.wantURL) {
-					t.Errorf("ProcessImage() html = %v, want to contain %v", html, tt.wantURL)
-				}
-				// Verify it's an anchor tag
-				if !strings.HasPrefix(html, "<a href=") {
-					t.Errorf("ProcessImage() html should start with anchor tag, got %v", html)
-				}
-				// Verify target blank
-				if !strings.Contains(html, `target="_blank"`) {
-					t.Errorf("ProcessImage() html should contain target=_blank, got %v", html)
-				}
-			} else {
-				if !strings.Contains(html, tt.wantURL) {
-					t.Errorf("ProcessImage() html = %v, want to contain %v", html, tt.wantURL)
-				}
-				// Verify default is just img tag
-				if !strings.HasPrefix(html, "<img src=") {
-					t.Errorf("ProcessImage() html should start with img tag, got %v", html)
-				}
+			if got.EmbedType != tt.wantEmbedType {
+				t.Errorf("ProcessImage() EmbedType = %v, want %v", got.EmbedType, tt.wantEmbedType)
+			}
+
+			if tt.wantPhotoPage != "" && got.PhotoPageURL != tt.wantPhotoPage {
+				t.Errorf("ProcessImage() PhotoPageURL = %v, want %v", got.PhotoPageURL, tt.wantPhotoPage)
+			}
+
+			if got.MediaURL != tt.wantMediaURL {
+				t.Errorf("ProcessImage() MediaURL = %v, want %v", got.MediaURL, tt.wantMediaURL)
 			}
 		})
 	}
@@ -148,65 +127,46 @@ func TestProcessIRCLink_Imgur(t *testing.T) {
 	svc := NewContentService(cfg, nil)
 
 	tests := []struct {
-		name               string
-		item               data.IRCLink
-		wantType           string // "single", "gallery"
-		wantIRCLinkHandler bool   // Should route through /irclink/?
-		wantImgurCDN       bool   // Should use i.imgur.com
-		wantErrorHandler   bool   // Should have onerror handler
-		wantSuppressOG     bool
-		wantGalleryCard    bool
+		name           string
+		item           data.IRCLink
+		wantEmbedType  EmbedType
+		wantMediaURL   string
+		wantIsAnimated bool
+		wantSuppressOG bool
+		wantIsBroken   bool
 	}{
 		{
-			name: "Single Imgur Image - Standard URL",
+			name: "Single Imgur Image - Standard URL (defaults to mp4)",
 			item: data.IRCLink{
 				ID:          42,
 				Title:       "Cool Picture",
-				URL:         "https://imgur.com/abc123",
+				URL:         "https://imgur.com/abc1234",
 				ContentType: "text/html",
 				User:        "testuser",
 				Timestamp:   time.Now(),
 			},
-			wantType:           "single",
-			wantIRCLinkHandler: true,
-			wantImgurCDN:       true,
-			wantErrorHandler:   false, // Extensionless URLs default to .mp4 video (no error handler)
-			wantSuppressOG:     true,
+			wantEmbedType:  EmbedTypeImgurSingle,
+			wantMediaURL:   "https://i.imgur.com/abc1234.mp4",
+			wantIsAnimated: true,
+			wantSuppressOG: true,
 		},
 		{
-			name: "Single Imgur Image - With Extension",
+			name: "Single Imgur Image - With JPG Extension",
 			item: data.IRCLink{
 				ID:          43,
 				Title:       "Another Picture",
-				URL:         "https://imgur.com/xyz789.jpg",
+				URL:         "https://imgur.com/xyz78901.jpg",
 				ContentType: "image/jpeg",
 				User:        "testuser",
 				Timestamp:   time.Now(),
 			},
-			wantType:           "single",
-			wantIRCLinkHandler: true,
-			wantImgurCDN:       true,
-			wantErrorHandler:   true,
-			wantSuppressOG:     true,
+			wantEmbedType:  EmbedTypeImgurSingle,
+			wantMediaURL:   "https://i.imgur.com/xyz78901.jpg",
+			wantIsAnimated: false,
+			wantSuppressOG: true,
 		},
 		{
-			name: "Single Imgur Image - Direct i.imgur.com",
-			item: data.IRCLink{
-				ID:          44,
-				Title:       "Direct CDN",
-				URL:         "https://i.imgur.com/def456.png",
-				ContentType: "image/png",
-				User:        "testuser",
-				Timestamp:   time.Now(),
-			},
-			wantType:           "single",
-			wantIRCLinkHandler: true,
-			wantImgurCDN:       true,
-			wantErrorHandler:   true,
-			wantSuppressOG:     true,
-		},
-		{
-			name: "Imgur Gallery - /gallery/ URL (no preview)",
+			name: "Imgur Gallery - /gallery/ URL (no store, so broken)",
 			item: data.IRCLink{
 				ID:          45,
 				Title:       "Gallery Title",
@@ -215,13 +175,12 @@ func TestProcessIRCLink_Imgur(t *testing.T) {
 				User:        "testuser",
 				Timestamp:   time.Now(),
 			},
-			wantType:           "gallery",
-			wantIRCLinkHandler: true,
-			wantSuppressOG:     true,
-			wantGalleryCard:    false, // No LinkPreview, so should show 404 error
+			wantEmbedType:  EmbedTypeImgurGallery,
+			wantSuppressOG: true,
+			wantIsBroken:   true, // No store, so no thumbnail
 		},
 		{
-			name: "Imgur Gallery - /a/ URL (no preview)",
+			name: "Imgur Album - /a/ URL (no store, so broken)",
 			item: data.IRCLink{
 				ID:          46,
 				Title:       "Album Title",
@@ -230,90 +189,135 @@ func TestProcessIRCLink_Imgur(t *testing.T) {
 				User:        "testuser",
 				Timestamp:   time.Now(),
 			},
-			wantType:           "gallery",
-			wantIRCLinkHandler: true,
-			wantSuppressOG:     true,
-			wantGalleryCard:    false, // No LinkPreview, so should show 404 error
+			wantEmbedType:  EmbedTypeImgurGallery,
+			wantSuppressOG: true,
+			wantIsBroken:   true, // No store, so no thumbnail
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := svc.ProcessIRCLink(tt.item)
-			html := string(got.Content)
 
-			// Verify SuppressOG
+			if got.EmbedType != tt.wantEmbedType {
+				t.Errorf("ProcessIRCLink() EmbedType = %v, want %v", got.EmbedType, tt.wantEmbedType)
+			}
+
 			if got.SuppressOG != tt.wantSuppressOG {
 				t.Errorf("ProcessIRCLink() SuppressOG = %v, want %v", got.SuppressOG, tt.wantSuppressOG)
 			}
 
-			// CRITICAL: Verify IRC link handler routing (click tracking)
-			if tt.wantIRCLinkHandler {
-				expectedIRCLink := fmt.Sprintf("%s/irclink/?%d", cfg.BaseURL, tt.item.ID)
-				if !strings.Contains(html, expectedIRCLink) {
-					t.Errorf("ProcessIRCLink() html should contain IRC link handler %v, got %v", expectedIRCLink, html)
-				}
-
-				// CRITICAL: Ensure we NEVER link directly to imgur.com (bypassing click tracking)
-				// Gallery cards should not have direct imgur.com links
-				if strings.Contains(html, `href="https://imgur.com`) || strings.Contains(html, `href="http://imgur.com`) {
-					t.Errorf("ProcessIRCLink() html should NOT contain direct imgur.com links, got %v", html)
-				}
+			if tt.wantMediaURL != "" && got.MediaURL != tt.wantMediaURL {
+				t.Errorf("ProcessIRCLink() MediaURL = %v, want %v", got.MediaURL, tt.wantMediaURL)
 			}
 
-			// Verify Imgur CDN usage for single images
-			if tt.wantImgurCDN {
-				if !strings.Contains(html, "i.imgur.com") {
-					t.Errorf("ProcessIRCLink() html should contain i.imgur.com CDN URL")
-				}
+			if got.IsAnimated != tt.wantIsAnimated {
+				t.Errorf("ProcessIRCLink() IsAnimated = %v, want %v", got.IsAnimated, tt.wantIsAnimated)
 			}
 
-			// Verify error handler for single images
-			if tt.wantErrorHandler {
-				if !strings.Contains(html, "onerror=") {
-					t.Errorf("ProcessIRCLink() html should contain onerror handler")
-				}
-				// Verify it uses the standard error pattern
-				if !strings.Contains(html, "http-error-badge") {
-					t.Errorf("ProcessIRCLink() html should use http-error-badge class for errors")
-				}
-				if !strings.Contains(html, "missing-link") {
-					t.Errorf("ProcessIRCLink() html should use missing-link class for errors")
-				}
+			if got.IsBroken != tt.wantIsBroken {
+				t.Errorf("ProcessIRCLink() IsBroken = %v, want %v", got.IsBroken, tt.wantIsBroken)
 			}
 
-			// Verify gallery card structure (only if we expect a card)
-			if tt.wantGalleryCard {
-				if !strings.Contains(html, "imgur-gallery-card") {
-					t.Errorf("ProcessIRCLink() html should contain imgur-gallery-card class")
-				}
-				if !strings.Contains(html, "Imgur Gallery") {
-					t.Errorf("ProcessIRCLink() html should contain 'Imgur Gallery' text")
-				}
-				// Verify gallery has preview image attempt
-				if !strings.Contains(html, "<img src=") {
-					t.Errorf("ProcessIRCLink() gallery should attempt to show preview image")
-				}
-			}
-
-			// Verify galleries WITHOUT previews show error badge (not gallery card)
-			if tt.wantType == "gallery" && !tt.wantGalleryCard {
-				if !strings.Contains(html, "http-error-badge") {
-					t.Errorf("ProcessIRCLink() gallery without preview should show http-error-badge, got: %v", html)
-				}
-				if !strings.Contains(html, "missing-link") {
-					t.Errorf("ProcessIRCLink() gallery without preview should show missing-link class")
-				}
-				// Should NOT contain gallery card elements
-				if strings.Contains(html, "imgur-gallery-card") {
-					t.Errorf("ProcessIRCLink() gallery without preview should NOT show gallery card")
-				}
-			}
-
-			// Verify target="_blank" for all Imgur links
-			if !strings.Contains(html, `target="_blank"`) {
-				t.Errorf("ProcessIRCLink() html should open in new tab with target=_blank")
+			// Verify BaseURL is always set correctly
+			if got.BaseURL != cfg.BaseURL {
+				t.Errorf("ProcessIRCLink() BaseURL = %v, want %v", got.BaseURL, cfg.BaseURL)
 			}
 		})
+	}
+}
+
+func TestProcessIRCLink_Twitter(t *testing.T) {
+	cfg := &config.Config{BaseURL: "http://tumble.test"}
+	svc := NewContentService(cfg, nil)
+
+	tests := []struct {
+		name          string
+		item          data.IRCLink
+		wantEmbedType EmbedType
+		wantEmbedURL  string
+	}{
+		{
+			name: "Twitter.com URL",
+			item: data.IRCLink{
+				ID:          1,
+				Title:       "A Tweet",
+				URL:         "https://twitter.com/user/status/1234567890",
+				ContentType: "text/html",
+				User:        "poster",
+				Timestamp:   time.Now(),
+			},
+			wantEmbedType: EmbedTypeTwitter,
+			wantEmbedURL:  "https://twitter.com/user/status/1234567890",
+		},
+		{
+			name: "X.com URL (should convert to twitter.com for embed)",
+			item: data.IRCLink{
+				ID:          2,
+				Title:       "A Tweet",
+				URL:         "https://x.com/user/status/1234567890",
+				ContentType: "text/html",
+				User:        "poster",
+				Timestamp:   time.Now(),
+			},
+			wantEmbedType: EmbedTypeTwitter,
+			wantEmbedURL:  "https://twitter.com/user/status/1234567890",
+		},
+		{
+			name: "Non-tweet Twitter URL",
+			item: data.IRCLink{
+				ID:          3,
+				Title:       "Twitter Profile",
+				URL:         "https://twitter.com/someuser",
+				ContentType: "text/html",
+				User:        "poster",
+				Timestamp:   time.Now(),
+			},
+			wantEmbedType: EmbedTypeGeneric, // Not a tweet, so generic
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := svc.ProcessIRCLink(tt.item)
+
+			if got.EmbedType != tt.wantEmbedType {
+				t.Errorf("ProcessIRCLink() EmbedType = %v, want %v", got.EmbedType, tt.wantEmbedType)
+			}
+
+			if tt.wantEmbedURL != "" && got.EmbedURL != tt.wantEmbedURL {
+				t.Errorf("ProcessIRCLink() EmbedURL = %v, want %v", got.EmbedURL, tt.wantEmbedURL)
+			}
+		})
+	}
+}
+
+func TestProcessQuote(t *testing.T) {
+	cfg := &config.Config{BaseURL: "http://tumble.test"}
+	svc := NewContentService(cfg, nil)
+
+	item := data.Quote{
+		ID:        1,
+		Author:    "Someone Famous",
+		Quote:     "This is a great quote",
+		Timestamp: time.Now(),
+	}
+
+	got := svc.ProcessQuote(item)
+
+	if got.EmbedType != EmbedTypeQuote {
+		t.Errorf("ProcessQuote() EmbedType = %v, want %v", got.EmbedType, EmbedTypeQuote)
+	}
+
+	if got.Quote != item.Quote {
+		t.Errorf("ProcessQuote() Quote = %v, want %v", got.Quote, item.Quote)
+	}
+
+	if got.Author != item.Author {
+		t.Errorf("ProcessQuote() Author = %v, want %v", got.Author, item.Author)
+	}
+
+	if got.Description != item.Quote {
+		t.Errorf("ProcessQuote() Description = %v, want %v", got.Description, item.Quote)
 	}
 }
