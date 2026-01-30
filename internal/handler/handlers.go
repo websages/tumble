@@ -73,9 +73,10 @@ type NavigationData struct {
 
 // HotLinkItem is a simplified struct for hot links display
 type HotLinkItem struct {
-	ID      int
-	Title   string
-	BaseURL string
+	ID       int
+	Title    string
+	BaseURL  string
+	ClickSig string
 }
 
 // getHotLinks returns hot link data for templates
@@ -89,9 +90,10 @@ func (h *Handler) getHotLinks(ctx context.Context) []HotLinkItem {
 	items := make([]HotLinkItem, 0, len(topLinks))
 	for _, l := range topLinks {
 		items = append(items, HotLinkItem{
-			ID:      l.ID,
-			Title:   l.Title,
-			BaseURL: h.Config.BaseURL,
+			ID:       l.ID,
+			Title:    l.Title,
+			BaseURL:  h.Config.BaseURL,
+			ClickSig: GenerateClickSignature(l.ID, h.Config.ClickSigningKey),
 		})
 	}
 	return items

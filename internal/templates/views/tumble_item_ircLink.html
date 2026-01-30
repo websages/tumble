@@ -1,4 +1,4 @@
-    <div class="item" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}">
+    <div class="item" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}" data-click-sig="{{.ClickSig}}">
         <div class="link-card-wrapper">
             <div class="link-header">
                 <span class="link">
@@ -8,10 +8,10 @@
                     {{else if eq .EmbedType "imgur_gallery"}}
                         {{/* Imgur gallery card */}}
                         {{if .IsBroken}}
-                            <a href="{{irclinkURL .BaseURL .ID}}" target="_blank"><span class="http-error-badge">404</span> <span class="missing-link">{{.URL}}</span></a>
+                            <a href="{{irclinkURL .BaseURL .ID .ClickSig}}" target="_blank"><span class="http-error-badge">404</span> <span class="missing-link">{{.URL}}</span></a>
                         {{else}}
                             <span class="imgur-gallery-card">
-                                <a href="{{irclinkURL .BaseURL .ID}}" target="_blank">
+                                <a href="{{irclinkURL .BaseURL .ID .ClickSig}}" target="_blank">
                                     <span class="gallery-image-container">
                                         <img src="{{.ThumbnailURL}}"
                                             onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='block';}"
@@ -27,7 +27,7 @@
                         {{end}}
                     {{else if eq .EmbedType "imgur_single"}}
                         {{/* Imgur single image/video */}}
-                        <a href="{{irclinkURL .BaseURL .ID}}" target="_blank" class="imgur-media-link">
+                        <a href="{{irclinkURL .BaseURL .ID .ClickSig}}" target="_blank" class="imgur-media-link">
                             {{if .IsAnimated}}
                                 <video autoplay loop muted playsinline class="imgur-video">
                                     <source src="{{.MediaURL}}" type="video/mp4" />
@@ -47,17 +47,17 @@
                         {{if .PhotoPageURL}}
                             <a href="{{.PhotoPageURL}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
                         {{else}}
-                            <a href="{{irclinkURL .BaseURL .ID}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
+                            <a href="{{irclinkURL .BaseURL .ID .ClickSig}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
                         {{end}}
                     {{else if eq .EmbedType "image"}}
                         {{/* Direct image link */}}
-                        <a href="{{irclinkURL .BaseURL .ID}}" target="_blank">
+                        <a href="{{irclinkURL .BaseURL .ID .ClickSig}}" target="_blank">
                             <img src="{{.URL}}" class="direct-image"
                                 onerror="this.parentNode.innerHTML='<span class=\'http-error-badge\'>404</span> <span class=\'missing-link\'>{{.URL}}</span>'; this.parentNode.classList.add('missing-link');" />
                         </a>
                     {{else}}
                         {{/* Generic link */}}
-                        <a href="{{irclinkURL .BaseURL .ID}}" target="_blank">{{if .DisplayTitle}}{{.DisplayTitle}}{{else}}{{.Title}}{{end}}</a>
+                        <a href="{{irclinkURL .BaseURL .ID .ClickSig}}" target="_blank">{{if .DisplayTitle}}{{.DisplayTitle}}{{else}}{{.Title}}{{end}}</a>
                     {{end}}
                 </span>
                 <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a></span>

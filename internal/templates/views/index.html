@@ -63,6 +63,7 @@
           var url = item.getAttribute("data-url");
           var contentType = item.getAttribute("data-content-type");
           var ircId = item.getAttribute("data-irc-link-id");
+          var clickSig = item.getAttribute("data-click-sig");
           var previewDiv = item.querySelector(".og-preview");
           var imgurCard = item.querySelector(".imgur-gallery-card");
 
@@ -105,6 +106,16 @@
           };
           xhr.send();
 
+          // Helper to build signed IRC link URL
+          function buildIrcLinkUrl(id, sig) {
+              if (id && sig) {
+                  return '/irclink/?' + id + '&sig=' + sig;
+              } else if (id) {
+                  return '/irclink/?' + id;
+              }
+              return null;
+          }
+
           function handlePreviewData(data, ircId) {
               // Skip preview card for inline-rendered content (e.g., Flickr single photos)
               if (data.render_inline === "true") {
@@ -118,7 +129,7 @@
                 var linkSpan = item.querySelector(".link");
                 if (linkSpan && !imgurCard) {
                      var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
-                     var linkHref = ircId ? '/irclink/?' + ircId : escapeHtml(url);
+                     var linkHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
                      linkSpan.innerHTML = '<a href="' + linkHref + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
                 }
                 if (previewDiv) previewDiv.remove();
@@ -249,7 +260,8 @@
                   // User "The thumbnail image still isn't clickable... for links from Flickr".
                   // Let's do it if ircId exists and not video.
                   if (ircId && !data.embed_html && (data.type === 'photo' ||  provider === 'Flickr')) {
-                       innerContent = '<a href="/irclink/?id=' + ircId + '" target="_blank">' + imageContent + '</a>';
+                       var imgLinkHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
+                       innerContent = '<a href="' + imgLinkHref + '" target="_blank">' + imageContent + '</a>';
                   }
 
                   previewHTML +=
@@ -264,7 +276,7 @@
                 previewHTML += '<div class="og-content">';
                 if (title) {
                   // Route through IRC link handler for click tracking if ircId is available
-                  var titleHref = ircId ? '/irclink/?' + ircId : escapeHtml(url);
+                  var titleHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
                   previewHTML +=
                     '<div class="og-title"><a href="' +
                     titleHref +

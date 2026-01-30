@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -74,10 +77,26 @@ type DisplayItem struct {
 
 	// OG preview control
 	SuppressOG bool `json:"suppress_og"`
+
+	// Click signature for verified click tracking (computed at render time, not stored)
+	ClickSig string `json:"click_sig,omitempty"`
 }
 
 func NewContentService(cfg *config.Config, store data.Store) *ContentService {
 	return &ContentService{Config: cfg, Store: store}
+}
+
+// generateClickSignature creates an HMAC signature for click tracking.
+// This ensures only clicks from legitimately rendered pages are counted.
+func (s *ContentService) generateClickSignature(id int) string {
+	secret := s.Config.ClickSigningKey
+	if secret == "" {
+		return ""
+	}
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(fmt.Sprintf("%d", id)))
+	// Use first 16 hex chars (8 bytes) - sufficient for integrity, keeps URLs short
+	return hex.EncodeToString(mac.Sum(nil))[:16]
 }
 
 func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
@@ -92,6 +111,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		ContentType: item.ContentType,
 		BaseURL:     s.Config.BaseURL,
 		EmbedType:   EmbedTypeGeneric, // Default
+		ClickSig:    s.generateClickSignature(item.ID),
 	}
 	s.formatDate(&d)
 
