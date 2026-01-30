@@ -82,20 +82,9 @@ func NewRenderer(cfg *config.Config) (*Renderer, error) {
 
 func (r *Renderer) parseTemplates() error {
 	var err error
-	// Determine source: Embed or Filesystem
-	if r.cfg.Mode == "development" {
-		// Parse from local filesystem for reload
-		// Assuming running from project root
-		r.htmlTmpls, err = template.New("").Funcs(templateFuncs).ParseGlob("internal/templates/views/*.html")
-		if err != nil {
-			return err
-		}
-		r.xmlTmpls, err = texttemplate.New("").Funcs(textTemplateFuncs).ParseGlob("internal/templates/views/*.xml")
-		if err != nil {
-			return err
-		}
-	} else {
-		// Use embedded FS for production
+	// Determine source: Embed or Filesystem based on embed_assets config
+	if r.cfg.EmbedAssets {
+		// Use embedded FS (default for production deployments)
 		r.htmlTmpls, err = template.New("").Funcs(templateFuncs).ParseFS(viewsFS, "views/*.html")
 		if err != nil {
 			return err
@@ -104,13 +93,24 @@ func (r *Renderer) parseTemplates() error {
 		if err != nil {
 			return err
 		}
+	} else {
+		// Parse from local filesystem for hot-reload during development
+		// Assumes running from project root
+		r.htmlTmpls, err = template.New("").Funcs(templateFuncs).ParseGlob("internal/templates/views/*.html")
+		if err != nil {
+			return err
+		}
+		r.xmlTmpls, err = texttemplate.New("").Funcs(textTemplateFuncs).ParseGlob("internal/templates/views/*.xml")
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (r *Renderer) Render(w io.Writer, name string, data interface{}) error {
-	if r.cfg.Mode == "development" {
-		// Re-parse on every request
+	if !r.cfg.EmbedAssets {
+		// Re-parse on every request when using filesystem (for hot-reload)
 		if err := r.parseTemplates(); err != nil {
 			return err
 		}
@@ -123,7 +123,8 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}) error {
 }
 
 func (r *Renderer) RenderToString(name string, data interface{}) (string, error) {
-	if r.cfg.Mode == "development" {
+	if !r.cfg.EmbedAssets {
+		// Re-parse when using filesystem (for hot-reload)
 		if err := r.parseTemplates(); err != nil {
 			return "", err
 		}

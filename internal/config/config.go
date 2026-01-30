@@ -16,6 +16,7 @@ type Config struct {
 	Driver          string  `yaml:"driver" mapstructure:"driver"`
 	Port            string  `yaml:"port" mapstructure:"port"`
 	Mode            string  `yaml:"mode" mapstructure:"mode"`
+	EmbedAssets     bool    `yaml:"embed_assets" mapstructure:"embed_assets"`
 	ClickSigningKey string  `yaml:"click_signing_key" mapstructure:"click_signing_key"`
 	Logging         Logging `yaml:"logging" mapstructure:"logging"`
 	Caching         Caching `yaml:"caching" mapstructure:"caching"`
@@ -37,6 +38,7 @@ func Load(path string) (*Config, error) {
 	v.SetDefault("driver", "mysql")
 	v.SetDefault("port", "8080")
 	v.SetDefault("mode", "production")
+	v.SetDefault("embed_assets", true)
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.output", "stdout")
 	v.SetDefault("caching.enabled", true)
