@@ -52,9 +52,10 @@ var templateFuncs = template.FuncMap{
 var textTemplateFuncs = texttemplate.FuncMap{
 	// irclinkURL builds a click-tracking URL for IRC links
 	// If a signature is provided, it's appended for verified click tracking
+	// Note: Uses &amp; for XML-safe output since text/template doesn't auto-escape
 	"irclinkURL": func(baseURL string, id int, sig string) string {
 		if sig != "" {
-			return fmt.Sprintf("%s/irclink/?%d&sig=%s", baseURL, id, sig)
+			return fmt.Sprintf("%s/irclink/?%d&amp;sig=%s", baseURL, id, sig)
 		}
 		return fmt.Sprintf("%s/irclink/?%d", baseURL, id)
 	},
