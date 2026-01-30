@@ -108,18 +108,32 @@ You can override any configuration value using environment variables prefixed wi
 - `TUMBLE_DRIVER=mysql`
 - `TUMBLE_DATABASE=production_db`
 - `TUMBLE_MODE=development` (Options: `development`, `production`. Default: `production`)
+- `TUMBLE_EMBED_ASSETS=true` (Options: `true`, `false`. Default: `true`)
 - `TUMBLE_LOGGING_LEVEL=debug`
 
 ### Environment Modes (`TUMBLE_MODE`)
 
 - **development**:
   - **Logging**: Text format, Debug level, Full SQL query logging.
-  - **Templates**: Hot-reloading from disk (edit HTML files to see changes immediately).
   - **Errors**: Displays detailed error messages in the browser.
 - **production** (default):
   - **Logging**: JSON format, Info level, Error-only SQL logging.
-  - **Templates**: Cached in memory for performance.
   - **Errors**: Displays generic "Internal Server Error" message to users.
+
+### Asset Embedding (`TUMBLE_EMBED_ASSETS`)
+
+Controls whether templates and static assets are loaded from the embedded binary or from the filesystem.
+
+- **true** (default): Assets are loaded from the compiled binary. This is the recommended setting for deployment - you only need the binary and a config file.
+- **false**: Assets are loaded from the filesystem (`internal/templates/views/` and `internal/assets/`). Templates are re-parsed on every request, enabling hot-reload during development.
+
+This setting is independent of `TUMBLE_MODE`, allowing you to run in development mode (for verbose logging and detailed errors) while still using embedded assets for deployment.
+
+**Deployment Example:**
+```yaml
+mode: development    # Get detailed error messages and text logging
+embed_assets: true   # But still use embedded assets (no source checkout needed)
+```
 
 ### 2. Initialize Database
 
