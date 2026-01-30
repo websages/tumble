@@ -8,16 +8,17 @@ import (
 )
 
 type Config struct {
-	Host     string  `yaml:"host" mapstructure:"host"`
-	Database string  `yaml:"database" mapstructure:"database"`
-	Username string  `yaml:"username" mapstructure:"username"`
-	Password string  `yaml:"password" mapstructure:"password"`
-	BaseURL  string  `yaml:"baseurl" mapstructure:"baseurl"`
-	Driver   string  `yaml:"driver" mapstructure:"driver"`
-	Port     string  `yaml:"port" mapstructure:"port"`
-	Mode     string  `yaml:"mode" mapstructure:"mode"`
-	Logging  Logging `yaml:"logging" mapstructure:"logging"`
-	Caching  Caching `yaml:"caching" mapstructure:"caching"`
+	Host            string  `yaml:"host" mapstructure:"host"`
+	Database        string  `yaml:"database" mapstructure:"database"`
+	Username        string  `yaml:"username" mapstructure:"username"`
+	Password        string  `yaml:"password" mapstructure:"password"`
+	BaseURL         string  `yaml:"baseurl" mapstructure:"baseurl"`
+	Driver          string  `yaml:"driver" mapstructure:"driver"`
+	Port            string  `yaml:"port" mapstructure:"port"`
+	Mode            string  `yaml:"mode" mapstructure:"mode"`
+	ClickSigningKey string  `yaml:"click_signing_key" mapstructure:"click_signing_key"`
+	Logging         Logging `yaml:"logging" mapstructure:"logging"`
+	Caching         Caching `yaml:"caching" mapstructure:"caching"`
 }
 
 type Caching struct {

@@ -24,7 +24,11 @@ type Renderer struct {
 // templateFuncs provides helper functions for templates
 var templateFuncs = template.FuncMap{
 	// irclinkURL builds a click-tracking URL for IRC links
-	"irclinkURL": func(baseURL string, id int) string {
+	// If a signature is provided, it's appended for verified click tracking
+	"irclinkURL": func(baseURL string, id int, sig string) string {
+		if sig != "" {
+			return fmt.Sprintf("%s/irclink/?%d&sig=%s", baseURL, id, sig)
+		}
 		return fmt.Sprintf("%s/irclink/?%d", baseURL, id)
 	},
 	// truncate shortens a string to max characters with ellipsis
@@ -46,7 +50,12 @@ var templateFuncs = template.FuncMap{
 
 // textTemplateFuncs is the equivalent for text/template (XML)
 var textTemplateFuncs = texttemplate.FuncMap{
-	"irclinkURL": func(baseURL string, id int) string {
+	// irclinkURL builds a click-tracking URL for IRC links
+	// If a signature is provided, it's appended for verified click tracking
+	"irclinkURL": func(baseURL string, id int, sig string) string {
+		if sig != "" {
+			return fmt.Sprintf("%s/irclink/?%d&sig=%s", baseURL, id, sig)
+		}
 		return fmt.Sprintf("%s/irclink/?%d", baseURL, id)
 	},
 	"truncate": func(s string, max int) string {

@@ -199,8 +199,14 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	// Case 2: Redirecting (id param or query string)
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
-		// Fallback to RawQuery if param parsing failed or mostly likely it's /irclink/?12345
-		idStr = r.URL.RawQuery
+		// Fallback to RawQuery if param parsing failed
+		// Handle formats like /irclink/?12345 or /irclink/?12345&sig=abc123
+		rawQuery := r.URL.RawQuery
+		if idx := strings.Index(rawQuery, "&"); idx != -1 {
+			idStr = rawQuery[:idx]
+		} else {
+			idStr = rawQuery
+		}
 	}
 
 	id, err := strconv.Atoi(idStr)
@@ -209,8 +215,12 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Increment Clicks
-	go h.Store.IncrementClicks(context.Background(), id) // Async
+	// Only increment clicks if signature is valid
+	// This prevents bots from inflating click counts by hitting URLs directly
+	sig := r.URL.Query().Get("sig")
+	if ValidateClickSignature(id, sig, h.Config.ClickSigningKey) {
+		go h.Store.IncrementClicks(context.Background(), id) // Async
+	}
 
 	// Determine URL
 	redirectURL, err := h.Store.GetIRCLinkURL(ctx, id)
