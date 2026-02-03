@@ -57,7 +57,9 @@ func (h *Handler) manualFetchOEmbed(reqURL string) (map[string]string, error) {
 	// Use generic browser UA
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: h.Config.RequestTimeout,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

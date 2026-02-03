@@ -320,7 +320,9 @@ func (s *ContentService) fetchFlickrImageURL(photoURL string) string {
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
 
 	// Make request
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: s.Config.RequestTimeout,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return ""

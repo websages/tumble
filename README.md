@@ -86,6 +86,7 @@ driver: sqlite
 database: tumble.db
 baseurl: your.domain.com
 port: 8080
+request_timeout: 2s
 ```
 
 **For MySQL:**
@@ -110,6 +111,7 @@ You can override any configuration value using environment variables prefixed wi
 - `TUMBLE_MODE=development` (Options: `development`, `production`. Default: `production`)
 - `TUMBLE_EMBED_ASSETS=true` (Options: `true`, `false`. Default: `true`)
 - `TUMBLE_LOGGING_LEVEL=debug`
+- `TUMBLE_REQUEST_TIMEOUT=2s` (Default: `2s`)
 
 ### Environment Modes (`TUMBLE_MODE`)
 
@@ -130,9 +132,10 @@ Controls whether templates and static assets are loaded from the embedded binary
 This setting is independent of `TUMBLE_MODE`, allowing you to run in development mode (for verbose logging and detailed errors) while still using embedded assets for deployment.
 
 **Deployment Example:**
+
 ```yaml
-mode: development    # Get detailed error messages and text logging
-embed_assets: true   # But still use embedded assets (no source checkout needed)
+mode: development # Get detailed error messages and text logging
+embed_assets: true # But still use embedded assets (no source checkout needed)
 ```
 
 ### 2. Initialize Database
@@ -282,6 +285,7 @@ When submitting links via `/irclink/`, the API automatically detects if a URL ha
 - **HTML Response**: Shows duplicate notification with original poster and timestamp
 
 **Example JSON Response (Duplicate):**
+
 ```json
 {
   "link_id": 456,
@@ -324,6 +328,7 @@ curl -X DELETE "https://your-server/irclink/123?secret=your-secret"
 ```
 
 **Responses:**
+
 - **200 OK**: Link deleted successfully
 - **400 Bad Request**: Missing or invalid ID
 - **403 Forbidden**: Missing or invalid admin secret
