@@ -18,6 +18,7 @@ type Config struct {
 	Mode            string  `yaml:"mode" mapstructure:"mode"`
 	EmbedAssets     bool    `yaml:"embed_assets" mapstructure:"embed_assets"`
 	ClickSigningKey string  `yaml:"click_signing_key" mapstructure:"click_signing_key"`
+	AdminSecret     string  `yaml:"admin_secret" mapstructure:"admin_secret"`
 	Logging         Logging `yaml:"logging" mapstructure:"logging"`
 	Caching         Caching `yaml:"caching" mapstructure:"caching"`
 }

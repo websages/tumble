@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -38,8 +39,8 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 
 	if r.Method == http.MethodDelete {
-		// Restrict DELETE to localhost only until proper auth is implemented
-		if !isLocalhost(r) {
+		// Authenticate DELETE requests using admin secret
+		if !h.isAuthorizedAdmin(r) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
@@ -252,4 +253,22 @@ func isLocalhost(r *http.Request) bool {
 	}
 
 	return false
+}
+
+// isAuthorizedAdmin checks if the request contains a valid admin secret
+func (h *Handler) isAuthorizedAdmin(r *http.Request) bool {
+	// If no admin secret is configured, fall back to localhost check
+	if h.Config.AdminSecret == "" {
+		return isLocalhost(r)
+	}
+
+	// Check X-Admin-Secret header first
+	secret := r.Header.Get("X-Admin-Secret")
+	if secret == "" {
+		// Fall back to query parameter
+		secret = r.URL.Query().Get("secret")
+	}
+
+	// Use constant-time comparison to prevent timing attacks
+	return subtle.ConstantTimeCompare([]byte(secret), []byte(h.Config.AdminSecret)) == 1
 }

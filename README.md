@@ -299,6 +299,38 @@ When submitting links via `/irclink/`, the API automatically detects if a URL ha
 
 For complete API documentation, visit `/docs` on your running instance or see `internal/assets/openapi.json`.
 
+#### Link Deletion
+
+Links can be deleted via the API using the `DELETE` method on `/irclink/{id}`. This requires authentication using an admin secret.
+
+**Configuration:**
+
+Add an `admin_secret` to your `config.yaml`:
+
+```yaml
+admin_secret: "your-random-secret-string"
+```
+
+You can also set it via environment variable: `TUMBLE_ADMIN_SECRET=your-secret`
+
+**Usage:**
+
+```bash
+# Using X-Admin-Secret header (recommended)
+curl -X DELETE -H "X-Admin-Secret: your-secret" https://your-server/irclink/123
+
+# Using query parameter
+curl -X DELETE "https://your-server/irclink/123?secret=your-secret"
+```
+
+**Responses:**
+- **200 OK**: Link deleted successfully
+- **400 Bad Request**: Missing or invalid ID
+- **403 Forbidden**: Missing or invalid admin secret
+- **404 Not Found**: Link does not exist
+
+If no `admin_secret` is configured, deletion falls back to localhost-only access for backwards compatibility.
+
 #### Caching
 
 Link previews are cached in the database to reduce external requests.

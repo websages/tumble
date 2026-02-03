@@ -2,6 +2,7 @@ driver: sqlite
 database: tumble-test.sqlite
 port: "8080"
 baseurl: http://localhost:8080
+admin_secret: "test-admin-secret"
 logging:
   level: debug
   output: tumble.log
