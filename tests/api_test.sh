@@ -91,13 +91,13 @@ fi
 
 # 7. Delete Link Test (Create -> Delete -> Verify)
 echo -n "Testing DELETE /irclink/ flow... "
-# Create a link firs
+# Create a link first
 CREATE_OUT=$(curl -s "$BASE_URL/irclink/?user=testdel&url=http://delete-test.com&source=irc")
 # Check if we got an ID (numeric)
 if [[ "$CREATE_OUT" =~ ^[0-9]+$ ]]; then
     DEL_ID=$CREATE_OUT
-    # Delete i
-    DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL/irclink/?id=$DEL_ID")
+    # Delete it (using admin secret from test config)
+    DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "X-Admin-Secret: test-admin-secret" "$BASE_URL/irclink/?id=$DEL_ID")
     if [ "$DEL_STATUS" == "200" ]; then
         # Verify it's gone
         GONE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/irclink/?id=$DEL_ID")
