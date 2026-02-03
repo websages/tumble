@@ -3,24 +3,26 @@ package config
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Host            string  `yaml:"host" mapstructure:"host"`
-	Database        string  `yaml:"database" mapstructure:"database"`
-	Username        string  `yaml:"username" mapstructure:"username"`
-	Password        string  `yaml:"password" mapstructure:"password"`
-	BaseURL         string  `yaml:"baseurl" mapstructure:"baseurl"`
-	Driver          string  `yaml:"driver" mapstructure:"driver"`
-	Port            string  `yaml:"port" mapstructure:"port"`
-	Mode            string  `yaml:"mode" mapstructure:"mode"`
-	EmbedAssets     bool    `yaml:"embed_assets" mapstructure:"embed_assets"`
-	ClickSigningKey string  `yaml:"click_signing_key" mapstructure:"click_signing_key"`
-	AdminSecret     string  `yaml:"admin_secret" mapstructure:"admin_secret"`
-	Logging         Logging `yaml:"logging" mapstructure:"logging"`
-	Caching         Caching `yaml:"caching" mapstructure:"caching"`
+	Host            string        `yaml:"host" mapstructure:"host"`
+	Database        string        `yaml:"database" mapstructure:"database"`
+	Username        string        `yaml:"username" mapstructure:"username"`
+	Password        string        `yaml:"password" mapstructure:"password"`
+	BaseURL         string        `yaml:"baseurl" mapstructure:"baseurl"`
+	Driver          string        `yaml:"driver" mapstructure:"driver"`
+	Port            string        `yaml:"port" mapstructure:"port"`
+	Mode            string        `yaml:"mode" mapstructure:"mode"`
+	EmbedAssets     bool          `yaml:"embed_assets" mapstructure:"embed_assets"`
+	ClickSigningKey string        `yaml:"click_signing_key" mapstructure:"click_signing_key"`
+	AdminSecret     string        `yaml:"admin_secret" mapstructure:"admin_secret"`
+	Logging         Logging       `yaml:"logging" mapstructure:"logging"`
+	Caching         Caching       `yaml:"caching" mapstructure:"caching"`
+	RequestTimeout  time.Duration `yaml:"request_timeout" mapstructure:"request_timeout"`
 }
 
 type Caching struct {
@@ -43,6 +45,7 @@ func Load(path string) (*Config, error) {
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.output", "stdout")
 	v.SetDefault("caching.enabled", true)
+	v.SetDefault("request_timeout", "2s")
 
 	// Environment Variables
 	v.SetEnvPrefix("TUMBLE")

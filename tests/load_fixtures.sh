@@ -28,86 +28,100 @@ fi
 echo "Using BASE_URL: $BASE_URL"
 echo "Using DB_PATH: $DB_PATH"
 
-echo "Loading fixtures..."
+TOTAL_FIXTURES=24
+CURRENT=0
 
-# YouTube Video
-$ADD_LINK_SCRIPT "video_fan" "https://youtu.be/rgDcbP4Hem4?si=YdwaAMNTiD9PXKzH"
+load_link() {
+    CURRENT=$((CURRENT + 1))
+    echo "  [$CURRENT/$TOTAL_FIXTURES] Adding link: $1"
+    $ADD_LINK_SCRIPT "$1" "$2"
+}
 
-# Image
-$ADD_LINK_SCRIPT "pic_poster" "https://cdn.tinnies.club/accounts/avatars/109/626/500/076/902/223/original/2a4a0d1a4ce728c4.jpg"
-
-# Mastodon Pos
-$ADD_LINK_SCRIPT "social_butterfly" "https://fosstodon.org/@genebean/113945244453254504"
-
-# Standard Link
-$ADD_LINK_SCRIPT "web_surfer" "http://costs.wtf"
-
-# Reddit Post (Valheim)
-$ADD_LINK_SCRIPT "gamer_girl" "https://www.reddit.com/r/valheim/comments/leqdj6/our_first_encounter_with_the_troll/"
-
-# Imgur (Animated)
-$ADD_LINK_SCRIPT "meme_lord" "https://imgur.com/only-one-jack-black-0qetp3u"
-
-# Twitter Pos
-$ADD_LINK_SCRIPT "tweet_master" "https://x.com/jcockhren/status/1229101594505097216?s=20"
-
-# Wikipedia (Go)
-$ADD_LINK_SCRIPT "knowledge_seeker" "https://en.wikipedia.org/wiki/Go_(programming_language)"
-
-# Broken Link (404)
-$ADD_LINK_SCRIPT "404_finder" "http://google.com/this-page-does-not-exist-12345"
-
-# Another Explicit 404 Link (Test Case)
-$ADD_LINK_SCRIPT "broken_link_tester" "http://httpstat.us/404"
-
-
-# Unavailable Video (Soft 404)
-$ADD_LINK_SCRIPT "video_gone" "https://youtu.be/Ie_Wl9eNffE"
-
-# Valid Video (Rick Roll)
-$ADD_LINK_SCRIPT "astley_fan" "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+load_quote() {
+    CURRENT=$((CURRENT + 1))
+    echo "  [$CURRENT/$TOTAL_FIXTURES] Adding quote: $1"
+    $ADD_QUOTE_SCRIPT "$1" "$2"
+}
 
 ADD_QUOTE_SCRIPT="./tests/add_quote.sh"
 
+echo "Loading fixtures..."
+
+# YouTube Video
+load_link "video_fan" "https://youtu.be/rgDcbP4Hem4?si=YdwaAMNTiD9PXKzH"
+
+# Image
+load_link "pic_poster" "https://cdn.tinnies.club/accounts/avatars/109/626/500/076/902/223/original/2a4a0d1a4ce728c4.jpg"
+
+# Mastodon Pos
+load_link "social_butterfly" "https://fosstodon.org/@genebean/113945244453254504"
+
+# Standard Link
+load_link "web_surfer" "http://costs.wtf"
+
+# Reddit Post (Valheim)
+load_link "gamer_girl" "https://www.reddit.com/r/valheim/comments/leqdj6/our_first_encounter_with_the_troll/"
+
+# Imgur (Animated)
+load_link "meme_lord" "https://imgur.com/only-one-jack-black-0qetp3u"
+
+# Twitter Pos
+load_link "tweet_master" "https://x.com/jcockhren/status/1229101594505097216?s=20"
+
+# Wikipedia (Go)
+load_link "knowledge_seeker" "https://en.wikipedia.org/wiki/Go_(programming_language)"
+
+# Broken Link (404)
+load_link "404_finder" "http://google.com/this-page-does-not-exist-12345"
+
+# Another Explicit 404 Link (Test Case)
+load_link "broken_link_tester" "http://httpstat.us/404"
+
+# Unavailable Video (Soft 404)
+load_link "video_gone" "https://youtu.be/Ie_Wl9eNffE"
+
+# Valid Video (Rick Roll)
+load_link "astley_fan" "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
 # Quotes
-$ADD_QUOTE_SCRIPT "Linus Torvalds" "Talk is cheap. Show me the code."
-$ADD_QUOTE_SCRIPT "Brian Kernighan" "Debugging is twice as hard as writing the code in the first place."
-$ADD_QUOTE_SCRIPT "Simba" "Everything the light touches is our kingdom."
+load_quote "Linus Torvalds" "Talk is cheap. Show me the code."
+load_quote "Brian Kernighan" "Debugging is twice as hard as writing the code in the first place."
+load_quote "Simba" "Everything the light touches is our kingdom."
 
 # Spotify
-$ADD_LINK_SCRIPT "music_lover" "https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5"
+load_link "music_lover" "https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5"
 
 # TikTok
-$ADD_LINK_SCRIPT "tiktok_star" "https://www.tiktok.com/@tiagogreis/video/6830059644233223429"
+load_link "tiktok_star" "https://www.tiktok.com/@tiagogreis/video/6830059644233223429"
 
 # Flickr
-$ADD_LINK_SCRIPT "photog" "http://flickr.com/photos/bees/2362225867/"
+load_link "photog" "http://flickr.com/photos/bees/2362225867/"
 
 # Instagram
-$ADD_LINK_SCRIPT "insta_fan" "https://www.instagram.com/p/fA9uwTtkSN/"
+load_link "insta_fan" "https://www.instagram.com/p/fA9uwTtkSN/"
 
 # Dailymotion
-$ADD_LINK_SCRIPT "video_daily" "https://www.dailymotion.com/video/x7tgad0"
+load_link "video_daily" "https://www.dailymotion.com/video/x7tgad0"
 
 # Kickstarter
-$ADD_LINK_SCRIPT "backer" "https://www.kickstarter.com/projects/ouya/ouya-a-new-kind-of-video-game-console"
+load_link "backer" "https://www.kickstarter.com/projects/ouya/ouya-a-new-kind-of-video-game-console"
 
 # SlideShare
-$ADD_LINK_SCRIPT "presenter" "http://www.slideshare.net/lyndadotcom/code-drivesworld12"
+load_link "presenter" "http://www.slideshare.net/lyndadotcom/code-drivesworld12"
 
 # Speaker Deck
-$ADD_LINK_SCRIPT "speaker" "https://speakerdeck.com/mislav/git"
+load_link "speaker" "https://speakerdeck.com/mislav/git"
 
 # Giphy
-$ADD_LINK_SCRIPT "gif_master" "https://giphy.com/gifs/cant-hardly-wait-kW8mnYSNkUYKc"
+load_link "gif_master" "https://giphy.com/gifs/cant-hardly-wait-kW8mnYSNkUYKc"
 
 # Kevin's Broken Twitter Link (Sad Path)
 # Use the specific broken ID if possible, but add_link auto-increments.
 # We will just assert on content behavior for "kevin".
-$ADD_LINK_SCRIPT "kevin" "https://twitter.com/darkuncle/status/1483507577174441985"
+load_link "kevin" "https://twitter.com/darkuncle/status/1483507577174441985"
 
 # Tester's Valid Twitter Link (Happy Path)
-$ADD_LINK_SCRIPT "tester" "https://twitter.com/jcockhren/status/1229101594505097216?s=20"
+load_link "tester" "https://twitter.com/jcockhren/status/1229101594505097216?s=20"
 
 echo "Loading backdated 'Hot Links' directly into DB..."
 if [ "$DRIVER" == "mysql" ]; then
