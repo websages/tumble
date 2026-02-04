@@ -28,7 +28,7 @@ build-linux: ## Build the binary for Linux amd64
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/tumble
 
 clean: ## Clean build directory
-	rm -rf $(BUILD_DIR) tumble-test.log tumble-test.sqlite
+	rm -rf $(BUILD_DIR) tumble-test.log tumble-test.sqlite*
 
 
 test: ## Run unit tests

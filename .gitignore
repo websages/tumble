@@ -1,5 +1,5 @@
 tumble.sqlite
-tumble-test.sqlite
+tumble-test.sqlite*
 bin/*
 *.log
 .claude
