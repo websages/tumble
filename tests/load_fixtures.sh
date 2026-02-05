@@ -28,7 +28,32 @@ fi
 echo "Using BASE_URL: $BASE_URL"
 echo "Using DB_PATH: $DB_PATH"
 
-TOTAL_FIXTURES=24
+# Check if database tables exist (for SQLite)
+if [ "$DRIVER" == "sqlite" ] || [ -z "$DRIVER" ]; then
+    if [ -f "$DB_PATH" ]; then
+        TABLE_CHECK=$(sqlite3 "$DB_PATH" "SELECT name FROM sqlite_master WHERE type='table' AND name='ircLink';" 2>/dev/null || echo "")
+        if [ -z "$TABLE_CHECK" ]; then
+            echo ""
+            echo "ERROR: Database tables not found in $DB_PATH"
+            echo "The server needs to run first to create the tables (GORM auto-migration)."
+            echo ""
+            echo "Try one of these options:"
+            echo "  1. Use 'make test-db' to create a fresh test database with fixtures"
+            echo "  2. Start the server first: ./bin/tumble conf/config.yaml &"
+            echo "     Then run: make load-fixtures"
+            echo ""
+            exit 1
+        fi
+    else
+        echo ""
+        echo "ERROR: Database file not found: $DB_PATH"
+        echo "Use 'make test-db' to create a fresh test database with fixtures."
+        echo ""
+        exit 1
+    fi
+fi
+
+TOTAL_FIXTURES=26
 CURRENT=0
 
 load_link() {
