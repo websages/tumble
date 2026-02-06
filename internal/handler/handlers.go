@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"sync"
@@ -59,6 +60,7 @@ type IndexPageData struct {
 	Poster            string
 	FilterType        string
 	IsFallbackContent bool
+	CanonicalURL      string
 }
 
 // NavigationData holds pagination navigation info
@@ -131,6 +133,8 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	dtype := params.Get("dtype")
 	iParam := params.Get("i")
+	fromParam := params.Get("from")
+	toParam := params.Get("to")
 
 	// Infer dtype from path if not set
 	if dtype == "" {
@@ -139,17 +143,35 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	i := 1
-	if iParam != "" {
-		val, err := strconv.Atoi(iParam)
-		if err == nil && val > 0 {
-			i = val
+	var startDays, endDays int
+	var i int = 1
+	var usingDateRange bool
+
+	// Check for date-based URL parameters first
+	if fromParam != "" && toParam != "" {
+		fromDate, fromErr := time.Parse("2006-01-02", fromParam)
+		toDate, toErr := time.Parse("2006-01-02", toParam)
+		if fromErr == nil && toErr == nil {
+			// Convert dates to days offset from today
+			now := time.Now().Truncate(24 * time.Hour)
+			startDays = int(now.Sub(fromDate).Hours() / 24)
+			endDays = int(now.Sub(toDate).Hours() / 24)
+			usingDateRange = true
 		}
 	}
 
-	// Date interval logic
-	startDays := i * 6
-	endDays := (i - 1) * 6
+	// Fall back to page-based pagination if no valid date range
+	if !usingDateRange {
+		if iParam != "" {
+			val, err := strconv.Atoi(iParam)
+			if err == nil && val > 0 {
+				i = val
+			}
+		}
+		// Date interval logic based on page number
+		startDays = i * 6
+		endDays = (i - 1) * 6
+	}
 
 	// Fetch Items
 	var wg sync.WaitGroup
@@ -338,6 +360,14 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		pageTitle = fmt.Sprintf(" &gt; Links by %s", poster)
 	}
 
+	// Build canonical URL - use date params if provided, otherwise convert from page number
+	var canonicalURL string
+	if usingDateRange {
+		canonicalURL = h.buildCanonicalURL(i, poster, filterType, fromParam, toParam)
+	} else {
+		canonicalURL = h.buildCanonicalURL(i, poster, filterType, "", "")
+	}
+
 	viewData := IndexPageData{
 		PageTitle:         pageTitle,
 		Container:         template.HTML(containerHTML),
@@ -350,6 +380,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		GitCommit:         version.CommitHash,
 		GitCommitURL:      fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 		IsFallbackContent: isFallback,
+		CanonicalURL:      canonicalURL,
 	}
 
 	templateName := "index.html"
@@ -390,6 +421,69 @@ func (h *Handler) buildNavigation(page int, poster, filterType string) navResult
 	}
 
 	return navResult{prevHTML: prevHTML, nextHTML: nextHTML}
+}
+
+// pageToDateRange converts a relative page number to a date range.
+// Page 1 is the most recent 6 days, page 2 is days 7-12, etc.
+func pageToDateRange(page int) (from, to time.Time) {
+	now := time.Now().Truncate(24 * time.Hour)
+	startDays := page * 6
+	endDays := (page - 1) * 6
+	from = now.AddDate(0, 0, -startDays)
+	to = now.AddDate(0, 0, -endDays)
+	return from, to
+}
+
+// buildCanonicalURL constructs the canonical URL for the current page.
+// If fromDate and toDate are provided (non-empty), they are used directly.
+// Otherwise, the page number is converted to a date range.
+func (h *Handler) buildCanonicalURL(page int, poster, filterType, fromDate, toDate string) string {
+	base := h.Config.BaseURL
+
+	// User filter pages - canonical is the filter URL itself
+	if poster != "" {
+		canonical := base + "/?poster=" + url.QueryEscape(poster)
+		if filterType != "" {
+			canonical += "&type=" + url.QueryEscape(filterType)
+		}
+		return canonical
+	}
+
+	// If date range was explicitly provided, use it as-is (self-referential canonical)
+	if fromDate != "" && toDate != "" {
+		return base + "/?from=" + fromDate + "&to=" + toDate
+	}
+
+	// Homepage (page 1) - canonical is root
+	if page <= 1 {
+		return base + "/"
+	}
+
+	// Older pages - convert to date-based canonical
+	from, to := pageToDateRange(page)
+	return base + "/?from=" + from.Format("2006-01-02") + "&to=" + to.Format("2006-01-02")
+}
+
+// buildStatsCanonicalURL constructs the canonical URL for stats pages.
+func (h *Handler) buildStatsCanonicalURL(view, sortBy string, page int) string {
+	base := h.Config.BaseURL + "/stats"
+	params := url.Values{}
+
+	// Only include non-default values
+	if view != "" && view != "users" {
+		params.Set("view", view)
+	}
+	if sortBy != "" && sortBy != "links" {
+		params.Set("sort", sortBy)
+	}
+	if page > 1 {
+		params.Set("page", strconv.Itoa(page))
+	}
+
+	if len(params) > 0 {
+		return base + "?" + params.Encode()
+	}
+	return base
 }
 
 func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
@@ -445,6 +539,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		BaseURL:      template.HTML(h.Config.BaseURL),
 		GitCommit:    version.CommitHash,
 		GitCommitURL: fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
+		CanonicalURL: h.Config.BaseURL + "/search?search=" + url.QueryEscape(query),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
@@ -526,6 +621,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 			"View":         view,
 			"Hot":          h.getHotHTML(ctx),
 			"BaseURL":      h.Config.BaseURL,
+			"CanonicalURL": h.buildStatsCanonicalURL(view, "", page),
 		}
 	} else {
 		sortBy := r.URL.Query().Get("sort")
@@ -571,6 +667,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 			"View":         view,
 			"Hot":          h.getHotHTML(ctx),
 			"BaseURL":      h.Config.BaseURL,
+			"CanonicalURL": h.buildStatsCanonicalURL(view, sortBy, page),
 		}
 	}
 
