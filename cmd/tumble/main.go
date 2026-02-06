@@ -165,7 +165,8 @@ func main() {
 	mux.HandleFunc("/stats", h.Stats)
 	mux.HandleFunc("/search", h.Search)
 	mux.HandleFunc("/search.cgi", h.Search)
-	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Handles /irclink/?id and posts
+	mux.HandleFunc("/link/", h.IRCLinkHandler)    // Primary endpoint for links
+	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Legacy endpoint (backwards compatibility)
 
 	mux.HandleFunc("/ogpreview", h.OGPreviewHandler)
 	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
@@ -177,7 +178,8 @@ func main() {
 	mux.HandleFunc("/v0/", h.Index)
 	mux.HandleFunc("/v0/index.cgi", h.Index)
 	mux.HandleFunc("/v0/search.cgi", h.Search)
-	mux.HandleFunc("/v0/irclink/", h.IRCLinkHandler)
+	mux.HandleFunc("/v0/link/", h.IRCLinkHandler)    // Primary v0 endpoint
+	mux.HandleFunc("/v0/irclink/", h.IRCLinkHandler) // Legacy v0 endpoint
 	mux.HandleFunc("/v0/ogpreview.cgi", h.OGPreviewHandler)
 	mux.HandleFunc("/v0/quote/", h.QuoteHandler)
 

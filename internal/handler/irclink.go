@@ -197,11 +197,25 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Case 2: Redirecting (id param or query string)
-	idStr := r.URL.Query().Get("id")
+	// Case 2: Redirecting (id param, path, or query string)
+	idStr := ""
+
+	// First, try to extract ID from path: /link/123 or /irclink/123
+	path := strings.TrimSuffix(r.URL.Path, "/")
+	if idx := strings.LastIndex(path, "/"); idx != -1 {
+		pathID := path[idx+1:]
+		if _, err := strconv.Atoi(pathID); err == nil {
+			idStr = pathID
+		}
+	}
+
+	// Fallback to query parameter: ?id=123
 	if idStr == "" {
-		// Fallback to RawQuery if param parsing failed
-		// Handle formats like /irclink/?12345 or /irclink/?12345&sig=abc123
+		idStr = r.URL.Query().Get("id")
+	}
+
+	// Fallback to RawQuery for legacy format: ?123 or ?123&sig=abc
+	if idStr == "" {
 		rawQuery := r.URL.RawQuery
 		if idx := strings.Index(rawQuery, "&"); idx != -1 {
 			idStr = rawQuery[:idx]
