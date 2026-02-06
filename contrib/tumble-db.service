@@ -1,0 +1,21 @@
+[Unit]
+Description=Tumble MySQL (via Flox)
+After=network.target
+
+[Service]
+Type=simple
+User=tumble
+Group=tumble
+WorkingDirectory=/srv/tumble/mysql
+ExecStart=/usr/bin/flox activate --start-services -- sleep infinity
+ExecStop=/usr/bin/flox services stop
+Restart=on-failure
+RestartSec=5
+
+Environment=HOME=/srv/tumble
+
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
