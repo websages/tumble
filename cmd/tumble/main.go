@@ -185,6 +185,10 @@ func main() {
 	mux.HandleFunc("/quote/", h.QuoteHandler)
 	mux.HandleFunc("/quote/index.cgi", h.QuoteHandler)
 
+	// SEO Routes
+	mux.HandleFunc("/sitemap.xml", h.SitemapHandler)
+	mux.HandleFunc("/robots.txt", h.RobotsHandler)
+
 	// Static Assets
 	// Serve from embedded FS
 	// "/css/" -> internal/assets/css
@@ -194,7 +198,6 @@ func main() {
 	// mux.Handle("/buttons/", fileServer) // Removed in favor of ButtonHandler check
 	mux.Handle("/favicon.ico", fileServer)
 	// Legacy static files
-	mux.Handle("/robots.txt", fileServer)
 	mux.Handle("/apple-touch-icon.png", fileServer)
 	subFS, _ := fs.Sub(assets.StaticFS, "2202")
 	mux.Handle("/2202/", http.StripPrefix("/2202/", http.FileServer(http.FS(subFS))))
