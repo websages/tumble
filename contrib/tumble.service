@@ -1,0 +1,24 @@
+[Unit]
+Description=Tumble Web Application
+After=network.target tumble-db.service
+Wants=tumble-db.service
+
+[Service]
+Type=simple
+User=tumble
+Group=tumble
+WorkingDirectory=/srv/tumble/bin
+ExecStart=/srv/tumble/bin/tumble /srv/tumble/conf/config.yml
+Restart=on-failure
+RestartSec=5
+
+Environment=HOME=/srv/tumble
+
+# Security hardening
+ProtectSystem=strict
+ReadWritePaths=/srv/tumble/logs
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
