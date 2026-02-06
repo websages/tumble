@@ -112,6 +112,7 @@ You can override any configuration value using environment variables prefixed wi
 - `TUMBLE_EMBED_ASSETS=true` (Options: `true`, `false`. Default: `true`)
 - `TUMBLE_LOGGING_LEVEL=debug`
 - `TUMBLE_REQUEST_TIMEOUT=2s` (Default: `2s`)
+- `TUMBLE_CLICK_SIGNING_KEY=your-secret` (Optional, enables signed click tracking)
 
 ### Environment Modes (`TUMBLE_MODE`)
 
@@ -273,7 +274,7 @@ perl -I htdocs/lib htdocs/index.cgi
 
 #### Link Submission with Duplicate Detection
 
-When submitting links via `/irclink/`, the API automatically detects if a URL has been previously posted and provides contextual information:
+When submitting links via `/link/`, the API automatically detects if a URL has been previously posted and provides contextual information:
 
 - **Behavior**: Links are always added to the database, even if duplicates exist
 - **JSON API** (`Accept: application/json` or `source=api`):
@@ -303,9 +304,11 @@ When submitting links via `/irclink/`, the API automatically detects if a URL ha
 
 For complete API documentation, visit `/docs` on your running instance or see `internal/assets/openapi.json`.
 
+> **Note:** The legacy `/irclink/` endpoint is still supported for backwards compatibility but `/link/` is preferred.
+
 #### Link Deletion
 
-Links can be deleted via the API using the `DELETE` method on `/irclink/{id}`. This requires authentication using an admin secret.
+Links can be deleted via the API using the `DELETE` method on `/link/123` (where `123` is the link ID). This requires authentication using an admin secret.
 
 **Configuration:**
 
@@ -321,10 +324,10 @@ You can also set it via environment variable: `TUMBLE_ADMIN_SECRET=your-secret`
 
 ```bash
 # Using X-Admin-Secret header (recommended)
-curl -X DELETE -H "X-Admin-Secret: your-secret" https://your-server/irclink/123
+curl -X DELETE -H "X-Admin-Secret: your-secret" https://your-server/link/123
 
 # Using query parameter
-curl -X DELETE "https://your-server/irclink/123?secret=your-secret"
+curl -X DELETE "https://your-server/link/123?secret=your-secret"
 ```
 
 **Responses:**
@@ -335,6 +338,29 @@ curl -X DELETE "https://your-server/irclink/123?secret=your-secret"
 - **404 Not Found**: Link does not exist
 
 If no `admin_secret` is configured, deletion falls back to localhost-only access for backwards compatibility.
+
+#### Click Signature Tracking
+
+Tumble supports signed URLs for verified click tracking. When enabled, links include an HMAC signature that validates clicks came from the rendered page rather than bots or direct URL access.
+
+**Configuration:**
+
+Add a `click_signing_key` to your `config.yaml`:
+
+```yaml
+click_signing_key: "your-random-secret-string"
+```
+
+Or set via environment variable: `TUMBLE_CLICK_SIGNING_KEY=your-secret`
+
+**How it works:**
+
+- When configured, links render as `/link/123?sig=abc123...` instead of `/link/123`
+- The signature is an HMAC-SHA256 hash of the link ID using your secret key
+- On redirect, the server validates the signature to distinguish verified clicks from unverified access
+- This helps track genuine user engagement vs. crawler/bot traffic
+
+**Note:** If no `click_signing_key` is configured, links work normally without signatures. This feature is optional and doesn't affect basic functionality.
 
 #### Caching
 

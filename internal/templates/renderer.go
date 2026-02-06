@@ -23,7 +23,15 @@ type Renderer struct {
 
 // templateFuncs provides helper functions for templates
 var templateFuncs = template.FuncMap{
-	// irclinkURL builds a click-tracking URL for IRC links
+	// linkURL builds a click-tracking URL for links (primary endpoint)
+	// Uses clean path format: /link/123 or /link/123?sig=abc
+	"linkURL": func(baseURL string, id int, sig string) string {
+		if sig != "" {
+			return fmt.Sprintf("%s/link/%d?sig=%s", baseURL, id, sig)
+		}
+		return fmt.Sprintf("%s/link/%d", baseURL, id)
+	},
+	// irclinkURL builds a click-tracking URL for IRC links (legacy, use linkURL instead)
 	// If a signature is provided, it's appended for verified click tracking
 	"irclinkURL": func(baseURL string, id int, sig string) string {
 		if sig != "" {
@@ -50,7 +58,16 @@ var templateFuncs = template.FuncMap{
 
 // textTemplateFuncs is the equivalent for text/template (XML)
 var textTemplateFuncs = texttemplate.FuncMap{
-	// irclinkURL builds a click-tracking URL for IRC links
+	// linkURL builds a click-tracking URL for links (primary endpoint)
+	// Uses clean path format: /link/123 or /link/123?sig=abc
+	// Note: Uses &amp; for XML-safe output since text/template doesn't auto-escape
+	"linkURL": func(baseURL string, id int, sig string) string {
+		if sig != "" {
+			return fmt.Sprintf("%s/link/%d?sig=%s", baseURL, id, sig)
+		}
+		return fmt.Sprintf("%s/link/%d", baseURL, id)
+	},
+	// irclinkURL builds a click-tracking URL for IRC links (legacy, use linkURL instead)
 	// If a signature is provided, it's appended for verified click tracking
 	// Note: Uses &amp; for XML-safe output since text/template doesn't auto-escape
 	"irclinkURL": func(baseURL string, id int, sig string) string {

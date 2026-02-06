@@ -12,18 +12,27 @@
     }
   ],
   "paths": {
-    "/irclink/": {
+    "/link/{id}": {
       "get": {
-        "summary": "Redirect to an IRC Link",
+        "summary": "Redirect to a Link",
         "description": "Redirects to the URL associated with the given ID.",
         "parameters": [
           {
             "name": "id",
-            "in": "query",
-            "description": "The ID of the link to redirect to (can also be passed as the entire query string, e.g. /irclink/?123)",
+            "in": "path",
+            "description": "The ID of the link to redirect to",
             "required": true,
             "schema": {
               "type": "integer"
+            }
+          },
+          {
+            "name": "sig",
+            "in": "query",
+            "description": "Click signature for verified click tracking",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -39,8 +48,36 @@
           }
         }
       },
+      "delete": {
+        "summary": "Delete a link",
+        "description": "Deletes a link by ID. Requires admin authentication via X-Admin-Secret header or secret query parameter.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the link to delete",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+            "200": {
+                "description": "Link deleted successfully"
+            },
+            "403": {
+                "description": "Forbidden - invalid or missing admin secret"
+            },
+            "404": {
+                "description": "Link not found"
+            }
+        }
+      }
+    },
+    "/link/": {
       "post": {
-        "summary": "Submit a new IRC Link",
+        "summary": "Submit a new Link",
         "description": "Submits a new link. Links are always added even if duplicates exist. Returns different status codes and contextual information about previous submissions when duplicates are detected.",
         "parameters": [
           {
@@ -194,27 +231,6 @@
           "500": {
             "description": "Server Error"
           }
-        }
-      },
-      "delete": {
-        "summary": "Delete an IRC link",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-            "200": {
-                "description": "Link deleted successfully"
-            },
-            "404": {
-                "description": "Link not found"
-            }
         }
       }
     },
