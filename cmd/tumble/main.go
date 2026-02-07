@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 	"tumble/internal/assets"
 	"tumble/internal/config"
@@ -16,6 +17,8 @@ import (
 	"tumble/internal/handler"
 	"tumble/internal/service"
 	"tumble/internal/templates"
+
+	"golang.org/x/time/rate"
 )
 
 type responseWriter struct {
@@ -48,6 +51,91 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 		if host != "localhost" && !strings.HasPrefix(host, "localhost:") &&
 			host != "127.0.0.1" && !strings.HasPrefix(host, "127.0.0.1:") {
 			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// ipRateLimiter manages per-IP rate limiters
+type ipRateLimiter struct {
+	limiters sync.Map
+	rate     rate.Limit
+	burst    int
+}
+
+func newIPRateLimiter(r rate.Limit, burst int) *ipRateLimiter {
+	return &ipRateLimiter{
+		rate:  r,
+		burst: burst,
+	}
+}
+
+func (i *ipRateLimiter) getLimiter(ip string) *rate.Limiter {
+	limiter, exists := i.limiters.Load(ip)
+	if !exists {
+		limiter = rate.NewLimiter(i.rate, i.burst)
+		i.limiters.Store(ip, limiter)
+	}
+	return limiter.(*rate.Limiter)
+}
+
+// extractIP gets the client IP, checking X-Forwarded-For for proxied requests
+func extractIP(r *http.Request) string {
+	// Check X-Forwarded-For header (set by reverse proxies)
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		// Take the first IP (original client)
+		if idx := strings.Index(xff, ","); idx != -1 {
+			return strings.TrimSpace(xff[:idx])
+		}
+		return strings.TrimSpace(xff)
+	}
+
+	// Check X-Real-IP header
+	if xri := r.Header.Get("X-Real-IP"); xri != "" {
+		return xri
+	}
+
+	// Fall back to RemoteAddr (strip port)
+	ip := r.RemoteAddr
+	if idx := strings.LastIndex(ip, ":"); idx != -1 {
+		ip = ip[:idx]
+	}
+	return ip
+}
+
+// Global rate limiters with different limits for different endpoint types
+var (
+	// General limiter: 60 requests/minute with burst of 10
+	generalLimiter = newIPRateLimiter(rate.Limit(1), 10)
+	// OG preview limiter: 30 requests/minute with burst of 5 (more expensive operation)
+	ogPreviewLimiter = newIPRateLimiter(rate.Limit(0.5), 5)
+	// Search limiter: 20 requests/minute with burst of 3
+	searchLimiter = newIPRateLimiter(rate.Limit(0.33), 3)
+)
+
+func rateLimitMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := extractIP(r)
+		path := r.URL.Path
+
+		// Select appropriate limiter based on endpoint
+		var limiter *rate.Limiter
+		switch {
+		case strings.HasPrefix(path, "/ogpreview"):
+			limiter = ogPreviewLimiter.getLimiter(ip)
+		case strings.HasPrefix(path, "/search"):
+			limiter = searchLimiter.getLimiter(ip)
+		default:
+			limiter = generalLimiter.getLimiter(ip)
+		}
+
+		if !limiter.Allow() {
+			slog.Warn("Rate limit exceeded", "ip", ip, "path", path)
+			w.Header().Set("Retry-After", "60")
+			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			return
 		}
 
 		next.ServeHTTP(w, r)
@@ -234,7 +322,7 @@ func main() {
 		addr = ":8080"
 	}
 	slog.Info("Starting tumble server", "addr", addr)
-	if err := http.ListenAndServe(addr, securityHeadersMiddleware(loggingMiddleware(mux))); err != nil {
+	if err := http.ListenAndServe(addr, rateLimitMiddleware(securityHeadersMiddleware(loggingMiddleware(mux)))); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}
