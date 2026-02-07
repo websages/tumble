@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-
+	"strings"
 	"time"
 	"tumble/internal/assets"
 	"tumble/internal/config"
@@ -33,6 +33,25 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 	n, err := rw.ResponseWriter.Write(b)
 	rw.bytesWritten += int64(n)
 	return n, err
+}
+
+func securityHeadersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Always set these headers
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+
+		// Only set HSTS for non-localhost requests
+		host := r.Host
+		if host != "localhost" && !strings.HasPrefix(host, "localhost:") &&
+			host != "127.0.0.1" && !strings.HasPrefix(host, "127.0.0.1:") {
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -215,7 +234,7 @@ func main() {
 		addr = ":8080"
 	}
 	slog.Info("Starting tumble server", "addr", addr)
-	if err := http.ListenAndServe(addr, loggingMiddleware(mux)); err != nil {
+	if err := http.ListenAndServe(addr, securityHeadersMiddleware(loggingMiddleware(mux))); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}
