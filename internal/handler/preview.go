@@ -52,6 +52,35 @@ type OEmbedResponse struct {
 	URL         string `json:"url"`         // Required for type=photo
 }
 
+// TryServeCachedOGPreview checks the cache and serves the response if found.
+// Returns true if served from cache, false if cache miss (caller should proceed).
+func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request) bool {
+	urlParam := r.URL.Query().Get("url")
+	if urlParam == "" {
+		return false // Let the main handler deal with the error
+	}
+
+	if !h.Config.Caching.Enabled {
+		return false
+	}
+
+	cached, err := h.Store.GetLinkPreview(r.Context(), urlParam)
+	if err != nil || cached == nil {
+		return false
+	}
+
+	var meta map[string]string
+	if err := json.Unmarshal(cached.Data, &meta); err != nil {
+		return false
+	}
+
+	// Cache hit - serve response
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	json.NewEncoder(w).Encode(meta)
+	return true
+}
+
 // OGPreviewHandler handles /ogpreview.cgi
 func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	urlParam := r.URL.Query().Get("url")
@@ -62,18 +91,8 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check Cache (if enabled)
-	if h.Config.Caching.Enabled {
-		if cached, err := h.Store.GetLinkPreview(r.Context(), urlParam); err == nil && cached != nil {
-			var meta map[string]string
-			if err := json.Unmarshal(cached.Data, &meta); err == nil {
-				// Client-side Caching Header (24h)
-				w.Header().Set("Cache-Control", "public, max-age=86400")
-				json.NewEncoder(w).Encode(meta)
-				return
-			}
-		}
-	}
+	// Note: Cache check is now done in TryServeCachedOGPreview before rate limiting.
+	// If we reach here, it's a cache miss.
 
 	// 0. Special Hybrid Handlers
 	if strings.Contains(urlParam, "reddit.com") {
