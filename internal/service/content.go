@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -297,7 +297,7 @@ func (s *ContentService) fetchOEmbed(url string) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	// Parse JSON...
 	var r map[string]interface{}
 	json.Unmarshal(body, &r)
