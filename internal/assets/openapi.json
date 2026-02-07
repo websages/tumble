@@ -12,143 +12,38 @@
     }
   ],
   "paths": {
-    "/link/{id}": {
+    "/api/caching/invalidate": {
       "get": {
-        "summary": "Redirect to a Link",
-        "description": "Redirects to the URL associated with the given ID.",
+        "summary": "Invalidate Link Preview Cache",
+        "description": "Removes a URL from the server-side link preview cache.",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the link to redirect to",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "sig",
+            "name": "url",
             "in": "query",
-            "description": "Click signature for verified click tracking",
-            "required": false,
+            "description": "The URL to invalidate",
+            "required": true,
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
-          "302": {
-            "description": "Redirects to the target URL"
-          },
-          "404": {
-            "description": "Link not found"
-          },
-          "400": {
-            "description": "Invalid ID"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a link",
-        "description": "Deletes a link by ID. Requires admin authentication via X-Admin-Secret header or secret query parameter.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the link to delete",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-            "200": {
-                "description": "Link deleted successfully"
-            },
-            "308": {
-                "description": "Permanent redirect (preserves DELETE method) - occurs when trailing slash is missing"
-            },
-            "403": {
-                "description": "Forbidden - invalid or missing admin secret"
-            },
-            "404": {
-                "description": "Link not found"
-            }
-        }
-      }
-    },
-    "/link/{id}.json": {
-      "get": {
-        "summary": "Get Link Metadata",
-        "description": "Returns the full link metadata as JSON, including the owner (user), title, URL, click count, and timestamp.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the link",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
           "200": {
-            "description": "Link metadata",
+            "description": "Cache Invalidated",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ircLinkID": {
-                      "type": "integer",
-                      "description": "The unique link ID"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "description": "When the link was submitted"
-                    },
-                    "user": {
-                      "type": "string",
-                      "description": "The username who submitted the link"
-                    },
-                    "title": {
-                      "type": "string",
-                      "description": "The title of the linked page"
-                    },
-                    "url": {
-                      "type": "string",
-                      "description": "The target URL"
-                    },
-                    "clicks": {
-                      "type": "integer",
-                      "description": "Number of verified clicks"
-                    },
-                    "content_type": {
-                      "type": "string",
-                      "description": "Content type hint (e.g., 'image' for images)"
-                    }
-                  },
-                  "example": {
-                    "ircLinkID": 42,
-                    "timestamp": "2026-01-15T10:30:00Z",
-                    "user": "alice",
-                    "title": "Example Article",
-                    "url": "http://example.com/article",
-                    "clicks": 15,
-                    "content_type": "0"
+                    "status": { "type": "string" },
+                    "message": { "type": "string" }
                   }
                 }
               }
             }
           },
-          "404": {
-            "description": "Link not found"
-          },
           "400": {
-            "description": "Invalid ID"
+            "description": "Missing URL"
           }
         }
       }
@@ -315,38 +210,143 @@
         }
       }
     },
-    "/api/caching/invalidate": {
+    "/link/{id}": {
       "get": {
-        "summary": "Invalidate Link Preview Cache",
-        "description": "Removes a URL from the server-side link preview cache.",
+        "summary": "Redirect to a Link",
+        "description": "Redirects to the URL associated with the given ID.",
         "parameters": [
           {
-            "name": "url",
-            "in": "query",
-            "description": "The URL to invalidate",
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the link to redirect to",
             "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sig",
+            "in": "query",
+            "description": "Click signature for verified click tracking",
+            "required": false,
             "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
+          "302": {
+            "description": "Redirects to the target URL"
+          },
+          "404": {
+            "description": "Link not found"
+          },
+          "400": {
+            "description": "Invalid ID"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a link",
+        "description": "Deletes a link by ID. Requires admin authentication via X-Admin-Secret header or secret query parameter.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the link to delete",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+            "200": {
+                "description": "Link deleted successfully"
+            },
+            "308": {
+                "description": "Permanent redirect (preserves DELETE method) - occurs when trailing slash is missing"
+            },
+            "403": {
+                "description": "Forbidden - invalid or missing admin secret"
+            },
+            "404": {
+                "description": "Link not found"
+            }
+        }
+      }
+    },
+    "/link/{id}.json": {
+      "get": {
+        "summary": "Get Link Metadata",
+        "description": "Returns the full link metadata as JSON, including the owner (user), title, URL, click count, and timestamp.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the link",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
           "200": {
-            "description": "Cache Invalidated",
+            "description": "Link metadata",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "message": { "type": "string" }
+                    "ircLinkID": {
+                      "type": "integer",
+                      "description": "The unique link ID"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "When the link was submitted"
+                    },
+                    "user": {
+                      "type": "string",
+                      "description": "The username who submitted the link"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "The title of the linked page"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "The target URL"
+                    },
+                    "clicks": {
+                      "type": "integer",
+                      "description": "Number of verified clicks"
+                    },
+                    "content_type": {
+                      "type": "string",
+                      "description": "Content type hint (e.g., 'image' for images)"
+                    }
+                  },
+                  "example": {
+                    "ircLinkID": 42,
+                    "timestamp": "2026-01-15T10:30:00Z",
+                    "user": "alice",
+                    "title": "Example Article",
+                    "url": "http://example.com/article",
+                    "clicks": 15,
+                    "content_type": "0"
                   }
                 }
               }
             }
           },
+          "404": {
+            "description": "Link not found"
+          },
           "400": {
-            "description": "Missing URL"
+            "description": "Invalid ID"
           }
         }
       }
@@ -379,6 +379,77 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/quote/": {
+      "get": {
+        "summary": "Get a Random Quote",
+        "responses": {
+          "200": {
+            "description": "Random Quote",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Wise words -- Author"
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quoteID": { "type": "integer" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "quote": { "type": "string" },
+                    "author": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit a Quote",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quote": { "type": "string" },
+                  "author": { "type": "string" }
+                },
+                "required": ["quote", "author"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "http://example.com/quote/42",
+                  "description": "Permalink URL to the newly created quote"
+                }
+              }
+            }
+          },
+          "308": {
+            "description": "Permanent redirect (preserves POST method) - occurs when trailing slash is missing from URL"
+          },
+          "400": {
+            "description": "Missing inputs"
           }
         }
       }
@@ -534,77 +605,6 @@
           },
           "400": {
             "description": "Invalid ID"
-          }
-        }
-      }
-    },
-    "/quote/": {
-      "get": {
-        "summary": "Get a Random Quote",
-        "responses": {
-          "200": {
-            "description": "Random Quote",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "Wise words -- Author"
-                }
-              },
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "quoteID": { "type": "integer" },
-                    "timestamp": { "type": "string", "format": "date-time" },
-                    "quote": { "type": "string" },
-                    "author": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Submit a Quote",
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "quote": { "type": "string" },
-                  "author": { "type": "string" }
-                },
-                "required": ["quote", "author"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Quote created",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "http://example.com/quote/42",
-                  "description": "Permalink URL to the newly created quote"
-                }
-              }
-            }
-          },
-          "308": {
-            "description": "Permanent redirect (preserves POST method) - occurs when trailing slash is missing from URL"
-          },
-          "400": {
-            "description": "Missing inputs"
           }
         }
       }
