@@ -1033,8 +1033,7 @@ body {
 }
 
 /* Spotify embed styles */
-iframe[src*="spotify.com"],
-iframe[src*="open.spotify.com"] {
+[data-embed-type="spotify"] iframe {
   max-width: 800px !important;
   width: 100% !important;
   height: 152px !important;
@@ -1044,8 +1043,7 @@ iframe[src*="open.spotify.com"] {
   box-shadow: var(--shadow-sm);
 }
 
-.item iframe[src*="spotify.com"],
-.item iframe[src*="open.spotify.com"] {
+.item [data-embed-type="spotify"] iframe {
   margin: var(--space-2) 0 !important;
   padding: 0 !important;
 }
