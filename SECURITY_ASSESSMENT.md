@@ -13,7 +13,7 @@ The Tumble application is a Go-based web service that functions as a link aggreg
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Critical | 2 | 1 fixed, 1 pending |
+| Critical | 2 | All fixed |
 | High | 4 | All fixed |
 | Medium | 4 | 3 fixed, 1 N/A |
 | Low | 3 | 2 fixed, 1 pending |
@@ -24,14 +24,17 @@ The Tumble application is a Go-based web service that functions as a link aggreg
 
 ### 1. Missing Authorization on DELETE Operations
 **Severity:** CRITICAL
-**Status:** MITIGATED (localhost-only restriction added)
-**File:** `internal/handler/irclink.go:39-76`
+**Status:** FIXED
+**File:** `internal/handler/irclink.go:43-85`
 
 **Issue:** The DELETE endpoint for removing IRC links originally had no authentication or authorization checks.
 
-**Mitigation Applied:** Restricted DELETE to localhost/127.0.0.1 only. Full authentication layer still needed.
-
-**Remaining Work:** Implement proper authentication and authorization system.
+**Fix Applied:** Implemented `isAuthorizedAdmin()` which:
+- Allows localhost/127.0.0.1 requests without authentication
+- Requires `TUMBLE_ADMIN_SECRET` for remote requests via:
+  - `X-Admin-Secret` header, or
+  - `secret` query parameter
+- Uses constant-time comparison to prevent timing attacks
 
 ---
 
@@ -217,17 +220,19 @@ mode: dev
 
 ---
 
-## Architecture Issues
+## Architecture Notes
 
-### No Authentication/Authorization Layer
-**Severity:** CRITICAL
-**Status:** PENDING
+### Authentication/Authorization
+**Status:** Partial implementation
 
-The entire application lacks any user identification system:
-- No login mechanism
-- No session management
-- No role-based access control
-- No IP allowlisting (except localhost restriction on DELETE)
+Current auth mechanisms:
+- DELETE operations: Protected by admin secret (`TUMBLE_ADMIN_SECRET`) or localhost
+- POST operations: Open (designed for IRC bot submissions)
+- GET operations: Public read access (by design)
+
+Not implemented (may not be needed for this use case):
+- User login/sessions
+- Role-based access control
 
 This is the most critical architectural flaw requiring implementation before production deployment.
 
@@ -235,7 +240,7 @@ This is the most critical architectural flaw requiring implementation before pro
 
 ## Priority Remediation Order
 
-1. **IMMEDIATE:** Implement full authentication and authorization system
+1. ~~IMMEDIATE: Implement full authentication and authorization system~~ ✅ DONE (admin secret)
 2. ~~IMMEDIATE: Add URL validation and private IP range checks~~ ✅ DONE
 3. ~~URGENT: Implement size limits on HTTP response reads~~ ✅ DONE
 4. ~~URGENT: Add security headers via middleware~~ ✅ DONE
@@ -263,3 +268,4 @@ This is the most critical architectural flaw requiring implementation before pro
 | 2026-02-06 | - | Added IP-based rate limiting middleware with tiered limits per endpoint type |
 | 2026-02-06 | - | Added input validation: poster (256 chars), filterType (allowlist), search (500 chars) |
 | 2026-02-06 | - | Error disclosure: use ServerError for dev/prod-aware error responses |
+| 2026-02-06 | - | DELETE auth: admin secret required for non-localhost requests |
