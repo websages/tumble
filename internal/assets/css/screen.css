@@ -1194,3 +1194,475 @@ html.fonts-loaded .material-symbols-rounded {
     font-style: italic;
 }
 
+/* ==================== SCOTT MODE (Perl Era Styling) ==================== */
+[data-scott-mode="true"] {
+  /* Force light theme */
+  --bg-body: white;
+  --bg-canvas: white;
+  --text-primary: #000;
+  --text-main: #000;
+  --text-secondary: #666;
+  --text-muted: #aaa;
+  --card-bg: white;
+  --border-default: #ccc;
+}
+
+/* Core layout - centered 750px width */
+[data-scott-mode="true"] body {
+  width: 750px;
+  margin: 0 auto;
+  padding-top: 0; /* Remove header compensation */
+}
+
+[data-scott-mode="true"] #page {
+  padding: 15px 0 20px 0;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Hide modern header */
+[data-scott-mode="true"] .nav-header {
+  display: none;
+}
+
+/* Masthead - big bold title */
+[data-scott-mode="true"] #masthead {
+  margin-left: -100px;
+  padding-left: 100px;
+  margin-right: -25px;
+  padding-right: 25px;
+  font-size: 72px;
+  font-weight: bold;
+  line-height: 68px;
+  letter-spacing: -5px;
+  border-bottom: solid 2px #000;
+}
+
+/* Restore sidebar */
+[data-scott-mode="true"] #sidebar {
+  display: block;
+  width: 175px;
+  float: right;
+}
+
+/* Content area */
+[data-scott-mode="true"] #content {
+  width: 525px;
+}
+
+/* Date widget - Perl era styling (override flexbox layout) */
+[data-scott-mode="true"] .date-widget {
+  margin-top: 23px;
+  margin-left: -75px;
+  float: left;
+  border: none;
+  box-shadow: none;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  width: auto;
+  height: auto;
+  display: block; /* Override flex */
+  flex-direction: unset;
+  align-items: unset;
+  justify-content: unset;
+  position: static !important; /* Disable sticky */
+  font-size: 16px;
+  font-weight: bold;
+}
+
+[data-scott-mode="true"] .date-widget .date-number {
+  font-size: 52px;
+  line-height: 1;
+  color: #ccc;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+[data-scott-mode="true"] .date-widget .date-meta {
+  display: block; /* Override flex */
+  flex-direction: unset;
+  align-items: unset;
+  margin-top: -38px;
+  margin-left: 15px;
+  gap: 0;
+}
+
+[data-scott-mode="true"] .date-widget .date-day {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
+  text-transform: none;
+  text-align: left;
+  letter-spacing: normal;
+}
+
+[data-scott-mode="true"] .date-widget .date-month {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #000;
+  text-transform: none;
+  text-align: left;
+  letter-spacing: normal;
+}
+
+[data-scott-mode="true"] .date-widget .date-year {
+  display: none; /* Hide year in Scott Mode for cleaner look */
+}
+
+/* Item styling - match original Perl era */
+[data-scott-mode="true"] .item {
+  padding-top: 15px;
+  padding-bottom: 15px;
+  font-size: 24px;
+  line-height: 28px;
+  letter-spacing: -1px;
+  clear: none;
+  overflow: visible;
+}
+
+/* Hide top navigation in Scott Mode */
+[data-scott-mode="true"] #navigation-top {
+  display: none;
+}
+
+/* Link card wrapper - remove modern styling but keep content visible */
+[data-scott-mode="true"] .link-card-wrapper {
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: none;
+  margin-bottom: 0;
+  overflow: visible; /* Allow Twitter embeds to render at full height */
+}
+
+[data-scott-mode="true"] .link-header {
+  padding: 0;
+  background: none;
+  border: none;
+  display: block;
+  overflow: visible; /* Allow Twitter embeds full height */
+}
+
+/* Link styling */
+[data-scott-mode="true"] .link {
+  font-size: 24px;
+  line-height: 28px;
+  letter-spacing: -1px;
+  display: inline; /* Inline with author */
+  overflow: visible;
+}
+
+/* Ensure spans inside .link don't constrain content */
+[data-scott-mode="true"] .link > * {
+  overflow: visible;
+}
+
+
+[data-scott-mode="true"] .link a {
+  font-weight: bold;
+  text-decoration: none;
+  color: #6c3;
+  font-size: 24px;
+}
+
+/* Author - inline after link, not right-justified */
+[data-scott-mode="true"] .link-header .author {
+  display: inline;
+  text-align: left;
+  float: none;
+  font-size: 18px;
+  color: #aaa;
+  padding-left: 5px;
+}
+
+[data-scott-mode="true"] .author {
+  font-size: 18px;
+  color: #aaa;
+  padding-left: 5px;
+}
+
+[data-scott-mode="true"] .text { font-weight: bold; color: #aaa; }
+
+/* Image styling */
+[data-scott-mode="true"] .item img {
+  padding: 3px;
+  background: #bbb;
+  max-height: 400px;
+  max-width: 400px;
+  border-radius: 0;
+}
+
+/* Keep Imgur/Flickr/direct images visible */
+[data-scott-mode="true"] .imgur-image,
+[data-scott-mode="true"] .imgur-video,
+[data-scott-mode="true"] .flickr-image,
+[data-scott-mode="true"] .direct-image {
+  display: block !important;
+  max-width: 400px;
+  max-height: 400px;
+}
+
+/* Quote styling with parens.gif - match original Perl era */
+[data-scott-mode="true"] .quote-card {
+  display: block;
+  padding: 0 0 0 30px !important;
+  margin: 0 !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-weight: bold !important;
+  font-size: 24px !important;
+  line-height: 20px !important;
+  letter-spacing: -1px !important;
+  color: #d5b !important;
+  background: url(/img/parens.gif) no-repeat left top !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  max-width: none !important;
+}
+
+[data-scott-mode="true"] .quote-card::before {
+  display: none !important; /* Hide the modern quote mark */
+}
+
+[data-scott-mode="true"] .quote-card .quote-text {
+  display: inline !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-size: 24px !important;
+  line-height: 20px !important;
+  letter-spacing: -1px !important;
+  font-style: normal !important;
+  font-weight: bold !important;
+  color: #d5b !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+[data-scott-mode="true"] .quote-card .quote-author {
+  display: inline !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-size: 18px !important;
+  font-weight: normal !important;
+  color: #aaa !important;
+  padding-left: 5px !important;
+}
+
+[data-scott-mode="true"] .quote-card .quote-author::before {
+  content: "" !important; /* Remove the em-dash */
+}
+
+/* Legacy .quote class */
+[data-scott-mode="true"] .quote {
+  padding-left: 30px !important;
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-weight: bold !important;
+  font-size: 24px !important;
+  line-height: 20px !important;
+  letter-spacing: -1px !important;
+  color: #d5b !important;
+  background: url(/img/parens.gif) no-repeat !important;
+}
+
+/* Hide ONLY the OG preview cards (dynamically loaded), not the link content */
+[data-scott-mode="true"] .og-preview,
+[data-scott-mode="true"] .og-card {
+  display: none !important;
+}
+
+/* Hide 404 error badges - just show links normally */
+[data-scott-mode="true"] .http-error-badge {
+  display: none !important;
+}
+
+/* Make broken/missing links look like normal links */
+[data-scott-mode="true"] .link a.missing-link,
+[data-scott-mode="true"] .missing-link,
+[data-scott-mode="true"] a.missing-link {
+  color: #6c3 !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  opacity: 1 !important;
+  text-decoration: none !important;
+}
+
+/* Twitter embeds - just let them render naturally */
+[data-scott-mode="true"] .twitter-tweet,
+[data-scott-mode="true"] blockquote[class*="twitter"] {
+  display: block;
+  margin: 10px 0;
+}
+
+/* When link contains a Twitter embed, make it block level */
+[data-scott-mode="true"] .link:has(.twitter-tweet) {
+  display: block;
+}
+
+/* Author after Twitter embed */
+[data-scott-mode="true"] .link-header:has(.twitter-tweet) .author {
+  display: block;
+  margin-top: 5px;
+}
+
+/* Hide YouTube embeds (show link text only) */
+[data-scott-mode="true"] .youtube-embed-wrapper {
+  display: none !important;
+}
+
+/* Hide imgur gallery card styling but keep image */
+[data-scott-mode="true"] .imgur-gallery-card {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+
+[data-scott-mode="true"] .imgur-gallery-card .gallery-card-content {
+  display: none; /* Hide the "Imgur Gallery" text */
+}
+
+[data-scott-mode="true"] .imgur-gallery-card .gallery-image-container {
+  min-height: auto;
+  background: none;
+}
+
+[data-scott-mode="true"] .imgur-gallery-card .gallery-image-container img {
+  max-width: 400px;
+  max-height: 400px;
+}
+
+/* Footer - Perl era styling */
+[data-scott-mode="true"] #footer {
+  position: static;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+}
+
+[data-scott-mode="true"] #footer a {
+  color: #6c3;
+}
+
+[data-scott-mode="true"] #footer svg {
+  fill: #666;
+}
+
+[data-scott-mode="true"] .footer-bar {
+  display: none;
+}
+
+/* Sidebar styling */
+[data-scott-mode="true"] #sidebar .item {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+[data-scott-mode="true"] #sidebar .header {
+  padding-bottom: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: -1px;
+  color: #aaa;
+  text-align: right;
+}
+
+[data-scott-mode="true"] #sidebar #search-form {
+  padding-bottom: 15px;
+  text-align: right;
+}
+
+[data-scott-mode="true"] #sidebar .sm {
+  padding-bottom: 15px;
+  font-size: 16px;
+  text-align: right;
+}
+
+[data-scott-mode="true"] #sidebar .sm .link a {
+  font-size: 16px;
+}
+
+/* Navigation - use original chevron images */
+[data-scott-mode="true"] .nav-link {
+  display: inline-block;
+  padding: 0;
+}
+
+[data-scott-mode="true"] .nav-link .material-symbols-rounded {
+  display: none; /* Hide the material icon */
+}
+
+[data-scott-mode="true"] .nav-link .nav-icon {
+  display: none;
+}
+
+/* Show original prev/next images */
+[data-scott-mode="true"] .nav-link[href*="i="]:first-child::before,
+[data-scott-mode="true"] #navigation .nav-link:first-child::before,
+[data-scott-mode="true"] #navigation-top .nav-link:first-child::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url(/img/prev.jpg) no-repeat center;
+  background-size: contain;
+}
+
+[data-scott-mode="true"] .nav-link[href*="i="]:last-child::after,
+[data-scott-mode="true"] #navigation .nav-link:last-child::after,
+[data-scott-mode="true"] #navigation-top .nav-link:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url(/img/next.jpg) no-repeat center;
+  background-size: contain;
+}
+
+/* If only one nav link, it's "prev" (older) */
+[data-scott-mode="true"] #navigation .nav-link:only-child::before,
+[data-scott-mode="true"] #navigation-top .nav-link:only-child::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url(/img/prev.jpg) no-repeat center;
+  background-size: contain;
+}
+
+[data-scott-mode="true"] #navigation .nav-link:only-child::after,
+[data-scott-mode="true"] #navigation-top .nav-link:only-child::after {
+  display: none;
+}
+
+/* Scott Mode exit button (floating) */
+.scott-mode-exit {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #6c3;
+  color: white;
+  border: 2px solid #000;
+  padding: 10px 20px;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 9999;
+}
+[data-scott-mode="true"] .scott-mode-exit { display: block; }
+
+/* Mobile responsiveness for Scott Mode */
+@media (max-width: 768px) {
+  [data-scott-mode="true"] body { width: 100%; padding: 0 15px; }
+  [data-scott-mode="true"] #sidebar { display: none; }
+  [data-scott-mode="true"] #content { width: 100%; }
+  [data-scott-mode="true"] .date-widget { margin-left: 0; float: none; }
+}
+

@@ -28,6 +28,13 @@
             document.documentElement.classList.add("compact-mode");
         }
 
+        // Scott Mode Init
+        var isScottMode = localStorage.getItem("scottMode") === "true";
+        if (isScottMode) {
+          document.documentElement.setAttribute("data-scott-mode", "true");
+          document.documentElement.removeAttribute("data-theme"); // Force light
+        }
+
         // Font loading detection
         if (document.fonts && document.fonts.ready) {
           document.fonts.ready.then(function() {
@@ -423,6 +430,25 @@
       </div>
 
       <div id="sidebar">
+        <div class="item">
+          <div class="header">search it up</div>
+          <form action="/search" id="search-form" method="get">
+            <input type="text" name="search" value="" size="15" />
+          </form>
+        </div>
+        <div class="item">
+          <div class="header">hot shit</div>
+          {{if .Hot}}
+            {{.Hot}}
+          {{else}}
+            <div class="sm">Nothing hot right now.</div>
+          {{end}}
+        </div>
+        <div class="item">
+          <div class="header">also</div>
+          <div class="sm"><div class="link"><a href="/buttons/">buttons</a></div></div>
+          <div class="sm"><div class="link"><a href="/index.xml">feed</a></div></div>
+        </div>
       </div>
 
       <div id="content">
@@ -449,6 +475,11 @@
       <div id="navigation">{{.NavP}} {{.NavN}}</div>
     </div>
 
+    <!-- Scott Mode Exit Button -->
+    <button class="scott-mode-exit" id="scott-mode-exit" onclick="toggleScottMode()">
+      Exit Scott Mode
+    </button>
+
     {{template "footer" .}}
 
     <!-- Sticky Date Widget Script -->
@@ -471,17 +502,36 @@
           return;
         }
 
-        // Store original positions of all date widgets once at the start
+        // Store original top positions of all date widgets once at the start
         sections.forEach(function(section, index) {
           var dateWidget = section.querySelector('.date-widget');
           if (dateWidget) {
             var rect = dateWidget.getBoundingClientRect();
             dateWidget.setAttribute('data-original-top', rect.top + window.pageYOffset);
-            dateWidget.setAttribute('data-original-left', rect.left);
           }
         });
 
+        // Calculate the left position based on the content area
+        function calculateStickyLeft(section) {
+          // Get the section's left edge and apply the same offset as the CSS margin-left
+          var sectionRect = section.getBoundingClientRect();
+          return sectionRect.left - 130; // matches margin-left: -130px in CSS
+        }
+
         function updateStickyDates() {
+          // Skip sticky behavior in Scott Mode (check dynamically)
+          if (document.documentElement.getAttribute('data-scott-mode') === 'true') {
+            // Remove any sticky classes when in Scott Mode
+            sections.forEach(function(section) {
+              var dateWidget = section.querySelector('.date-widget');
+              if (dateWidget) {
+                dateWidget.classList.remove('sticky', 'at-bottom');
+                dateWidget.style.left = '';
+              }
+            });
+            return;
+          }
+
           var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
           var viewportHeight = window.innerHeight;
 
@@ -496,9 +546,11 @@
             var sectionTop = sectionRect.top + scrollTop;
             var sectionBottom = sectionRect.bottom + scrollTop;
 
-            // Get stored original positions
+            // Get stored original top position
             var originalDateTop = parseInt(dateWidget.getAttribute('data-original-top'));
-            var originalDateLeft = parseFloat(dateWidget.getAttribute('data-original-left'));
+
+            // Calculate left position dynamically based on current section position
+            var stickyLeft = calculateStickyLeft(section);
 
             // Get next section if exists
             var nextSection = sections[index + 1];
@@ -527,7 +579,7 @@
               // Make sticky
               dateWidget.classList.add('sticky');
               dateWidget.classList.remove('at-bottom');
-              dateWidget.style.left = originalDateLeft + 'px';
+              dateWidget.style.left = stickyLeft + 'px';
             } else if (shouldBeSticky && (nextDateApproaching || navigationApproaching)) {
               // Pin at bottom of section
               dateWidget.classList.remove('sticky');
@@ -574,6 +626,27 @@
         // Initial check
         updateStickyDates();
       })();
+    </script>
+
+    <!-- Scott Mode Toggle Function -->
+    <script>
+    function toggleScottMode() {
+      var html = document.documentElement;
+      var isEnabled = html.getAttribute("data-scott-mode") === "true";
+      if (isEnabled) {
+        html.removeAttribute("data-scott-mode");
+        localStorage.setItem("scottMode", "false");
+        // Restore theme preference
+        var savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+          html.setAttribute("data-theme", "dark");
+        }
+      } else {
+        html.setAttribute("data-scott-mode", "true");
+        html.removeAttribute("data-theme"); // Force light
+        localStorage.setItem("scottMode", "true");
+      }
+    }
     </script>
 
   </body>
