@@ -268,6 +268,13 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate URL scheme to prevent open redirect attacks (javascript:, data:, etc.)
+	if !strings.HasPrefix(redirectURL, "http://") && !strings.HasPrefix(redirectURL, "https://") {
+		log.Printf("Blocked redirect to invalid scheme: %s", redirectURL)
+		http.Error(w, "Invalid redirect URL", http.StatusBadRequest)
+		return
+	}
+
 	log.Printf("id: [%d] Location: %s", id, redirectURL)
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
