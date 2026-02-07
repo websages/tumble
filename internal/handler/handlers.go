@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -714,5 +715,36 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.Renderer.Render(w, "stats.html", data); err != nil {
 		slog.Error("Error rendering stats", "error", err)
+	}
+}
+
+// StatsJSON returns user statistics as JSON with pagination support
+func (h *Handler) StatsJSON(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Parse pagination parameters
+	limit := 50
+	if limitParam := r.URL.Query().Get("limit"); limitParam != "" {
+		if val, err := strconv.Atoi(limitParam); err == nil && val > 0 && val <= 1000 {
+			limit = val
+		}
+	}
+
+	offset := 0
+	if offsetParam := r.URL.Query().Get("offset"); offsetParam != "" {
+		if val, err := strconv.Atoi(offsetParam); err == nil && val >= 0 {
+			offset = val
+		}
+	}
+
+	stats, err := h.Store.GetUserStats(ctx, "links", limit, offset)
+	if err != nil {
+		h.ServerError(w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		slog.Error("Error encoding stats JSON", "error", err)
 	}
 }
