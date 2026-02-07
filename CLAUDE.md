@@ -25,9 +25,17 @@ This project uses a Makefile for all build and run operations. Always use these 
 - **No Docker usage** without explicitly discussing it first
 - **Keep changes minimal** - avoid over-engineering or adding unnecessary features
 
+## API Documentation
+
+When adding, modifying, or removing API routes:
+- **Update the OpenAPI spec** at `internal/assets/openapi.json`
+- The API docs at `/api/docs` are auto-generated from the OpenAPI spec via Swagger UI
+- Include request/response schemas, parameters, and example values in the spec
+
 ## Project Structure
 
 This is a Go application. Key directories:
 - `internal/` - Internal packages
 - `cmd/` - Entry points
+- `internal/assets/openapi.json` - OpenAPI specification (update when routes change)
 - `Makefile` - Build and lifecycle management
