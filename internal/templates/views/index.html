@@ -280,9 +280,9 @@
                     "</div>";
                 }
 
-                // Text Conten
+                // Text Content - skip for GIPHY (title is redundant with the gif)
                 previewHTML += '<div class="og-content">';
-                if (title) {
+                if (title && provider !== "GIPHY") {
                   // Route through IRC link handler for click tracking if ircId is available
                   var titleHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
                   previewHTML +=
@@ -292,7 +292,7 @@
                     escapeHtml(title) +
                     "</a></div>";
                 }
-                if (description) {
+                if (description && provider !== "GIPHY") {
                   if (description.length > 300) {
                     description = description.substring(0, 300) + "...";
                   }
@@ -301,7 +301,7 @@
                     escapeHtml(description) +
                     "</div>";
                 }
-                previewHTML += "</div>"; // end og-conten
+                previewHTML += "</div>"; // end og-content
                 previewHTML += "</div>"; // end og-card
 
                 previewDiv.innerHTML = previewHTML;

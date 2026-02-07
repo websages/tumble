@@ -235,9 +235,10 @@ func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
 
 	// Description
 	// If standard OEmbed doesn't have it, we might want to leave it empty or use Author?
-	if data.Description != "" {
+	// Skip description for Giphy - it's redundant with the title
+	if data.Description != "" && data.ProviderName != "GIPHY" {
 		meta["description"] = data.Description
-	} else if data.AuthorName != "" {
+	} else if data.AuthorName != "" && data.ProviderName != "GIPHY" {
 		meta["description"] = fmt.Sprintf("By %s", data.AuthorName)
 	}
 
