@@ -3,3 +3,4 @@ tumble-test.sqlite*
 bin/*
 *.log
 .claude
+tumble
