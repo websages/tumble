@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
+	"html"
 	"html/template"
 	"io"
 	"strings"
@@ -81,6 +82,10 @@ var textTemplateFuncs = texttemplate.FuncMap{
 			return s[:max] + "..."
 		}
 		return s
+	},
+	// xmlEscape escapes special XML characters (&, <, >, ", ')
+	"xmlEscape": func(s string) string {
+		return html.EscapeString(s)
 	},
 }
 

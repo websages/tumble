@@ -1,7 +1,7 @@
         <item>
-            <title>{{.Quote}}</title>
+            <title>{{xmlEscape .Quote}}</title>
             <link>{{.BaseURL}}/</link>
             <guid isPermaLink="false">tumble-quote-{{.ID}}</guid>
-            <description>"{{.Quote}}" --{{.Author}}</description>
+            <description><![CDATA["{{.Quote}}" --{{.Author}}]]></description>
             <pubDate>{{.FormattedDate}}</pubDate>
         </item>
