@@ -245,6 +245,10 @@
             <input type="text" name="search" placeholder="search..." />
         </form>
 
+        <button id="scott-mode-toggle" class="nav-icon-btn" aria-label="Toggle Scott Mode" title="Scott Mode">
+            <span class="material-symbols-rounded">history</span>
+        </button>
+
         <button id="compact-toggle" class="nav-icon-btn" aria-label="Toggle Compact Mode" title="Toggle Compact Mode">
             <span class="material-symbols-rounded" id="compact-icon">view_headline</span>
         </button>
@@ -313,6 +317,17 @@
                 updateCompactIcon(true);
             }
         });
+    }
+
+    // Scott Mode Toggle (Enter)
+    var scottToggle = document.getElementById("scott-mode-toggle");
+    if (scottToggle) {
+      scottToggle.addEventListener("click", function () {
+        var html = document.documentElement;
+        html.setAttribute("data-scott-mode", "true");
+        html.removeAttribute("data-theme"); // Force light
+        localStorage.setItem("scottMode", "true");
+      });
     }
   })();
 </script>
