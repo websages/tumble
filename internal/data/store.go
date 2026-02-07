@@ -53,14 +53,15 @@ type UserStat struct {
 }
 
 type TimelineItem struct {
-	Type      string    `json:"type"` // "link", "quote", or "image"
-	ID        int       `json:"id"`
-	Timestamp time.Time `json:"timestamp"`
-	Title     string    `json:"title"`   // For links and images
-	URL       string    `json:"url"`     // For links and images
-	Content   string    `json:"content"` // For quotes
-	Author    string    `json:"author"`  // For quotes (and links/images as User)
-	MD5Sum    string    `json:"md5sum"`  // For images
+	Type        string    `json:"type"` // "link", "quote", or "image"
+	ID          int       `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	Title       string    `json:"title"`       // For links and images
+	URL         string    `json:"url"`         // For links and images
+	Content     string    `json:"content"`     // For quotes
+	Author      string    `json:"author"`      // For quotes (and links/images as User)
+	MD5Sum      string    `json:"md5sum"`      // For images
+	ContentType string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
 }
 
 type LinkPreview struct {

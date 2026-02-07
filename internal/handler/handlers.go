@@ -233,11 +233,12 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 			for _, item := range timelineItems {
 				if item.Type == "link" {
 					ircLinks = append(ircLinks, data.IRCLink{
-						ID:        item.ID,
-						Timestamp: item.Timestamp,
-						User:      poster,
-						Title:     item.Title,
-						URL:       item.URL,
+						ID:          item.ID,
+						Timestamp:   item.Timestamp,
+						User:        poster,
+						Title:       item.Title,
+						URL:         item.URL,
+						ContentType: item.ContentType,
 					})
 				} else if item.Type == "quote" {
 					quotes = append(quotes, data.Quote{
