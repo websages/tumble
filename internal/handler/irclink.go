@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -273,10 +274,10 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 // isLocalhost checks if the request originates from localhost/127.0.0.1
 func isLocalhost(r *http.Request) bool {
-	host, _, err := strings.Cut(r.RemoteAddr, ":")
-	if err {
-		// No port separator found, use the whole string
-		host = r.RemoteAddr
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		// No port, use the whole string (strip brackets if present)
+		host = strings.Trim(r.RemoteAddr, "[]")
 	}
 
 	// Check for IPv4 localhost
@@ -285,7 +286,7 @@ func isLocalhost(r *http.Request) bool {
 	}
 
 	// Check for IPv6 localhost
-	if host == "::1" || host == "[::1]" {
+	if host == "::1" {
 		return true
 	}
 
@@ -294,9 +295,15 @@ func isLocalhost(r *http.Request) bool {
 
 // isAuthorizedAdmin checks if the request contains a valid admin secret
 func (h *Handler) isAuthorizedAdmin(r *http.Request) bool {
-	// If no admin secret is configured, fall back to localhost check
+	// Always allow localhost requests
+	if isLocalhost(r) {
+		return true
+	}
+
+	// For non-localhost requests, require admin secret
 	if h.Config.AdminSecret == "" {
-		return isLocalhost(r)
+		log.Printf("Admin auth failed: no admin secret configured and request is not from localhost (remote_addr=%s)", r.RemoteAddr)
+		return false
 	}
 
 	// Check X-Admin-Secret header first
@@ -306,6 +313,16 @@ func (h *Handler) isAuthorizedAdmin(r *http.Request) bool {
 		secret = r.URL.Query().Get("secret")
 	}
 
+	if secret == "" {
+		log.Printf("Admin auth failed: no secret provided (remote_addr=%s)", r.RemoteAddr)
+		return false
+	}
+
 	// Use constant-time comparison to prevent timing attacks
-	return subtle.ConstantTimeCompare([]byte(secret), []byte(h.Config.AdminSecret)) == 1
+	if subtle.ConstantTimeCompare([]byte(secret), []byte(h.Config.AdminSecret)) != 1 {
+		log.Printf("Admin auth failed: secret mismatch (remote_addr=%s)", r.RemoteAddr)
+		return false
+	}
+
+	return true
 }
