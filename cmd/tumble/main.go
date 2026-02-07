@@ -109,8 +109,9 @@ func extractIP(r *http.Request) string {
 var (
 	// General limiter: 60 requests/minute with burst of 10
 	generalLimiter = newIPRateLimiter(rate.Limit(1), 10)
-	// OG preview limiter: 30 requests/minute with burst of 5 (more expensive operation)
-	ogPreviewLimiter = newIPRateLimiter(rate.Limit(0.5), 5)
+	// OG preview limiter: 30 requests/minute with burst of 100
+	// High burst allows cold cache page loads (75+ links); rate limiting only applies to cache misses
+	ogPreviewLimiter = newIPRateLimiter(rate.Limit(0.5), 100)
 	// Search limiter: 20 requests/minute with burst of 3
 	searchLimiter = newIPRateLimiter(rate.Limit(0.33), 3)
 )
@@ -121,10 +122,13 @@ func rateLimitMiddleware(next http.Handler) http.Handler {
 		path := r.URL.Path
 
 		// Select appropriate limiter based on endpoint
+		// Note: ogpreview is handled separately with cache-aware rate limiting
 		var limiter *rate.Limiter
 		switch {
 		case strings.HasPrefix(path, "/ogpreview"):
-			limiter = ogPreviewLimiter.getLimiter(ip)
+			// Skip middleware rate limiting - handled by ogPreviewWithCacheRateLimit
+			next.ServeHTTP(w, r)
+			return
 		case strings.HasPrefix(path, "/search"):
 			limiter = searchLimiter.getLimiter(ip)
 		default:
@@ -140,6 +144,29 @@ func rateLimitMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// ogPreviewWithCacheRateLimit wraps the OG preview handler with cache-aware rate limiting.
+// Cache hits bypass rate limiting entirely; only cache misses consume rate limit tokens.
+func ogPreviewWithCacheRateLimit(h *handler.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Try to serve from cache first - no rate limit consumed
+		if h.TryServeCachedOGPreview(w, r) {
+			return
+		}
+
+		// Cache miss - apply rate limiting before fetching
+		ip := extractIP(r)
+		if !ogPreviewLimiter.getLimiter(ip).Allow() {
+			slog.Warn("Rate limit exceeded", "ip", ip, "path", r.URL.Path)
+			w.Header().Set("Retry-After", "60")
+			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			return
+		}
+
+		// Proceed with actual fetch
+		h.OGPreviewHandler(w, r)
+	}
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -275,8 +302,8 @@ func main() {
 	mux.HandleFunc("/link/", h.IRCLinkHandler)    // Primary endpoint for links
 	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Legacy endpoint (backwards compatibility)
 
-	mux.HandleFunc("/ogpreview", h.OGPreviewHandler)
-	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
+	mux.HandleFunc("/ogpreview", ogPreviewWithCacheRateLimit(h))
+	mux.HandleFunc("/ogpreview.cgi", ogPreviewWithCacheRateLimit(h))
 	mux.HandleFunc("/api/caching/invalidate", h.InvalidateCacheHandler)
 	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
 	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler) // Legacy explicit path
@@ -287,7 +314,7 @@ func main() {
 	mux.HandleFunc("/v0/search.cgi", h.Search)
 	mux.HandleFunc("/v0/link/", h.IRCLinkHandler)    // Primary v0 endpoint
 	mux.HandleFunc("/v0/irclink/", h.IRCLinkHandler) // Legacy v0 endpoint
-	mux.HandleFunc("/v0/ogpreview.cgi", h.OGPreviewHandler)
+	mux.HandleFunc("/v0/ogpreview.cgi", ogPreviewWithCacheRateLimit(h))
 	mux.HandleFunc("/v0/quote/", h.QuoteHandler)
 
 	// Quote Handler (Legacy)
