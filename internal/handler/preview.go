@@ -231,18 +231,25 @@ func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
 }
 
 func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam string) {
-	// Default UA
-	ua := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	// Try with browser UA first
+	browserUA := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	// Facebook's crawler UA - widely whitelisted for OpenGraph fetching
+	crawlerUA := "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
 
-	meta, err := h.scrapeOpenGraph(urlParam, ua)
+	meta, err := h.scrapeOpenGraph(urlParam, browserUA)
+	if err != nil {
+		// If we got a 403, retry with crawler UA (many sites whitelist known bots)
+		if strings.Contains(err.Error(), "status 403") {
+			meta, err = h.scrapeOpenGraph(urlParam, crawlerUA)
+		}
+	}
+
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		// If it's a 4xx/5xx error from the helper, we might want to pass that through
-		// For now, generic error or basic mapping
 		if strings.Contains(err.Error(), "status") {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"error": "HTTP Error",
-				// Extract status code if possible, or default to 400
 				"status": func() int {
 					var code int
 					if n, _ := fmt.Sscanf(err.Error(), "status %d", &code); n == 1 {
