@@ -256,8 +256,8 @@ type timelineResult struct {
 func (s *GormStore) GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error) {
 	var results []TimelineItem
 
-	linkSelect := "SELECT 'link' as type, ircLinkID as id, timestamp, title, url, '' as content, user as author, '' as md5sum FROM ircLink WHERE user = ?"
-	quoteSelect := "SELECT 'quote' as type, quoteID as id, timestamp, '' as title, '' as url, quote as content, author as author, '' as md5sum FROM quote WHERE author = ?"
+	linkSelect := "SELECT 'link' as type, ircLinkID as id, timestamp, title, url, '' as content, user as author, '' as md5sum, content_type FROM ircLink WHERE user = ?"
+	quoteSelect := "SELECT 'quote' as type, quoteID as id, timestamp, '' as title, '' as url, quote as content, author as author, '' as md5sum, '' as content_type FROM quote WHERE author = ?"
 
 	var query string
 	var args []interface{}
