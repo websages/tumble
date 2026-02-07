@@ -1066,7 +1066,14 @@ iframe[src*="reddit.com/r/"] {
   box-shadow: none !important;
 }
 
+/* Reddit embed container - remove height constraints */
+.og-image[data-embed-type="reddit"] {
+  max-height: none;
+  overflow: visible;
+}
+
 /* Hide the card wrapper border/shadow for Reddit embeds */
+.link-card-wrapper:has([data-embed-type="reddit"]),
 .link-card-wrapper:has(blockquote[class*="reddit"]),
 .link-card-wrapper:has(iframe[src*="reddit.com/r/"]) {
   border: none;
@@ -1075,6 +1082,7 @@ iframe[src*="reddit.com/r/"] {
   padding: 0;
 }
 
+.link-card-wrapper:has([data-embed-type="reddit"]) .link-header,
 .link-card-wrapper:has(blockquote[class*="reddit"]) .link-header,
 .link-card-wrapper:has(iframe[src*="reddit.com/r/"]) .link-header {
   border-bottom: none;
@@ -1082,6 +1090,8 @@ iframe[src*="reddit.com/r/"] {
 }
 
 /* Hide redundant info for Reddit embeds - the embed is self-contained */
+.link-card-wrapper:has([data-embed-type="reddit"]) .og-site-info,
+.link-card-wrapper:has([data-embed-type="reddit"]) .og-content,
 .link-card-wrapper:has(blockquote[class*="reddit"]) .og-site-info,
 .link-card-wrapper:has(blockquote[class*="reddit"]) .og-content,
 .link-card-wrapper:has(iframe[src*="reddit.com/r/"]) .og-site-info,

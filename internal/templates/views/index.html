@@ -340,30 +340,55 @@
                 iframe.style.border = 'none';
                 iframe.style.display = 'block';
 
+                // Determine appropriate height based on embed type
+                var isReddit = embedHtml.indexOf('reddit') !== -1;
+                var isSpotify = embedHtml.indexOf('spotify') !== -1;
+                var isTikTok = embedHtml.indexOf('tiktok') !== -1;
+
+                // Auto-resize script for embeds that need dynamic height
+                var autoResizeScript = '';
+                if (isReddit) {
+                    autoResizeScript = '<script>' +
+                        'function sendHeight() {' +
+                        '  var h = document.body.scrollHeight;' +
+                        '  if (h > 0) parent.postMessage({type:"resize",height:h}, "*");' +
+                        '}' +
+                        'new MutationObserver(sendHeight).observe(document.body, {childList:true,subtree:true,attributes:true});' +
+                        'window.addEventListener("load", function() { setTimeout(sendHeight, 500); });' +
+                        'sendHeight();' +
+                        '<\/script>';
+                }
+
                 // Wrap embed HTML in a minimal HTML document with responsive styling
                 var iframeContent = '<!DOCTYPE html>' +
                     '<html><head>' +
                     '<meta charset="utf-8">' +
                     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
                     '<style>' +
-                    'body { margin: 0; padding: 0; display: flex; justify-content: center; }' +
+                    'body { margin: 0; padding: 0; display: flex; justify-content: center; overflow: hidden; }' +
                     'body > * { max-width: 100%; }' +
                     '</style>' +
-                    '</head><body>' + embedHtml + '</body></html>';
+                    '</head><body>' + embedHtml + autoResizeScript + '</body></html>';
 
                 iframe.srcdoc = iframeContent;
 
-                // Determine appropriate height based on embed type
-                var isReddit = embedHtml.indexOf('reddit') !== -1;
-                var isSpotify = embedHtml.indexOf('spotify') !== -1;
-                var isTikTok = embedHtml.indexOf('tiktok') !== -1;
-
                 if (isSpotify) {
                     iframe.style.height = '352px';
+                    container.setAttribute('data-embed-type', 'spotify');
                 } else if (isReddit) {
-                    iframe.style.height = '500px';
+                    // Start with reasonable height, will auto-resize
+                    iframe.style.height = '300px';
+                    container.setAttribute('data-embed-type', 'reddit');
+                    // Listen for resize messages from this iframe
+                    var resizeHandler = function(e) {
+                        if (e.data && e.data.type === 'resize' && e.source === iframe.contentWindow) {
+                            iframe.style.height = e.data.height + 'px';
+                        }
+                    };
+                    window.addEventListener('message', resizeHandler);
                 } else if (isTikTok) {
                     iframe.style.height = '740px';
+                    container.setAttribute('data-embed-type', 'tiktok');
                 } else {
                     // Default for video embeds (16:9 aspect approximation)
                     iframe.style.height = '400px';
