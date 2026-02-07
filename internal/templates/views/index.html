@@ -395,7 +395,7 @@
             }
 
             if (videoID) {
-                var iframe = '<div class="youtube-embed-wrapper"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + videoID + '?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+                var iframe = '<div class="youtube-embed-wrapper"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + videoID + '?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"></iframe></div>';
                 container.innerHTML = iframe;
                 container.onclick = null; // Remove handler
                 container.classList.remove('is-video');
