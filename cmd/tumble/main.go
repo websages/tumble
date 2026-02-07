@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 	"tumble/internal/assets"
 	"tumble/internal/config"
@@ -17,8 +16,6 @@ import (
 	"tumble/internal/handler"
 	"tumble/internal/service"
 	"tumble/internal/templates"
-
-	"golang.org/x/time/rate"
 )
 
 type responseWriter struct {
@@ -96,118 +93,6 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-// ipRateLimiter manages per-IP rate limiters
-type ipRateLimiter struct {
-	limiters sync.Map
-	rate     rate.Limit
-	burst    int
-}
-
-func newIPRateLimiter(r rate.Limit, burst int) *ipRateLimiter {
-	return &ipRateLimiter{
-		rate:  r,
-		burst: burst,
-	}
-}
-
-func (i *ipRateLimiter) getLimiter(ip string) *rate.Limiter {
-	limiter, exists := i.limiters.Load(ip)
-	if !exists {
-		limiter = rate.NewLimiter(i.rate, i.burst)
-		i.limiters.Store(ip, limiter)
-	}
-	return limiter.(*rate.Limiter)
-}
-
-// extractIP gets the client IP, checking X-Forwarded-For for proxied requests
-func extractIP(r *http.Request) string {
-	// Check X-Forwarded-For header (set by reverse proxies)
-	xff := r.Header.Get("X-Forwarded-For")
-	if xff != "" {
-		// Take the first IP (original client)
-		if idx := strings.Index(xff, ","); idx != -1 {
-			return strings.TrimSpace(xff[:idx])
-		}
-		return strings.TrimSpace(xff)
-	}
-
-	// Check X-Real-IP header
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return xri
-	}
-
-	// Fall back to RemoteAddr (strip port)
-	ip := r.RemoteAddr
-	if idx := strings.LastIndex(ip, ":"); idx != -1 {
-		ip = ip[:idx]
-	}
-	return ip
-}
-
-// Global rate limiters with different limits for different endpoint types
-var (
-	// General limiter: 60 requests/minute with burst of 10
-	generalLimiter = newIPRateLimiter(rate.Limit(1), 10)
-	// OG preview limiter: 30 requests/minute with burst of 100
-	// High burst allows cold cache page loads (75+ links); rate limiting only applies to cache misses
-	ogPreviewLimiter = newIPRateLimiter(rate.Limit(0.5), 100)
-	// Search limiter: 20 requests/minute with burst of 3
-	searchLimiter = newIPRateLimiter(rate.Limit(0.33), 3)
-)
-
-func rateLimitMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := extractIP(r)
-		path := r.URL.Path
-
-		// Select appropriate limiter based on endpoint
-		// Note: ogpreview is handled separately with cache-aware rate limiting
-		var limiter *rate.Limiter
-		switch {
-		case strings.HasPrefix(path, "/ogpreview"):
-			// Skip middleware rate limiting - handled by ogPreviewWithCacheRateLimit
-			next.ServeHTTP(w, r)
-			return
-		case strings.HasPrefix(path, "/search"):
-			limiter = searchLimiter.getLimiter(ip)
-		default:
-			limiter = generalLimiter.getLimiter(ip)
-		}
-
-		if !limiter.Allow() {
-			slog.Warn("Rate limit exceeded", "ip", ip, "path", path)
-			w.Header().Set("Retry-After", "60")
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// ogPreviewWithCacheRateLimit wraps the OG preview handler with cache-aware rate limiting.
-// Cache hits bypass rate limiting entirely; only cache misses consume rate limit tokens.
-func ogPreviewWithCacheRateLimit(h *handler.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Try to serve from cache first - no rate limit consumed
-		if h.TryServeCachedOGPreview(w, r) {
-			return
-		}
-
-		// Cache miss - apply rate limiting before fetching
-		ip := extractIP(r)
-		if !ogPreviewLimiter.getLimiter(ip).Allow() {
-			slog.Warn("Rate limit exceeded", "ip", ip, "path", r.URL.Path)
-			w.Header().Set("Retry-After", "60")
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
-			return
-		}
-
-		// Proceed with actual fetch
-		h.OGPreviewHandler(w, r)
-	}
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -343,8 +228,8 @@ func main() {
 	mux.HandleFunc("/link/", h.IRCLinkHandler)    // Primary endpoint for links
 	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Legacy endpoint (backwards compatibility)
 
-	mux.HandleFunc("/ogpreview", ogPreviewWithCacheRateLimit(h))
-	mux.HandleFunc("/ogpreview.cgi", ogPreviewWithCacheRateLimit(h))
+	mux.HandleFunc("/ogpreview", h.OGPreviewHandler)
+	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
 	mux.HandleFunc("/api/caching/invalidate", h.InvalidateCacheHandler)
 	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
 	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler) // Legacy explicit path
@@ -355,7 +240,7 @@ func main() {
 	mux.HandleFunc("/v0/search.cgi", h.Search)
 	mux.HandleFunc("/v0/link/", h.IRCLinkHandler)    // Primary v0 endpoint
 	mux.HandleFunc("/v0/irclink/", h.IRCLinkHandler) // Legacy v0 endpoint
-	mux.HandleFunc("/v0/ogpreview.cgi", ogPreviewWithCacheRateLimit(h))
+	mux.HandleFunc("/v0/ogpreview.cgi", h.OGPreviewHandler)
 	mux.HandleFunc("/v0/quote/", h.QuoteHandler)
 
 	// Quote Handler (Legacy)
@@ -390,7 +275,7 @@ func main() {
 		addr = ":8080"
 	}
 	slog.Info("Starting tumble server", "addr", addr)
-	if err := http.ListenAndServe(addr, trailingSlashMiddleware(rateLimitMiddleware(securityHeadersMiddleware(loggingMiddleware(mux))))); err != nil {
+	if err := http.ListenAndServe(addr, trailingSlashMiddleware(securityHeadersMiddleware(loggingMiddleware(mux)))); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}
