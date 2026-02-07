@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net/http"
@@ -119,6 +120,8 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 				end := strings.Index(string(body)[idx:], "</title>")
 				if end != -1 {
 					title = string(body)[idx+7 : idx+end]
+					// Decode HTML entities (e.g., &amp; -> &, &#39; -> ')
+					title = html.UnescapeString(title)
 				}
 			}
 		} else {
