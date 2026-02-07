@@ -30,7 +30,7 @@ func NewStore(cfg *config.Config) (Store, error) {
 
 	logLevel := logger.Error
 	if cfg.Mode == "development" {
-		logLevel = logger.Info
+		logLevel = logger.Warn
 	}
 
 	// Use the global log writer which main.go has configured
