@@ -282,7 +282,7 @@
 
                 // Text Content - skip for GIPHY (title is redundant with the gif)
                 previewHTML += '<div class="og-content">';
-                if (title && provider !== "GIPHY") {
+                if (title && provider !== "GIPHY" && provider !== "Spotify") {
                   // Route through IRC link handler for click tracking if ircId is available
                   var titleHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
                   previewHTML +=
@@ -292,7 +292,7 @@
                     escapeHtml(title) +
                     "</a></div>";
                 }
-                if (description && provider !== "GIPHY") {
+                if (description && provider !== "GIPHY" && provider !== "Spotify") {
                   if (description.length > 300) {
                     description = description.substring(0, 300) + "...";
                   }
@@ -373,7 +373,7 @@
                 iframe.srcdoc = iframeContent;
 
                 if (isSpotify) {
-                    iframe.style.height = '352px';
+                    iframe.style.height = '152px';
                     container.setAttribute('data-embed-type', 'spotify');
                 } else if (isReddit) {
                     // Start with reasonable height, will auto-resize
