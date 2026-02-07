@@ -75,6 +75,81 @@
         }
       }
     },
+    "/link/{id}.json": {
+      "get": {
+        "summary": "Get Link Metadata",
+        "description": "Returns the full link metadata as JSON, including the owner (user), title, URL, click count, and timestamp.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the link",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ircLinkID": {
+                      "type": "integer",
+                      "description": "The unique link ID"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "When the link was submitted"
+                    },
+                    "user": {
+                      "type": "string",
+                      "description": "The username who submitted the link"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "The title of the linked page"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "The target URL"
+                    },
+                    "clicks": {
+                      "type": "integer",
+                      "description": "Number of verified clicks"
+                    },
+                    "content_type": {
+                      "type": "string",
+                      "description": "Content type hint (e.g., 'image' for images)"
+                    }
+                  },
+                  "example": {
+                    "ircLinkID": 42,
+                    "timestamp": "2026-01-15T10:30:00Z",
+                    "user": "alice",
+                    "title": "Example Article",
+                    "url": "http://example.com/article",
+                    "clicks": 15,
+                    "content_type": "0"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found"
+          },
+          "400": {
+            "description": "Invalid ID"
+          }
+        }
+      }
+    },
     "/link/": {
       "post": {
         "summary": "Submit a new Link",
