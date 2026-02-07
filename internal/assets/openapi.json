@@ -383,6 +383,132 @@
         }
       }
     },
+    "/quote/{id}": {
+      "get": {
+        "summary": "Get Quote by ID (Permalink)",
+        "description": "Returns a specific quote by ID. Defaults to HTML page for browser visits, or returns JSON with Accept: application/json header.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the quote",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote found",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string",
+                  "description": "HTML page displaying the quote"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quoteID": {
+                      "type": "integer",
+                      "description": "The unique quote ID"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "When the quote was submitted"
+                    },
+                    "quote": {
+                      "type": "string",
+                      "description": "The quote text"
+                    },
+                    "author": {
+                      "type": "string",
+                      "description": "The author of the quote"
+                    }
+                  },
+                  "example": {
+                    "quoteID": 42,
+                    "timestamp": "2026-01-15T10:30:00Z",
+                    "quote": "The only way to do great work is to love what you do.",
+                    "author": "Steve Jobs"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found"
+          },
+          "400": {
+            "description": "Invalid ID"
+          }
+        }
+      }
+    },
+    "/quote/{id}.json": {
+      "get": {
+        "summary": "Get Quote Metadata as JSON",
+        "description": "Returns the quote as JSON, regardless of Accept header.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the quote",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quoteID": {
+                      "type": "integer",
+                      "description": "The unique quote ID"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "When the quote was submitted"
+                    },
+                    "quote": {
+                      "type": "string",
+                      "description": "The quote text"
+                    },
+                    "author": {
+                      "type": "string",
+                      "description": "The author of the quote"
+                    }
+                  },
+                  "example": {
+                    "quoteID": 42,
+                    "timestamp": "2026-01-15T10:30:00Z",
+                    "quote": "The only way to do great work is to love what you do.",
+                    "author": "Steve Jobs"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found"
+          },
+          "400": {
+            "description": "Invalid ID"
+          }
+        }
+      }
+    },
     "/quote/": {
       "get": {
         "summary": "Get a Random Quote",
@@ -439,7 +565,8 @@
               "text/plain": {
                 "schema": {
                   "type": "string",
-                  "example": "1"
+                  "example": "http://example.com/quote/42",
+                  "description": "Permalink URL to the newly created quote"
                 }
               }
             }

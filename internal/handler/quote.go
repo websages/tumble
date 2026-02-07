@@ -4,13 +4,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
-// QuoteHandler handles /quote/ submissions
+// QuoteHandler handles /quote/ submissions and /quote/{id} permalinks
 func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	// Check if this is a permalink request: /quote/{id} or /quote/{id}.json
+	path := strings.TrimSuffix(r.URL.Path, "/")
+	if idx := strings.LastIndex(path, "/"); idx != -1 {
+		pathID := path[idx+1:]
+		returnJSON := false
+
+		// Check for .json suffix
+		if strings.HasSuffix(pathID, ".json") {
+			pathID = strings.TrimSuffix(pathID, ".json")
+			returnJSON = true
+		}
+
+		// If we have a numeric ID, this is a permalink request
+		if id, err := strconv.Atoi(pathID); err == nil && pathID != "" {
+			h.handleQuotePermalink(w, r, id, returnJSON)
+			return
+		}
+	}
 
 	quote := html.UnescapeString(r.FormValue("quote"))
 	author := html.UnescapeString(r.FormValue("author"))
@@ -51,17 +72,60 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 		// Perl code did uri_unescape. net/http request parsing handles standard form encoding.
 		// If these come in as query params or post body, FormValue gets them.
 
-		err := h.Store.InsertQuote(ctx, quote, author)
+		id, err := h.Store.InsertQuote(ctx, quote, author)
 		if err != nil {
 			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintf(w, "1")
+		fmt.Fprintf(w, "%s/quote/%d", h.Config.BaseURL, id)
 		return
 	}
 
 	// Partial params -> Error
 	http.Error(w, "Missing quote or author", http.StatusBadRequest)
+}
+
+// handleQuotePermalink handles /quote/{id} requests
+func (h *Handler) handleQuotePermalink(w http.ResponseWriter, r *http.Request, id int, returnJSON bool) {
+	ctx := r.Context()
+
+	quote, err := h.Store.GetQuoteByID(ctx, id)
+	if err != nil {
+		log.Printf("GetQuoteByID error: %v", err)
+		http.Error(w, "Database Error", http.StatusInternalServerError)
+		return
+	}
+	if quote == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Check if JSON response is requested
+	accept := r.Header.Get("Accept")
+	if returnJSON || strings.Contains(accept, "application/json") {
+		w.Header().Set("Content-Type", "application/json")
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		enc.Encode(quote)
+		return
+	}
+
+	// Default: render HTML page
+	templateData := map[string]interface{}{
+		"Quote":    quote.Quote,
+		"Author":   quote.Author,
+		"ID":       quote.ID,
+		"BaseURL":  h.Config.BaseURL,
+		"PageTitle": fmt.Sprintf("Quote by %s", quote.Author),
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := h.Renderer.Render(w, "quote_permalink.html", templateData); err != nil {
+		log.Printf("Error rendering quote_permalink template: %v", err)
+		// Fallback to plain text
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprintf(w, "%s -- %s", quote.Quote, quote.Author)
+	}
 }

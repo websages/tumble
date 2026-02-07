@@ -510,6 +510,23 @@ body {
   content: "— ";
 }
 
+/* Quote permalink link wrapper */
+.quote-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.quote-link:hover .quote-card {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.quote-link:focus-visible .quote-card {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* Legacy support for old .quote class */
 .quote {
   padding-left: 30px;
@@ -1478,6 +1495,17 @@ html.fonts-loaded .material-symbols-rounded {
 
 [data-scott-mode="true"] .quote-card .quote-author::before {
   content: "" !important; /* Remove the em-dash */
+}
+
+[data-scott-mode="true"] .quote-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+[data-scott-mode="true"] .quote-link:hover .quote-card {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Legacy .quote class */

@@ -16,12 +16,18 @@ type MockStore struct {
 	data.Store // Embed interface to skip implementing everything
 	LastQuote  string
 	LastAuthor string
+	NextID     int
 }
 
-func (m *MockStore) InsertQuote(ctx context.Context, quote, author string) error {
+func (m *MockStore) InsertQuote(ctx context.Context, quote, author string) (int, error) {
 	m.LastQuote = quote
 	m.LastAuthor = author
-	return nil
+	if m.NextID == 0 {
+		m.NextID = 1
+	}
+	id := m.NextID
+	m.NextID++
+	return id, nil
 }
 
 func (m *MockStore) GetRandomQuote(ctx context.Context) (*data.Quote, error) {
@@ -33,10 +39,10 @@ func (m *MockStore) GetRandomQuote(ctx context.Context) (*data.Quote, error) {
 
 func TestQuoteHandler_UnescapesInput(t *testing.T) {
 	// Setup
-	mockStore := &MockStore{}
+	mockStore := &MockStore{NextID: 42}
 	h := &Handler{
 		Store:  mockStore,
-		Config: &config.Config{},
+		Config: &config.Config{BaseURL: "http://example.com"},
 	}
 
 	// Test Case: Encoded HTML entities
@@ -66,6 +72,12 @@ func TestQuoteHandler_UnescapesInput(t *testing.T) {
 	expectedAuthor := "james<white>"
 	if mockStore.LastAuthor != expectedAuthor {
 		t.Errorf("Expected author %q, got %q", expectedAuthor, mockStore.LastAuthor)
+	}
+
+	// Verify response is the permalink URL
+	expectedURL := "http://example.com/quote/42"
+	if w.Body.String() != expectedURL {
+		t.Errorf("Expected body %q, got %q", expectedURL, w.Body.String())
 	}
 }
 
