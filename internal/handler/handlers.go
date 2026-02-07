@@ -47,6 +47,43 @@ func (h *Handler) ServerError(w http.ResponseWriter, r *http.Request, err error)
 	}
 }
 
+// Input validation constants
+const (
+	maxPosterLength = 256
+	maxSearchLength = 500
+)
+
+// validFilterTypes is the allowlist for filter type parameter
+var validFilterTypes = map[string]bool{
+	"":       true,
+	"links":  true,
+	"quotes": true,
+}
+
+// sanitizePoster truncates poster to max length
+func sanitizePoster(poster string) string {
+	if len(poster) > maxPosterLength {
+		return poster[:maxPosterLength]
+	}
+	return poster
+}
+
+// sanitizeFilterType returns the filter type if valid, empty string otherwise
+func sanitizeFilterType(filterType string) string {
+	if validFilterTypes[filterType] {
+		return filterType
+	}
+	return ""
+}
+
+// sanitizeSearch truncates search query to max length
+func sanitizeSearch(query string) string {
+	if len(query) > maxSearchLength {
+		return query[:maxSearchLength]
+	}
+	return query
+}
+
 // IndexPageData is the data structure for the main template
 type IndexPageData struct {
 	PageTitle         string
@@ -180,8 +217,8 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	var images []data.Image
 	var quotes []data.Quote
 
-	poster := params.Get("poster")
-	filterType := params.Get("type")
+	poster := sanitizePoster(params.Get("poster"))
+	filterType := sanitizeFilterType(params.Get("type"))
 	isFallback := false
 
 	if poster != "" {
@@ -503,7 +540,7 @@ func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	query := r.URL.Query().Get("search")
+	query := sanitizeSearch(r.URL.Query().Get("search"))
 
 	if query == "" {
 		return
