@@ -344,7 +344,7 @@ body {
 
 /* Imgur inline images - ensure they display properly */
 .imgur-image {
-  max-width: 800px !important;
+  max-width: 100% !important;
   display: block !important;
   height: auto !important;
 }
@@ -1141,7 +1141,7 @@ html.fonts-loaded .material-symbols-rounded {
     width: 100%;
     height: auto;
     display: block;
-    max-width: 800px;
+    max-width: 100%;
 }
 
 /* Imgur Error Fallback */
@@ -1151,14 +1151,14 @@ html.fonts-loaded .material-symbols-rounded {
 
 /* Flickr Image */
 .flickr-image {
-    max-width: 500px;
+    max-width: 100%;
     height: auto;
     display: block;
 }
 
 /* Direct Image */
 .direct-image {
-    max-width: 800px;
+    max-width: 100%;
     max-height: 600px;
     height: auto;
     display: block;
