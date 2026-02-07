@@ -1391,24 +1391,27 @@ html.fonts-loaded .material-symbols-rounded {
   padding: 0;
   background: none;
   border: none;
-  display: block;
-  overflow: visible; /* Allow Twitter embeds full height */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 10px;
+  overflow: visible;
 }
 
-/* Link styling */
+/* Link styling - takes natural width up to 100% */
 [data-scott-mode="true"] .link {
   font-size: 24px;
   line-height: 28px;
   letter-spacing: -1px;
-  display: inline; /* Inline with author */
-  overflow: visible;
+  flex: 0 0 auto; /* Don't grow or shrink */
+  max-width: 100%; /* Truncate at container edge */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Ensure spans inside .link don't constrain content */
-[data-scott-mode="true"] .link > * {
-  overflow: visible;
-}
-
+/* Ensure anchor inside .link truncates */
 [data-scott-mode="true"] .link a {
   font-weight: bold;
   text-decoration: none;
@@ -1416,20 +1419,17 @@ html.fonts-loaded .material-symbols-rounded {
   font-size: 24px;
 }
 
-/* Author - inline after link, not right-justified */
+/* Author - follows link with gap, wraps to new line if no room */
 [data-scott-mode="true"] .link-header .author {
-  display: inline;
-  text-align: left;
-  float: none;
+  flex: 0 0 auto;
   font-size: 18px;
   color: #aaa;
-  padding-left: 5px;
+  white-space: nowrap;
 }
 
 [data-scott-mode="true"] .author {
   font-size: 18px;
   color: #aaa;
-  padding-left: 5px;
 }
 
 [data-scott-mode="true"] .text {
