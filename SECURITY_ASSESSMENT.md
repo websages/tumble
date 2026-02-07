@@ -15,7 +15,7 @@ The Tumble application is a Go-based web service that functions as a link aggreg
 |----------|-------|--------|
 | Critical | 2 | 1 fixed, 1 pending |
 | High | 4 | All fixed |
-| Medium | 4 | 2 fixed, 1 N/A, 1 pending |
+| Medium | 4 | 3 fixed, 1 N/A |
 | Low | 3 | 2 fixed, 1 pending |
 
 ---
@@ -168,19 +168,15 @@ Note: SQL injection was never a risk (GORM uses parameterized queries), and XSS 
 
 ### 10. Error Information Disclosure
 **Severity:** MEDIUM
-**Status:** PENDING
-**File:** `internal/handler/irclink.go:90`
+**Status:** FIXED
+**File:** `internal/handler/irclink.go`
 
-**Issue:** Database errors returned to users:
-```go
-http.Error(w, fmt.Sprintf("Database Error: %v", err), http.StatusInternalServerError)
-```
+**Issue:** Database errors were returned directly to users, potentially leaking internal details.
 
-**Recommendation:**
-```go
-slog.Error("Database error", "error", err)
-http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-```
+**Fix Applied:** Replaced inline `http.Error` calls with `h.ServerError()` which:
+- In development mode: Shows error details (helpful for debugging)
+- In production mode: Returns generic "Internal Server Error"
+- Always logs full error details via slog
 
 ---
 
@@ -266,3 +262,4 @@ This is the most critical architectural flaw requiring implementation before pro
 | 2026-02-06 | - | Verified XSS protection: Go html/template auto-escaping + client-side escapeHtml() |
 | 2026-02-06 | - | Added IP-based rate limiting middleware with tiered limits per endpoint type |
 | 2026-02-06 | - | Added input validation: poster (256 chars), filterType (allowlist), search (500 chars) |
+| 2026-02-06 | - | Error disclosure: use ServerError for dev/prod-aware error responses |

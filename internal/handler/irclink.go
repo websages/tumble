@@ -90,8 +90,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		// Check for existing submissions first
 		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url)
 		if err != nil {
-			log.Printf("GetIRCLinksByURL error: %v", err)
-			http.Error(w, fmt.Sprintf("Database Error: %v", err), http.StatusInternalServerError)
+			h.ServerError(w, r, err)
 			return
 		}
 
@@ -133,8 +132,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		// Insert the link (always insert, even if duplicate)
 		id, err := h.Store.InsertIRCLink(ctx, user, title, url, contentType)
 		if err != nil {
-			log.Printf("InsertIRCLink error: %v", err)
-			http.Error(w, fmt.Sprintf("Database Error: %v", err), http.StatusInternalServerError)
+			h.ServerError(w, r, err)
 			return
 		}
 
