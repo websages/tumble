@@ -92,6 +92,7 @@ type Store interface {
 	InsertQuote(ctx context.Context, quote, author string) (int, error)
 	GetRandomQuote(ctx context.Context) (*Quote, error)
 	GetQuoteByID(ctx context.Context, id int) (*Quote, error)
+	DeleteQuote(ctx context.Context, id int) error
 
 	// Stats
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)

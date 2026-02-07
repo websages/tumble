@@ -447,6 +447,35 @@
             "description": "Invalid ID"
           }
         }
+      },
+      "delete": {
+        "summary": "Delete a quote",
+        "description": "Deletes a quote by ID. Requires admin authentication via X-Admin-Secret header or secret query parameter.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the quote to delete",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote deleted successfully"
+          },
+          "308": {
+            "description": "Permanent redirect (preserves DELETE method) - occurs when trailing slash is missing"
+          },
+          "403": {
+            "description": "Forbidden - invalid or missing admin secret"
+          },
+          "404": {
+            "description": "Quote not found"
+          }
+        }
       }
     },
     "/quote/{id}.json": {
