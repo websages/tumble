@@ -25,6 +25,13 @@ This project uses a Makefile for all build and run operations. Always use these 
 - **No Docker usage** without explicitly discussing it first
 - **Keep changes minimal** - avoid over-engineering or adding unnecessary features
 
+## Commit Messages
+
+- **Subject line**: Keep under 60 characters
+- **Body text**: Wrap at 72 characters per line
+- Separate subject from body with a blank line
+- Use conventional commit style messages
+
 ## API Documentation
 
 When adding, modifying, or removing API routes:
