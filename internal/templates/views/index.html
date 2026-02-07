@@ -325,57 +325,56 @@
           return div.innerHTML;
         }
 
-        // Global handler for video replacemen
+        // Global handler for video replacement
         window.replaceWithVideo = function(container) {
             // Check for pre-fetched embed HTML
             var embedHtmlEncoded = container.getAttribute('data-embed-html');
             if (embedHtmlEncoded) {
                 var embedHtml = decodeURIComponent(embedHtmlEncoded);
 
-                // Check if this is a TikTok embed
-                var isTikTok = embedHtml.indexOf('tiktok-embed') !== -1;
+                // Security: Use sandboxed iframe to isolate external embed content
+                // This prevents embedded content from accessing the parent page
+                var iframe = document.createElement('iframe');
+                iframe.sandbox = 'allow-scripts allow-same-origin allow-popups allow-presentation';
+                iframe.style.width = '100%';
+                iframe.style.border = 'none';
+                iframe.style.display = 'block';
 
-                container.innerHTML = embedHtml;
+                // Wrap embed HTML in a minimal HTML document with responsive styling
+                var iframeContent = '<!DOCTYPE html>' +
+                    '<html><head>' +
+                    '<meta charset="utf-8">' +
+                    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+                    '<style>' +
+                    'body { margin: 0; padding: 0; display: flex; justify-content: center; }' +
+                    'body > * { max-width: 100%; }' +
+                    '</style>' +
+                    '</head><body>' + embedHtml + '</body></html>';
+
+                iframe.srcdoc = iframeContent;
+
+                // Determine appropriate height based on embed type
+                var isReddit = embedHtml.indexOf('reddit') !== -1;
+                var isSpotify = embedHtml.indexOf('spotify') !== -1;
+                var isTikTok = embedHtml.indexOf('tiktok') !== -1;
+
+                if (isSpotify) {
+                    iframe.style.height = '352px';
+                } else if (isReddit) {
+                    iframe.style.height = '500px';
+                } else if (isTikTok) {
+                    iframe.style.height = '740px';
+                } else {
+                    // Default for video embeds (16:9 aspect approximation)
+                    iframe.style.height = '400px';
+                }
+
+                // Clear container and insert sandboxed iframe
+                container.innerHTML = '';
+                container.appendChild(iframe);
                 container.onclick = null;
                 container.classList.remove('is-video');
                 container.style.cursor = 'default';
-
-                // TikTok requires special handling - reload script with cache busting
-                if (isTikTok) {
-                    // Remove the script tag from the embed HTML (we'll load it properly)
-                    var scripts = container.getElementsByTagName('script');
-                    while (scripts.length > 0) {
-                        scripts[0].parentNode.removeChild(scripts[0]);
-                    }
-
-                    // Remove any existing TikTok embed script
-                    var existingScript = document.getElementById('tiktok-embed-script');
-                    if (existingScript) {
-                        existingScript.parentNode.removeChild(existingScript);
-                    }
-
-                    // Load TikTok embed.js with cache busting to force re-initialization
-                    var newScript = document.createElement('script');
-                    newScript.src = 'https://www.tiktok.com/embed.js?t=' + Date.now();
-                    newScript.id = 'tiktok-embed-script';
-                    newScript.async = true;
-                    document.head.appendChild(newScript);
-                    return;
-                }
-
-                // For non-TikTok embeds, manually execute scripts (innerHTML does not execute them)
-                var scripts = container.getElementsByTagName('script');
-                for (var i = 0; i < scripts.length; i++) {
-                    var oldScript = scripts[i];
-                    var newScript = document.createElement('script');
-                    if (oldScript.src) {
-                        newScript.src = oldScript.src;
-                        newScript.async = true; // Most embeds need async
-                    } else {
-                        newScript.textContent = oldScript.textContent;
-                    }
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                }
                 return;
             }
 
