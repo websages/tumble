@@ -152,13 +152,14 @@ func (s *GormStore) DeleteIRCLink(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *GormStore) InsertQuote(ctx context.Context, quoteText, author string) error {
+func (s *GormStore) InsertQuote(ctx context.Context, quoteText, author string) (int, error) {
 	quote := Quote{
 		Quote:     quoteText,
 		Author:    author,
 		Timestamp: time.Now(),
 	}
-	return s.db.WithContext(ctx).Create(&quote).Error
+	err := s.db.WithContext(ctx).Create(&quote).Error
+	return quote.ID, err
 }
 
 func (s *GormStore) GetRandomQuote(ctx context.Context) (*Quote, error) {
@@ -174,6 +175,18 @@ func (s *GormStore) GetRandomQuote(ctx context.Context) (*Quote, error) {
 
 	err := s.db.WithContext(ctx).Order(clause.Expr{SQL: orderBy}).First(&quote).Error
 	return &quote, err
+}
+
+func (s *GormStore) GetQuoteByID(ctx context.Context, id int) (*Quote, error) {
+	var quote Quote
+	err := s.db.WithContext(ctx).First(&quote, id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &quote, nil
 }
 
 func (s *GormStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error) {

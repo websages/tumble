@@ -1,6 +1,8 @@
     <div class="item">
-        <blockquote class="quote-card">
-            <div class="quote-text">{{.Quote}}</div>
-            <div class="quote-author">{{.Author}}</div>
-        </blockquote>
+        <a href="/quote/{{.ID}}" class="quote-link">
+            <blockquote class="quote-card">
+                <div class="quote-text">{{.Quote}}</div>
+                <div class="quote-author">{{.Author}}</div>
+            </blockquote>
+        </a>
     </div>
