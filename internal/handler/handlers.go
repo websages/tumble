@@ -98,6 +98,7 @@ type IndexPageData struct {
 	FilterType        string
 	IsFallbackContent bool
 	CanonicalURL      string
+	DevMode           bool
 }
 
 // NavigationData holds pagination navigation info
@@ -419,6 +420,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		GitCommitURL:      fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 		IsFallbackContent: isFallback,
 		CanonicalURL:      canonicalURL,
+		DevMode:           h.Config.Mode == "development",
 	}
 
 	templateName := "index.html"
@@ -578,6 +580,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		GitCommit:    version.CommitHash,
 		GitCommitURL: fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
 		CanonicalURL: h.Config.BaseURL + "/search?search=" + url.QueryEscape(query),
+		DevMode:      h.Config.Mode == "development",
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
