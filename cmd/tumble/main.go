@@ -38,6 +38,47 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
+// trailingSlashMiddleware intercepts 301 redirects that add trailing slashes
+// and converts them to 308 (Permanent Redirect) to preserve HTTP methods.
+// This is safer for POST/PUT/DELETE requests which would otherwise be converted to GET.
+func trailingSlashMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Wrap the response writer to intercept redirects
+		wrapper := &redirectInterceptor{
+			ResponseWriter: w,
+			request:        r,
+		}
+		next.ServeHTTP(wrapper, r)
+	})
+}
+
+// redirectInterceptor intercepts 301 redirects and converts them to 308
+type redirectInterceptor struct {
+	http.ResponseWriter
+	request     *http.Request
+	wroteHeader bool
+}
+
+func (ri *redirectInterceptor) WriteHeader(code int) {
+	if ri.wroteHeader {
+		return
+	}
+	ri.wroteHeader = true
+
+	// Convert 301 to 308 for non-GET/HEAD requests to preserve HTTP method
+	if code == http.StatusMovedPermanently && ri.request.Method != http.MethodGet && ri.request.Method != http.MethodHead {
+		code = http.StatusPermanentRedirect // 308
+	}
+	ri.ResponseWriter.WriteHeader(code)
+}
+
+func (ri *redirectInterceptor) Write(b []byte) (int, error) {
+	if !ri.wroteHeader {
+		ri.WriteHeader(http.StatusOK)
+	}
+	return ri.ResponseWriter.Write(b)
+}
+
 func securityHeadersMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Always set these headers
@@ -349,7 +390,7 @@ func main() {
 		addr = ":8080"
 	}
 	slog.Info("Starting tumble server", "addr", addr)
-	if err := http.ListenAndServe(addr, rateLimitMiddleware(securityHeadersMiddleware(loggingMiddleware(mux)))); err != nil {
+	if err := http.ListenAndServe(addr, trailingSlashMiddleware(rateLimitMiddleware(securityHeadersMiddleware(loggingMiddleware(mux))))); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}

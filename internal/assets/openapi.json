@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Tumble API",
-    "description": "API for the Tumble content application",
+    "description": "API for the Tumble content application. Note: API endpoints use 308 (Permanent Redirect) instead of 301 for trailing slash redirects on POST/PUT/DELETE requests to preserve the HTTP method.",
     "version": "1.0.0"
   },
   "servers": [
@@ -65,6 +65,9 @@
         "responses": {
             "200": {
                 "description": "Link deleted successfully"
+            },
+            "308": {
+                "description": "Permanent redirect (preserves DELETE method) - occurs when trailing slash is missing"
             },
             "403": {
                 "description": "Forbidden - invalid or missing admin secret"
@@ -303,6 +306,9 @@
               }
             }
           },
+          "308": {
+            "description": "Permanent redirect (preserves POST method) - occurs when trailing slash is missing from URL"
+          },
           "500": {
             "description": "Server Error"
           }
@@ -437,6 +443,9 @@
                 }
               }
             }
+          },
+          "308": {
+            "description": "Permanent redirect (preserves POST method) - occurs when trailing slash is missing from URL"
           },
           "400": {
             "description": "Missing inputs"
