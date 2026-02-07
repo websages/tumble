@@ -223,6 +223,7 @@ func main() {
 	mux.HandleFunc("/", h.Index)
 	mux.HandleFunc("/index.cgi", h.Index)
 	mux.HandleFunc("/stats", h.Stats)
+	mux.HandleFunc("/stats.json", h.StatsJSON)
 	mux.HandleFunc("/search", h.Search)
 	mux.HandleFunc("/search.cgi", h.Search)
 	mux.HandleFunc("/link/", h.IRCLinkHandler)    // Primary endpoint for links
