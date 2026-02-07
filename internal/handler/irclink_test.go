@@ -19,6 +19,7 @@ type MockIRCLinkStore struct {
 	data.Store
 	InsertedLinks []data.IRCLink
 	ExistingLinks map[string][]data.IRCLink // URL -> list of links
+	LinksById     map[int]*data.IRCLink     // ID -> link (for GetIRCLinkByID)
 	NextID        int
 }
 
@@ -27,6 +28,13 @@ func (m *MockIRCLinkStore) GetIRCLinksByURL(ctx context.Context, url string) ([]
 		return links, nil
 	}
 	return []data.IRCLink{}, nil
+}
+
+func (m *MockIRCLinkStore) GetIRCLinkByID(ctx context.Context, id int) (*data.IRCLink, error) {
+	if link, ok := m.LinksById[id]; ok {
+		return link, nil
+	}
+	return nil, nil
 }
 
 func (m *MockIRCLinkStore) InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error) {
@@ -462,5 +470,91 @@ func TestIRCLinkHandler_API_Source(t *testing.T) {
 
 	if response.LinkID != 401 {
 		t.Errorf("Expected LinkID 401, got %d", response.LinkID)
+	}
+}
+
+func TestIRCLinkHandler_GetLinkJSON(t *testing.T) {
+	// Setup
+	testTime := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+	mockStore := &MockIRCLinkStore{
+		ExistingLinks: make(map[string][]data.IRCLink),
+		LinksById: map[int]*data.IRCLink{
+			42: {
+				ID:          42,
+				User:        "alice",
+				Title:       "Test Article",
+				URL:         "http://example.com/article",
+				Timestamp:   testTime,
+				Clicks:      15,
+				ContentType: "0",
+			},
+		},
+	}
+	h := &Handler{
+		Store:  mockStore,
+		Config: &config.Config{},
+	}
+
+	// Test Case: GET /link/42.json should return link metadata
+	req := httptest.NewRequest("GET", "/link/42.json", nil)
+	w := httptest.NewRecorder()
+
+	// Execute
+	h.IRCLinkHandler(w, req)
+
+	// Verify status code
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200 OK, got %d", w.Code)
+	}
+
+	// Verify content type
+	if contentType := w.Header().Get("Content-Type"); contentType != "application/json" {
+		t.Errorf("Expected Content-Type application/json, got %q", contentType)
+	}
+
+	// Verify response body
+	var link data.IRCLink
+	if err := json.Unmarshal(w.Body.Bytes(), &link); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	if link.ID != 42 {
+		t.Errorf("Expected ID 42, got %d", link.ID)
+	}
+	if link.User != "alice" {
+		t.Errorf("Expected User 'alice', got %q", link.User)
+	}
+	if link.Title != "Test Article" {
+		t.Errorf("Expected Title 'Test Article', got %q", link.Title)
+	}
+	if link.URL != "http://example.com/article" {
+		t.Errorf("Expected URL 'http://example.com/article', got %q", link.URL)
+	}
+	if link.Clicks != 15 {
+		t.Errorf("Expected Clicks 15, got %d", link.Clicks)
+	}
+}
+
+func TestIRCLinkHandler_GetLinkJSON_NotFound(t *testing.T) {
+	// Setup
+	mockStore := &MockIRCLinkStore{
+		ExistingLinks: make(map[string][]data.IRCLink),
+		LinksById:     make(map[int]*data.IRCLink),
+	}
+	h := &Handler{
+		Store:  mockStore,
+		Config: &config.Config{},
+	}
+
+	// Test Case: GET /link/999.json for non-existent link
+	req := httptest.NewRequest("GET", "/link/999.json", nil)
+	w := httptest.NewRecorder()
+
+	// Execute
+	h.IRCLinkHandler(w, req)
+
+	// Verify 404 status code
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404 Not Found, got %d", w.Code)
 	}
 }

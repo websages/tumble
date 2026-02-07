@@ -199,11 +199,17 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Case 2: Redirecting (id param, path, or query string)
 	idStr := ""
+	returnJSON := false
 
-	// First, try to extract ID from path: /link/123 or /irclink/123
+	// First, try to extract ID from path: /link/123 or /irclink/123 or /link/123.json
 	path := strings.TrimSuffix(r.URL.Path, "/")
 	if idx := strings.LastIndex(path, "/"); idx != -1 {
 		pathID := path[idx+1:]
+		// Check for .json suffix to return metadata instead of redirect
+		if strings.HasSuffix(pathID, ".json") {
+			pathID = strings.TrimSuffix(pathID, ".json")
+			returnJSON = true
+		}
 		if _, err := strconv.Atoi(pathID); err == nil {
 			idStr = pathID
 		}
@@ -227,6 +233,20 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	// If .json suffix was used, return link metadata as JSON
+	if returnJSON {
+		link, err := h.Store.GetIRCLinkByID(ctx, id)
+		if err != nil || link == nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		enc.Encode(link)
 		return
 	}
 
