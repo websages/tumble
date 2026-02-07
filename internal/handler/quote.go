@@ -14,6 +14,49 @@ import (
 func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// Handle DELETE requests
+	if r.Method == http.MethodDelete {
+		if !h.isAuthorizedAdmin(r) {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+
+		idStr := r.URL.Query().Get("id")
+		if idStr == "" {
+			// Try path: DELETE /quote/123
+			segments := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+			if len(segments) > 1 {
+				idStr = segments[len(segments)-1]
+			}
+		}
+
+		if idStr == "" {
+			http.Error(w, "Missing ID", http.StatusBadRequest)
+			return
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
+
+		err = h.Store.DeleteQuote(ctx, id)
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				http.Error(w, "Quote not found", http.StatusNotFound)
+			} else {
+				log.Printf("DeleteQuote error: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Quote %d deleted", id)
+		return
+	}
+
 	// Check if this is a permalink request: /quote/{id} or /quote/{id}.json
 	path := strings.TrimSuffix(r.URL.Path, "/")
 	if idx := strings.LastIndex(path, "/"); idx != -1 {

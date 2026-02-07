@@ -189,6 +189,17 @@ func (s *GormStore) GetQuoteByID(ctx context.Context, id int) (*Quote, error) {
 	return &quote, nil
 }
 
+func (s *GormStore) DeleteQuote(ctx context.Context, id int) error {
+	result := s.db.WithContext(ctx).Delete(&Quote{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("quote not found")
+	}
+	return nil
+}
+
 func (s *GormStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error) {
 	var stats []UserStat
 

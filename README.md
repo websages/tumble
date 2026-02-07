@@ -339,6 +339,27 @@ curl -X DELETE "https://your-server/link/123?secret=your-secret"
 
 If no `admin_secret` is configured, deletion falls back to localhost-only access for backwards compatibility.
 
+#### Quote Deletion
+
+Quotes can be deleted via the API using the `DELETE` method on `/quote/123` (where `123` is the quote ID). This uses the same authentication mechanism as link deletion.
+
+**Usage:**
+
+```bash
+# Using X-Admin-Secret header (recommended)
+curl -X DELETE -H "X-Admin-Secret: your-secret" https://your-server/quote/123
+
+# Using query parameter
+curl -X DELETE "https://your-server/quote/123?secret=your-secret"
+```
+
+**Responses:**
+
+- **200 OK**: Quote deleted successfully
+- **400 Bad Request**: Missing or invalid ID
+- **403 Forbidden**: Missing or invalid admin secret
+- **404 Not Found**: Quote does not exist
+
 #### Click Signature Tracking
 
 Tumble supports signed URLs for verified click tracking. When enabled, links include an HMAC signature that validates clicks came from the rendered page rather than bots or direct URL access.
