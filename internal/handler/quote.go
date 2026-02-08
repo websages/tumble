@@ -97,7 +97,10 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		responseText := fmt.Sprintf("%s -- %s", q.Quote, q.Author)
+		responseText := q.Quote
+		if q.Author != "" {
+			responseText = fmt.Sprintf("%s -- %s", q.Quote, q.Author)
+		}
 
 		if strings.Contains(accept, "text/html") {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -161,6 +164,10 @@ func (h *Handler) handleQuotePermalink(w http.ResponseWriter, r *http.Request, i
 		log.Printf("Error rendering quote_permalink template: %v", err)
 		// Fallback to plain text
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintf(w, "%s -- %s", quote.Quote, quote.Author)
+		if quote.Author != "" {
+			fmt.Fprintf(w, "%s -- %s", quote.Quote, quote.Author)
+		} else {
+			fmt.Fprint(w, quote.Quote)
+		}
 	}
 }

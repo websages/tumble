@@ -2,7 +2,7 @@
         <a href="/quote/{{.ID}}" class="quote-link">
             <blockquote class="quote-card">
                 <div class="quote-text">{{.Quote}}</div>
-                <div class="quote-author">{{.Author}}</div>
+                {{if .Author}}<div class="quote-author">{{.Author}}</div>{{end}}
             </blockquote>
         </a>
     </div>
