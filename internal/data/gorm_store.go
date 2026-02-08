@@ -57,6 +57,45 @@ func (s *GormStore) GetRecentImages(ctx context.Context, startDays int, endDays 
 	return images, err
 }
 
+func (s *GormStore) InsertImage(ctx context.Context, title, link, url string) (int, error) {
+	img := Image{
+		Title:     title,
+		Link:      link,
+		URL:       url,
+		Timestamp: time.Now(),
+	}
+	err := s.db.WithContext(ctx).Create(&img).Error
+	return img.ID, err
+}
+
+func (s *GormStore) GetTodayImageByLink(ctx context.Context, link string) (*Image, error) {
+	var img Image
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	err := s.db.WithContext(ctx).
+		Where("link = ? AND timestamp >= ? AND timestamp < ?", link, startOfDay, endOfDay).
+		First(&img).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &img, nil
+}
+
+func (s *GormStore) DeleteTodayImageByLink(ctx context.Context, link string) error {
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	return s.db.WithContext(ctx).
+		Where("link = ? AND timestamp >= ? AND timestamp < ?", link, startOfDay, endOfDay).
+		Delete(&Image{}).Error
+}
+
 func (s *GormStore) GetRecentQuotes(ctx context.Context, startDays int, endDays int) ([]Quote, error) {
 	var quotes []Quote
 	now := time.Now()
