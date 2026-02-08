@@ -44,6 +44,19 @@
         table.stats td.author a:hover {
             color: var(--link-color);
         }
+        .view-toggle {
+            margin-bottom: 15px;
+            font-size: 24px;
+            line-height: 20px;
+            letter-spacing: -1px;
+        }
+        .view-toggle a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+        .view-toggle a:hover {
+            text-decoration: underline;
+        }
     </style>
     <!-- Theme Init -->
     <script>
@@ -69,7 +82,7 @@
         <div id="content">
             <div class="item">
                 <!-- View Toggle -->
-                <div style="margin-bottom: 15px;">
+                <div class="view-toggle">
                     {{if eq .View "users"}}
                     <strong>User Stats</strong> | <a href="?view=links">Link Popularity</a>
                     {{else}}
@@ -93,7 +106,7 @@
                         {{range .Links}}
                         <tr>
                             <td>{{.Rank}}</td>
-                            <td><a href="/irclink/?{{.ID}}" style="color: var(--link-color); text-decoration: none;">{{.Title}}</a></td>
+                            <td><a href="/irclink/?{{.ID}}">{{.Title}}</a></td>
                             <td class="author"><a href="/?poster={{.User}}">{{.User}}</a></td>
                             <td>{{.Clicks}}</td>
                         </tr>
