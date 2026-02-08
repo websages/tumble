@@ -8,9 +8,14 @@ Tumble was a "Wouldn't it be cool?" project handed to [Scott Schnedier](https://
 
 ## Deployment
 
-The easiet way to deploy is type is to clone and type `make rpm` on an EL6 system. Things should justwork after that.
+Run
 
-If you are not on EL, things should still work. Just `make install` or package it yourself.
+`make build`
+
+Have a configuration file.
+
+See the systemd unit files in the `contrib` directory for more information.
+
 
 ## Database Support
 

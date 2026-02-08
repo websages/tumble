@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -96,22 +97,58 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK} // Default status
+func loggingMiddleware(mode string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			rw := &responseWriter{ResponseWriter: w, status: http.StatusOK} // Default status
 
-		next.ServeHTTP(rw, r)
+			next.ServeHTTP(rw, r)
 
-		slog.Info("Request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"status", rw.status,
-			"bytes", rw.bytesWritten,
-			"duration", time.Since(start),
-			"remote_addr", r.RemoteAddr,
-		)
-	})
+			slog.Info("Request",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"status", rw.status,
+				"bytes", rw.bytesWritten,
+				"duration", time.Since(start),
+				"remote_addr", clientIP(r, mode),
+			)
+		})
+	}
+}
+
+func clientIP(r *http.Request, mode string) string {
+	if mode == "development" || mode == "dev" {
+		return hostFromAddr(r.RemoteAddr)
+	}
+
+	// In production, honor proxy headers from Caddy or other reverse proxies.
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		parts := strings.Split(xff, ",")
+		for _, part := range parts {
+			ip := strings.TrimSpace(part)
+			if ip == "" {
+				continue
+			}
+			return hostFromAddr(ip)
+		}
+	}
+
+	xri := strings.TrimSpace(r.Header.Get("X-Real-IP"))
+	if xri != "" {
+		return hostFromAddr(xri)
+	}
+
+	return hostFromAddr(r.RemoteAddr)
+}
+
+func hostFromAddr(addr string) string {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return strings.Trim(addr, "[]")
+	}
+	return host
 }
 
 func main() {
@@ -286,7 +323,7 @@ func main() {
 		addr = ":8080"
 	}
 	slog.Info("Starting tumble server", "addr", addr)
-	if err := http.ListenAndServe(addr, trailingSlashMiddleware(securityHeadersMiddleware(loggingMiddleware(mux)))); err != nil {
+	if err := http.ListenAndServe(addr, trailingSlashMiddleware(securityHeadersMiddleware(loggingMiddleware(cfg.Mode)(mux)))); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}
