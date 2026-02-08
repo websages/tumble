@@ -152,10 +152,10 @@ func (h *Handler) handleQuotePermalink(w http.ResponseWriter, r *http.Request, i
 
 	// Default: render HTML page
 	templateData := map[string]interface{}{
-		"Quote":    quote.Quote,
-		"Author":   quote.Author,
-		"ID":       quote.ID,
-		"BaseURL":  h.Config.BaseURL,
+		"Quote":     quote.Quote,
+		"Author":    quote.Author,
+		"ID":        quote.ID,
+		"BaseURL":   h.Config.BaseURL,
 		"PageTitle": fmt.Sprintf("Quote by %s", quote.Author),
 	}
 
