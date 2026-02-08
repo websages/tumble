@@ -143,12 +143,12 @@
           };
           xhr.send();
 
-          // Helper to build signed IRC link URL
-          function buildIrcLinkUrl(id, sig) {
+          // Helper to build signed link URL
+          function buildLinkUrl(id, sig) {
               if (id && sig) {
-                  return '/irclink/?' + id + '&sig=' + sig;
+                  return '/link/' + id + '?sig=' + sig;
               } else if (id) {
-                  return '/irclink/?' + id;
+                  return '/link/' + id;
               }
               return null;
           }
@@ -166,7 +166,7 @@
                 var linkSpan = item.querySelector(".link");
                 if (linkSpan && !imgurCard) {
                      var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
-                     var linkHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
+                     var linkHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
                      linkSpan.innerHTML = '<a href="' + linkHref + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
                 }
                 if (previewDiv) previewDiv.remove();
@@ -297,7 +297,7 @@
                   // User "The thumbnail image still isn't clickable... for links from Flickr".
                   // Let's do it if ircId exists and not video.
                   if (ircId && !data.embed_html && (data.type === 'photo' ||  provider === 'Flickr')) {
-                       var imgLinkHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
+                       var imgLinkHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
                        innerContent = '<a href="' + imgLinkHref + '" target="_blank">' + imageContent + '</a>';
                   }
 
@@ -313,7 +313,7 @@
                 previewHTML += '<div class="og-content">';
                 if (title && provider !== "GIPHY" && provider !== "Spotify") {
                   // Route through IRC link handler for click tracking if ircId is available
-                  var titleHref = buildIrcLinkUrl(ircId, clickSig) || escapeHtml(url);
+                  var titleHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
                   previewHTML +=
                     '<div class="og-title"><a href="' +
                     titleHref +
