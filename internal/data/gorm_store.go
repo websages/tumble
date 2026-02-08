@@ -152,10 +152,11 @@ func (s *GormStore) DeleteIRCLink(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *GormStore) InsertQuote(ctx context.Context, quoteText, author string) (int, error) {
+func (s *GormStore) InsertQuote(ctx context.Context, quoteText, author, poster string) (int, error) {
 	quote := Quote{
 		Quote:     quoteText,
 		Author:    author,
+		Poster:    poster,
 		Timestamp: time.Now(),
 	}
 	err := s.db.WithContext(ctx).Create(&quote).Error

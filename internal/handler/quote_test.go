@@ -16,12 +16,14 @@ type MockStore struct {
 	data.Store // Embed interface to skip implementing everything
 	LastQuote  string
 	LastAuthor string
+	LastPoster string
 	NextID     int
 }
 
-func (m *MockStore) InsertQuote(ctx context.Context, quote, author string) (int, error) {
+func (m *MockStore) InsertQuote(ctx context.Context, quote, author, poster string) (int, error) {
 	m.LastQuote = quote
 	m.LastAuthor = author
+	m.LastPoster = poster
 	if m.NextID == 0 {
 		m.NextID = 1
 	}
@@ -151,37 +153,32 @@ func TestQuoteHandler_RandomQuote_ContentNegotiation(t *testing.T) {
 	}
 }
 
-func TestQuoteHandler_PartialParams(t *testing.T) {
+func TestQuoteHandler_QuoteWithoutAuthor(t *testing.T) {
 	// Setup
-	mockStore := &MockStore{}
+	mockStore := &MockStore{NextID: 99}
 	h := &Handler{
 		Store:  mockStore,
-		Config: &config.Config{},
+		Config: &config.Config{BaseURL: "http://example.com"},
 	}
 
-	// Test Case: Only quote provided
+	// Test Case: Only quote provided (author is optional)
 	form := url.Values{}
-	form.Add("quote", "Only quote")
+	form.Add("quote", "A quote without author")
 	req := httptest.NewRequest("POST", "/quote/", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	w := httptest.NewRecorder()
 
 	h.QuoteHandler(w, req)
 
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("Expected status 400 for partial params, got %d", w.Code)
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 
-	// Test Case: Only author provided
-	form = url.Values{}
-	form.Add("author", "Only author")
-	req = httptest.NewRequest("POST", "/quote/", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	w = httptest.NewRecorder()
+	if mockStore.LastQuote != "A quote without author" {
+		t.Errorf("Expected quote %q, got %q", "A quote without author", mockStore.LastQuote)
+	}
 
-	h.QuoteHandler(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("Expected status 400 for partial params, got %d", w.Code)
+	if mockStore.LastAuthor != "" {
+		t.Errorf("Expected empty author, got %q", mockStore.LastAuthor)
 	}
 }

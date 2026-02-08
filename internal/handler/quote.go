@@ -78,9 +78,10 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 
 	quote := html.UnescapeString(r.FormValue("quote"))
 	author := html.UnescapeString(r.FormValue("author"))
+	poster := html.UnescapeString(r.FormValue("poster"))
 
-	if quote == "" && author == "" {
-		// No params -> Return a random quote (fortune style)
+	if quote == "" {
+		// No quote param -> Return a random quote (fortune style)
 		q, err := h.Store.GetRandomQuote(ctx)
 		if err != nil {
 			http.Error(w, "Database Error", http.StatusInternalServerError)
@@ -110,24 +111,15 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if quote != "" && author != "" {
-		// Both params -> Insert Quote
-		// Perl code did uri_unescape. net/http request parsing handles standard form encoding.
-		// If these come in as query params or post body, FormValue gets them.
-
-		id, err := h.Store.InsertQuote(ctx, quote, author)
-		if err != nil {
-			http.Error(w, "Database Error", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintf(w, "%s/quote/%d", h.Config.BaseURL, id)
+	// Quote provided -> Insert Quote (author is optional)
+	id, err := h.Store.InsertQuote(ctx, quote, author, poster)
+	if err != nil {
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 
-	// Partial params -> Error
-	http.Error(w, "Missing quote or author", http.StatusBadRequest)
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprintf(w, "%s/quote/%d", h.Config.BaseURL, id)
 }
 
 // handleQuotePermalink handles /quote/{id} requests
