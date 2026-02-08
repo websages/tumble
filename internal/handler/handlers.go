@@ -37,7 +37,7 @@ func NewHandler(cfg *config.Config, store data.Store, svc *service.ContentServic
 }
 
 func (h *Handler) ServerError(w http.ResponseWriter, r *http.Request, err error) {
-	slog.Error("Internal Server Error", "method", r.Method, "path", r.URL.Path, "error", err)
+	slog.Error("Internal Server Error", "method", r.Method, "path", r.URL.Path, "query", r.URL.RawQuery, "error", err)
 
 	w.WriteHeader(http.StatusInternalServerError)
 
