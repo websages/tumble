@@ -86,6 +86,13 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user != "" && url != "" {
+		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+			log.Printf("Link submission invalid scheme: url=%q user=%q path=%q remote_addr=%q user_agent=%q referer=%q",
+				url, user, r.URL.Path, r.RemoteAddr, r.UserAgent(), r.Referer())
+			http.Error(w, "Invalid URL scheme", http.StatusBadRequest)
+			return
+		}
+
 		// Handle link posting
 		// Check for existing submissions first
 		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url)
@@ -268,7 +275,8 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Validate URL scheme to prevent open redirect attacks (javascript:, data:, etc.)
 	if !strings.HasPrefix(redirectURL, "http://") && !strings.HasPrefix(redirectURL, "https://") {
-		log.Printf("Blocked redirect to invalid scheme: %s", redirectURL)
+		log.Printf("Blocked redirect to invalid scheme: url=%q path=%q remote_addr=%q user_agent=%q referer=%q",
+			redirectURL, r.URL.Path, r.RemoteAddr, r.UserAgent(), r.Referer())
 		http.Error(w, "Invalid redirect URL", http.StatusBadRequest)
 		return
 	}
