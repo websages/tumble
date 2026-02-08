@@ -125,13 +125,8 @@ func clientIP(r *http.Request, mode string) string {
 	// In production, honor proxy headers from Caddy or other reverse proxies.
 	xff := r.Header.Get("X-Forwarded-For")
 	if xff != "" {
-		parts := strings.Split(xff, ",")
-		for _, part := range parts {
-			ip := strings.TrimSpace(part)
-			if ip == "" {
-				continue
-			}
-			return hostFromAddr(ip)
+		if ip := pickIPFromXFF(xff); ip != "" {
+			return ip
 		}
 	}
 
@@ -146,9 +141,42 @@ func clientIP(r *http.Request, mode string) string {
 func hostFromAddr(addr string) string {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
-		return strings.Trim(addr, "[]")
+		return normalizeIP(strings.Trim(addr, "[]"))
 	}
-	return host
+	return normalizeIP(host)
+}
+
+func pickIPFromXFF(xff string) string {
+	parts := strings.Split(xff, ",")
+	firstNonEmpty := ""
+	for _, part := range parts {
+		ip := normalizeIP(strings.TrimSpace(part))
+		if ip == "" {
+			continue
+		}
+		if firstNonEmpty == "" {
+			firstNonEmpty = ip
+		}
+		parsed := net.ParseIP(ip)
+		if parsed != nil && parsed.To4() != nil {
+			return parsed.To4().String()
+		}
+	}
+	return firstNonEmpty
+}
+
+func normalizeIP(ip string) string {
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		return ip
+	}
+	if parsed.IsLoopback() && parsed.To4() == nil {
+		return "127.0.0.1"
+	}
+	if v4 := parsed.To4(); v4 != nil {
+		return v4.String()
+	}
+	return parsed.String()
 }
 
 func main() {
