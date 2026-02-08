@@ -408,7 +408,8 @@
                     "quoteID": { "type": "integer" },
                     "timestamp": { "type": "string", "format": "date-time" },
                     "quote": { "type": "string" },
-                    "author": { "type": "string" }
+                    "author": { "type": "string" },
+                    "poster": { "type": "string", "description": "The person who posted/submitted the quote" }
                   }
                 }
               }
@@ -424,10 +425,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "quote": { "type": "string" },
-                  "author": { "type": "string" }
+                  "quote": { "type": "string", "description": "The quote text (required)" },
+                  "author": { "type": "string", "description": "The author of the quote (optional)" },
+                  "poster": { "type": "string", "description": "The person posting/submitting the quote (optional)" }
                 },
-                "required": ["quote", "author"]
+                "required": ["quote"]
               }
             }
           }
@@ -499,13 +501,18 @@
                     "author": {
                       "type": "string",
                       "description": "The author of the quote"
+                    },
+                    "poster": {
+                      "type": "string",
+                      "description": "The person who posted/submitted the quote"
                     }
                   },
                   "example": {
                     "quoteID": 42,
                     "timestamp": "2026-01-15T10:30:00Z",
                     "quote": "The only way to do great work is to love what you do.",
-                    "author": "Steve Jobs"
+                    "author": "Steve Jobs",
+                    "poster": "alice"
                   }
                 }
               }
@@ -588,13 +595,18 @@
                     "author": {
                       "type": "string",
                       "description": "The author of the quote"
+                    },
+                    "poster": {
+                      "type": "string",
+                      "description": "The person who posted/submitted the quote"
                     }
                   },
                   "example": {
                     "quoteID": 42,
                     "timestamp": "2026-01-15T10:30:00Z",
                     "quote": "The only way to do great work is to love what you do.",
-                    "author": "Steve Jobs"
+                    "author": "Steve Jobs",
+                    "poster": "alice"
                   }
                 }
               }

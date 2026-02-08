@@ -39,6 +39,7 @@ type Quote struct {
 	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
 	Quote     string    `json:"quote" gorm:"column:quote"`
 	Author    string    `json:"author" gorm:"column:author;type:varchar(255);index"`
+	Poster    string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
 }
 
 // TableName overrides the table name used by User to `quote`
@@ -89,7 +90,7 @@ type Store interface {
 	IncrementClicks(ctx context.Context, id int) error
 	InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error)
 	DeleteIRCLink(ctx context.Context, id int) error
-	InsertQuote(ctx context.Context, quote, author string) (int, error)
+	InsertQuote(ctx context.Context, quote, author, poster string) (int, error)
 	GetRandomQuote(ctx context.Context) (*Quote, error)
 	GetQuoteByID(ctx context.Context, id int) (*Quote, error)
 	DeleteQuote(ctx context.Context, id int) error
