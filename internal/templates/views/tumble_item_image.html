@@ -1,5 +1,11 @@
     <div class="item">
-        {{if eq .EmbedType "flickr"}}
+        {{if eq .Title "Daily Kitten"}}
+            {{/* Daily Kitten with card styling */}}
+            <div class="kitten-card">
+                <div class="kitten-header">🐱 Your daily kitten</div>
+                <img src="{{.MediaURL}}" alt="Your daily kitten" class="kitten-image" />
+            </div>
+        {{else if eq .EmbedType "flickr"}}
             {{/* Flickr image with link to photo page */}}
             <a href="{{.PhotoPageURL}}" target="_blank"><img src="{{.MediaURL}}" alt="image" /></a>
         {{else}}

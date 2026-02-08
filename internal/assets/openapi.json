@@ -48,6 +48,45 @@
         }
       }
     },
+    "/api/kitten/fetch": {
+      "post": {
+        "summary": "Force Fetch Daily Kitten",
+        "description": "Forces a new daily kitten to be fetched from cataas.com. Deletes today's existing kitten (if any) and fetches a new one with a stable URL. Useful for testing.",
+        "responses": {
+          "200": {
+            "description": "Kitten fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "url": { "type": "string", "example": "https://cataas.com/cat/abc123xyz" }
+                  }
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed (use POST)"
+          },
+          "500": {
+            "description": "Failed to fetch kitten",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "error" },
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/link/": {
       "post": {
         "summary": "Submit a new Link",

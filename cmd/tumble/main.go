@@ -14,6 +14,7 @@ import (
 	"tumble/internal/config"
 	"tumble/internal/data"
 	"tumble/internal/handler"
+	"tumble/internal/scheduler"
 	"tumble/internal/service"
 	"tumble/internal/templates"
 )
@@ -197,6 +198,14 @@ func main() {
 	}
 	defer store.Close()
 
+	// Init Scheduler
+	sched := scheduler.New(store)
+	if err := sched.Start(context.Background()); err != nil {
+		slog.Error("Failed to start scheduler", "error", err)
+		os.Exit(1)
+	}
+	defer sched.Stop()
+
 	// Auto-Migrate
 	if err := store.Bootstrap(context.TODO()); err != nil {
 		slog.Error("Fatal: Database bootstrap failed", "error", err)
@@ -232,6 +241,7 @@ func main() {
 	mux.HandleFunc("/ogpreview", h.OGPreviewHandler)
 	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
 	mux.HandleFunc("/api/caching/invalidate", h.InvalidateCacheHandler)
+	mux.HandleFunc("/api/kitten/fetch", h.FetchKittenHandler)
 	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
 	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler) // Legacy explicit path
 
