@@ -107,6 +107,7 @@ type Store interface {
 	GetLinkPreview(ctx context.Context, url string) (*LinkPreview, error)
 	InsertLinkPreview(ctx context.Context, url string, data []byte) error
 	DeleteLinkPreview(ctx context.Context, url string) error
+	DeleteAllLinkPreviews(ctx context.Context) (int, error)
 
 	// Image operations
 	InsertImage(ctx context.Context, title, link, url string) (int, error)

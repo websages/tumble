@@ -105,10 +105,12 @@ type APISearchResponse struct {
 	Meta   APISearchMeta      `json:"meta"`
 }
 
-// APICacheResponse represents the response from cache operations.
-type APICacheResponse struct {
-	Cleared bool `json:"cleared"`
-	Count   int  `json:"count"`
+// APICacheClearResponse represents the response from cache clear operations.
+// Cleared is either the specific URL that was cleared, or "all" if all cache was cleared.
+// Count is only present when clearing all cache.
+type APICacheClearResponse struct {
+	Cleared string `json:"cleared"`
+	Count   int    `json:"count,omitempty"`
 }
 
 // APIKittenResponse represents the response from kitten operations.
