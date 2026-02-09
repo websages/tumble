@@ -34,6 +34,12 @@ func (h *Handler) APIv1LinksHandler(w http.ResponseWriter, r *http.Request) {
 			writeAPIError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Method not allowed")
 		}
 	default:
+		// Check if this is a tags sub-resource (e.g., "5/tags" or "5/tags/foo")
+		if strings.Contains(path, "/tags") {
+			h.APIv1LinkTagsHandler(w, r)
+			return
+		}
+
 		// Individual resource endpoints: GET or DELETE
 		// Path should be the ID
 		id, err := strconv.Atoi(path)
@@ -94,6 +100,7 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 			User:      link.User,
 			Clicks:    link.Clicks,
 			CreatedAt: link.Timestamp,
+			Tags:      h.getTagStrings(ctx, "link", link.ID),
 		})
 	}
 
@@ -111,8 +118,9 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 
 // APILinkCreateRequest is the request body for POST /api/v1/links.
 type APILinkCreateRequest struct {
-	URL  string `json:"url"`
-	User string `json:"user"`
+	URL  string   `json:"url"`
+	User string   `json:"user"`
+	Tags []string `json:"tags,omitempty"`
 }
 
 // apiV1CreateLink handles POST /api/v1/links
@@ -184,6 +192,16 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create tags if provided
+	var tagStrings []string
+	if len(req.Tags) > 0 {
+		if errMsg := h.createTagsForResource(ctx, "link", linkID, req.Tags, req.User); errMsg != "" {
+			writeValidationError(w, map[string]string{"tags": errMsg})
+			return
+		}
+		tagStrings = h.getTagStrings(ctx, "link", linkID)
+	}
+
 	resp := APILinkCreateResponse{
 		APILinkResponse: APILinkResponse{
 			ID:        linkID,
@@ -192,6 +210,7 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 			User:      req.User,
 			Clicks:    0,
 			CreatedAt: time.Now(),
+			Tags:      tagStrings,
 		},
 		IsDuplicate:         isDuplicate,
 		PreviousSubmissions: previousSubmissions,
@@ -229,6 +248,7 @@ func (h *Handler) apiV1GetLink(w http.ResponseWriter, r *http.Request, id int) {
 		User:      link.User,
 		Clicks:    link.Clicks,
 		CreatedAt: link.Timestamp,
+		Tags:      h.getTagStrings(ctx, "link", link.ID),
 	})
 }
 

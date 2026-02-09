@@ -34,6 +34,12 @@ func (h *Handler) APIv1QuotesHandler(w http.ResponseWriter, r *http.Request) {
 			writeAPIError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Method not allowed")
 		}
 	default:
+		// Check if this is a tags sub-resource (e.g., "5/tags" or "5/tags/foo")
+		if strings.Contains(path, "/tags") {
+			h.APIv1QuoteTagsHandler(w, r)
+			return
+		}
+
 		// Individual resource endpoints: GET or DELETE
 		// Path should be the ID
 		id, err := strconv.Atoi(path)
@@ -93,6 +99,7 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 			Author:    quote.Author,
 			Poster:    quote.Poster,
 			CreatedAt: quote.Timestamp,
+			Tags:      h.getTagStrings(ctx, "quote", quote.ID),
 		})
 	}
 
@@ -110,9 +117,10 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 
 // APIQuoteCreateRequest is the request body for POST /api/v1/quotes.
 type APIQuoteCreateRequest struct {
-	Quote  string `json:"quote"`
-	Author string `json:"author"`
-	Poster string `json:"poster"`
+	Quote  string   `json:"quote"`
+	Author string   `json:"author"`
+	Poster string   `json:"poster"`
+	Tags   []string `json:"tags,omitempty"`
 }
 
 // apiV1CreateQuote handles POST /api/v1/quotes
@@ -156,12 +164,27 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create tags if provided
+	var tagStrings []string
+	if len(req.Tags) > 0 {
+		poster := req.Poster
+		if poster == "" {
+			poster = req.Author
+		}
+		if errMsg := h.createTagsForResource(ctx, "quote", quoteID, req.Tags, poster); errMsg != "" {
+			writeValidationError(w, map[string]string{"tags": errMsg})
+			return
+		}
+		tagStrings = h.getTagStrings(ctx, "quote", quoteID)
+	}
+
 	resp := APIQuoteResponse{
 		ID:        quoteID,
 		Quote:     req.Quote,
 		Author:    req.Author,
 		Poster:    req.Poster,
 		CreatedAt: time.Now(),
+		Tags:      tagStrings,
 	}
 
 	writeJSON(w, http.StatusCreated, resp)
@@ -199,6 +222,7 @@ func (h *Handler) apiV1GetQuote(w http.ResponseWriter, r *http.Request, id int) 
 		Author:    quote.Author,
 		Poster:    quote.Poster,
 		CreatedAt: quote.Timestamp,
+		Tags:      h.getTagStrings(ctx, "quote", quote.ID),
 	})
 }
 

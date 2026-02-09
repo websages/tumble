@@ -26,7 +26,7 @@ func (s *GormStore) Close() error {
 }
 
 func (s *GormStore) Bootstrap(ctx context.Context) error {
-	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{})
+	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{})
 }
 
 func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int) ([]IRCLink, error) {
@@ -414,6 +414,52 @@ func (s *GormStore) DeleteAllLinkPreviews(ctx context.Context) (int, error) {
 		return 0, result.Error
 	}
 	return int(result.RowsAffected), nil
+}
+
+func (s *GormStore) CreateTag(ctx context.Context, tag Tag) (*Tag, error) {
+	err := s.db.WithContext(ctx).Create(&tag).Error
+	if err != nil {
+		return nil, err
+	}
+	return &tag, nil
+}
+
+func (s *GormStore) GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]Tag, error) {
+	var tags []Tag
+	err := s.db.WithContext(ctx).
+		Where("resource_type = ? AND resource_id = ?", resourceType, resourceID).
+		Order("created_at ASC").
+		Find(&tags).Error
+	return tags, err
+}
+
+func (s *GormStore) GetTagByID(ctx context.Context, id int) (*Tag, error) {
+	var tag Tag
+	err := s.db.WithContext(ctx).First(&tag, id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &tag, nil
+}
+
+func (s *GormStore) DeleteTag(ctx context.Context, id int) error {
+	result := s.db.WithContext(ctx).Delete(&Tag{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("tag not found")
+	}
+	return nil
+}
+
+func (s *GormStore) DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error {
+	return s.db.WithContext(ctx).
+		Where("resource_type = ? AND resource_id = ?", resourceType, resourceID).
+		Delete(&Tag{}).Error
 }
 
 func (s *GormStore) GetLinksByPopularity(ctx context.Context, limit int, offset int) ([]IRCLink, error) {

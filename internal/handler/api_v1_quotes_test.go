@@ -62,6 +62,26 @@ func (m *mockQuoteStore) DeleteQuote(ctx context.Context, id int) error {
 	return nil
 }
 
+func (m *mockQuoteStore) GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]data.Tag, error) {
+	return nil, nil
+}
+
+func (m *mockQuoteStore) CreateTag(ctx context.Context, tag data.Tag) (*data.Tag, error) {
+	return &tag, nil
+}
+
+func (m *mockQuoteStore) GetTagByID(ctx context.Context, id int) (*data.Tag, error) {
+	return nil, nil
+}
+
+func (m *mockQuoteStore) DeleteTag(ctx context.Context, id int) error {
+	return nil
+}
+
+func (m *mockQuoteStore) DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error {
+	return nil
+}
+
 func TestAPIv1_ListQuotes(t *testing.T) {
 	now := time.Now()
 

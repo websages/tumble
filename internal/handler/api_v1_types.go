@@ -31,6 +31,7 @@ type APILinkResponse struct {
 	User      string    `json:"user"`
 	Clicks    int       `json:"clicks"`
 	CreatedAt time.Time `json:"created_at"`
+	Tags      []string  `json:"tags,omitempty"`
 }
 
 // APIPreviousSubmission contains information about a previous submission
@@ -62,6 +63,7 @@ type APIQuoteResponse struct {
 	Author    string    `json:"author"`
 	Poster    string    `json:"poster,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
+	Tags      []string  `json:"tags,omitempty"`
 }
 
 // APIQuotesResponse is the paginated response for a list of quotes.
@@ -118,4 +120,25 @@ type APIKittenResponse struct {
 	URL     string `json:"url"`
 	Date    string `json:"date"`
 	Fetched bool   `json:"fetched"`
+}
+
+// APITagResponse represents a single tag in API responses.
+type APITagResponse struct {
+	ID           int       `json:"id"`
+	Tag          string    `json:"tag"`
+	ResourceType string    `json:"resource_type"`
+	ResourceID   int       `json:"resource_id"`
+	CreatedBy    string    `json:"created_by"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+// APITagsResponse is the response for a list of tags on a resource.
+type APITagsResponse struct {
+	Data []APITagResponse `json:"data"`
+}
+
+// APITagCreateRequest is the request body for creating tags.
+type APITagCreateRequest struct {
+	Tags []string `json:"tags"`
+	User string   `json:"user"`
 }

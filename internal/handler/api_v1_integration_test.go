@@ -128,6 +128,35 @@ func (m *integrationMockStore) SearchQuotes(ctx context.Context, query string) (
 	return m.searchQuotes, nil
 }
 
+func (m *integrationMockStore) CreateTag(ctx context.Context, tag data.Tag) (*data.Tag, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return &tag, nil
+}
+
+func (m *integrationMockStore) GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]data.Tag, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
+}
+
+func (m *integrationMockStore) GetTagByID(ctx context.Context, id int) (*data.Tag, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
+}
+
+func (m *integrationMockStore) DeleteTag(ctx context.Context, id int) error {
+	return m.err
+}
+
+func (m *integrationMockStore) DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error {
+	return m.err
+}
+
 // setupIntegrationTest creates a handler and mux with all v1 routes registered.
 func setupIntegrationTest(store *integrationMockStore) (*http.ServeMux, *Handler) {
 	cfg := &config.Config{

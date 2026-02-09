@@ -65,6 +65,20 @@ type TimelineItem struct {
 	ContentType string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
 }
 
+type Tag struct {
+	ID           int       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	Tag          string    `json:"tag" gorm:"column:tag;type:varchar(255);index"`
+	ResourceType string    `json:"resource_type" gorm:"column:resource_type;type:varchar(50);index:idx_tag_resource"`
+	ResourceID   int       `json:"resource_id" gorm:"column:resource_id;index:idx_tag_resource"`
+	CreatedBy    string    `json:"created_by" gorm:"column:created_by;type:varchar(255)"`
+	CreatedAt    time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+}
+
+// TableName overrides the table name to `tags`
+func (Tag) TableName() string {
+	return "tags"
+}
+
 type LinkPreview struct {
 	URL       string    `json:"url" gorm:"column:url;primaryKey"`
 	Data      []byte    `json:"data" gorm:"column:data;type:text"` // JSON blob of the map[string]string metadata
@@ -108,6 +122,13 @@ type Store interface {
 	InsertLinkPreview(ctx context.Context, url string, data []byte) error
 	DeleteLinkPreview(ctx context.Context, url string) error
 	DeleteAllLinkPreviews(ctx context.Context) (int, error)
+
+	// Tag operations
+	CreateTag(ctx context.Context, tag Tag) (*Tag, error)
+	GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]Tag, error)
+	GetTagByID(ctx context.Context, id int) (*Tag, error)
+	DeleteTag(ctx context.Context, id int) error
+	DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error
 
 	// Image operations
 	InsertImage(ctx context.Context, title, link, url string) (int, error)

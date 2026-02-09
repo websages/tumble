@@ -76,6 +76,26 @@ func (m *mockAPIStore) DeleteIRCLink(ctx context.Context, id int) error {
 	return nil
 }
 
+func (m *mockAPIStore) GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]data.Tag, error) {
+	return nil, nil
+}
+
+func (m *mockAPIStore) CreateTag(ctx context.Context, tag data.Tag) (*data.Tag, error) {
+	return &tag, nil
+}
+
+func (m *mockAPIStore) GetTagByID(ctx context.Context, id int) (*data.Tag, error) {
+	return nil, nil
+}
+
+func (m *mockAPIStore) DeleteTag(ctx context.Context, id int) error {
+	return nil
+}
+
+func (m *mockAPIStore) DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error {
+	return nil
+}
+
 func TestAPIv1_ListLinks(t *testing.T) {
 	now := time.Now()
 

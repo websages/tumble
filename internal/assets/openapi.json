@@ -100,6 +100,13 @@
             "type": "string",
             "format": "date-time",
             "description": "When the link was submitted"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags associated with this link"
           }
         },
         "required": ["id", "url", "user", "created_at"],
@@ -109,7 +116,8 @@
           "title": "Example Article",
           "user": "alice",
           "clicks": 15,
-          "created_at": "2026-01-15T10:30:00Z"
+          "created_at": "2026-01-15T10:30:00Z",
+          "tags": ["golang", "tutorial"]
         }
       },
       "APILinkCreateResponse": {
@@ -211,6 +219,13 @@
             "type": "string",
             "format": "date-time",
             "description": "When the quote was submitted"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags associated with this quote"
           }
         },
         "required": ["id", "quote", "created_at"],
@@ -219,7 +234,8 @@
           "quote": "The only way to do great work is to love what you do.",
           "author": "Steve Jobs",
           "poster": "alice",
-          "created_at": "2026-01-15T10:30:00Z"
+          "created_at": "2026-01-15T10:30:00Z",
+          "tags": ["inspiration", "tech"]
         }
       },
       "APIQuotesListResponse": {
@@ -415,11 +431,92 @@
           "user": {
             "type": "string",
             "description": "Username of the submitter"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional tags to add to the link (lowercased, no spaces)"
           }
         },
         "required": ["url", "user"],
         "example": {
           "url": "https://example.com/article",
+          "user": "alice",
+          "tags": ["golang", "tutorial"]
+        }
+      },
+      "APITagResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique tag ID"
+          },
+          "tag": {
+            "type": "string",
+            "description": "Tag string (lowercased, no spaces)"
+          },
+          "resource_type": {
+            "type": "string",
+            "enum": ["link", "quote"],
+            "description": "Type of resource this tag is attached to"
+          },
+          "resource_id": {
+            "type": "integer",
+            "description": "ID of the resource this tag is attached to"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "Username who created this tag"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the tag was created"
+          }
+        },
+        "required": ["id", "tag", "resource_type", "resource_id", "created_at"],
+        "example": {
+          "id": 1,
+          "tag": "golang",
+          "resource_type": "link",
+          "resource_id": 42,
+          "created_by": "alice",
+          "created_at": "2026-02-08T14:30:00Z"
+        }
+      },
+      "APITagsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APITagResponse"
+            }
+          }
+        },
+        "required": ["data"]
+      },
+      "TagCreateRequest": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of tag strings (lowercased, no spaces, hyphens/underscores allowed)"
+          },
+          "user": {
+            "type": "string",
+            "description": "Username creating the tags (required for authorization if not using API key)"
+          }
+        },
+        "required": ["tags"],
+        "example": {
+          "tags": ["golang", "web-dev", "tutorial"],
           "user": "alice"
         }
       },
@@ -437,13 +534,21 @@
           "poster": {
             "type": "string",
             "description": "Username of the submitter"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional tags to add to the quote (lowercased, no spaces)"
           }
         },
         "required": ["quote"],
         "example": {
           "quote": "The only way to do great work is to love what you do.",
           "author": "Steve Jobs",
-          "poster": "alice"
+          "poster": "alice",
+          "tags": ["inspiration"]
         }
       }
     }
@@ -932,6 +1037,458 @@
           },
           "404": {
             "description": "Quote not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/links/{id}/tags": {
+      "get": {
+        "summary": "List Tags for Link",
+        "description": "Returns all tags associated with a link.",
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags for the link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITagsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add Tags to Link",
+        "description": "Adds tags to a link. Authorized if admin API key is present, or if within 10 minutes of link creation and username matches the original poster.",
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tags created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITagsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (malformed JSON)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (not authorized to add tags)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid tag format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Replace Tags on Link",
+        "description": "Replaces all tags on a link. Same authorization rules as POST.",
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags replaced successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITagsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/links/{id}/tags/{tag}": {
+      "delete": {
+        "summary": "Remove Tag from Link",
+        "description": "Removes a specific tag from a link. Requires admin API key.",
+        "tags": ["Tags"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "description": "The tag string to remove",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Tag removed successfully"
+          },
+          "403": {
+            "description": "Forbidden (invalid or missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tag not found on this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/tags": {
+      "get": {
+        "summary": "List Tags for Quote",
+        "description": "Returns all tags associated with a quote.",
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The quote ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tags for the quote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITagsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add Tags to Quote",
+        "description": "Adds tags to a quote. Authorized if admin API key is present, or if within 10 minutes of quote creation and username matches the original author.",
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The quote ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tags created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITagsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid tag format)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Replace Tags on Quote",
+        "description": "Replaces all tags on a quote. Same authorization rules as POST.",
+        "tags": ["Tags"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The quote ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags replaced successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITagsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}/tags/{tag}": {
+      "delete": {
+        "summary": "Remove Tag from Quote",
+        "description": "Removes a specific tag from a quote. Requires admin API key.",
+        "tags": ["Tags"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The quote ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "description": "The tag string to remove",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Tag removed successfully"
+          },
+          "403": {
+            "description": "Forbidden (invalid or missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tag not found on this resource",
             "content": {
               "application/json": {
                 "schema": {
@@ -1819,6 +2376,10 @@
     {
       "name": "Search",
       "description": "Search functionality"
+    },
+    {
+      "name": "Tags",
+      "description": "Tag management for links and quotes"
     },
     {
       "name": "Cache",

@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tag TEXT NOT NULL DEFAULT '',
+  resource_type TEXT NOT NULL DEFAULT '',
+  resource_id INTEGER NOT NULL DEFAULT 0,
+  created_by TEXT NOT NULL DEFAULT '',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_tags_tag ON tags(tag);
+CREATE INDEX IF NOT EXISTS idx_tags_resource ON tags(resource_type, resource_id);
