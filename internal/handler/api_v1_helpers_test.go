@@ -425,3 +425,93 @@ func TestTrimFormatSuffix(t *testing.T) {
 		})
 	}
 }
+
+func TestIsAuthorizedAPIKey(t *testing.T) {
+	tests := []struct {
+		name       string
+		remoteAddr string
+		apiKey     string
+		secret     string
+		expected   bool
+	}{
+		{
+			name:       "valid header matches secret",
+			remoteAddr: "192.168.1.100:12345",
+			apiKey:     "my-secret-key",
+			secret:     "my-secret-key",
+			expected:   true,
+		},
+		{
+			name:       "invalid header does not match",
+			remoteAddr: "192.168.1.100:12345",
+			apiKey:     "wrong-key",
+			secret:     "my-secret-key",
+			expected:   false,
+		},
+		{
+			name:       "missing header",
+			remoteAddr: "192.168.1.100:12345",
+			apiKey:     "",
+			secret:     "my-secret-key",
+			expected:   false,
+		},
+		{
+			name:       "no secret configured",
+			remoteAddr: "192.168.1.100:12345",
+			apiKey:     "some-key",
+			secret:     "",
+			expected:   false,
+		},
+		{
+			name:       "localhost IPv4 always allowed",
+			remoteAddr: "127.0.0.1:12345",
+			apiKey:     "",
+			secret:     "my-secret-key",
+			expected:   true,
+		},
+		{
+			name:       "localhost IPv6 always allowed",
+			remoteAddr: "[::1]:12345",
+			apiKey:     "",
+			secret:     "my-secret-key",
+			expected:   true,
+		},
+		{
+			name:       "localhost without port",
+			remoteAddr: "127.0.0.1",
+			apiKey:     "",
+			secret:     "my-secret-key",
+			expected:   true,
+		},
+		{
+			name:       "localhost string always allowed",
+			remoteAddr: "localhost:8080",
+			apiKey:     "",
+			secret:     "my-secret-key",
+			expected:   true,
+		},
+		{
+			name:       "localhost allowed even without secret",
+			remoteAddr: "127.0.0.1:12345",
+			apiKey:     "",
+			secret:     "",
+			expected:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/api/v1/links", nil)
+			req.RemoteAddr = tt.remoteAddr
+			if tt.apiKey != "" {
+				req.Header.Set("X-API-Key", tt.apiKey)
+			}
+
+			result := isAuthorizedAPIKey(req, tt.secret)
+
+			if result != tt.expected {
+				t.Errorf("expected %v, got %v", tt.expected, result)
+			}
+		})
+	}
+}
