@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Tumble API",
-    "description": "API for the Tumble content application. Note: API endpoints use 308 (Permanent Redirect) instead of 301 for trailing slash redirects on POST/PUT/DELETE requests to preserve the HTTP method.",
-    "version": "1.0.0"
+    "description": "API for the Tumble content application. The v1 API provides a RESTful, versioned interface with consistent request/response formats. Legacy endpoints are deprecated and will be removed in a future release.",
+    "version": "2.0.0"
   },
   "servers": [
     {
@@ -11,11 +11,1360 @@
       "description": "Local Server"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for protected endpoints"
+      }
+    },
+    "schemas": {
+      "APIError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Machine-readable error code",
+                "enum": ["bad_request", "unauthorized", "forbidden", "not_found", "validation_error", "internal_error"]
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error message"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Field-level validation errors (for validation_error code)"
+              }
+            },
+            "required": ["code", "message"]
+          }
+        },
+        "required": ["error"],
+        "example": {
+          "error": {
+            "code": "not_found",
+            "message": "Link 42 does not exist"
+          }
+        }
+      },
+      "APIMeta": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Total number of items available"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum items per page"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Number of items skipped"
+          }
+        },
+        "required": ["total", "limit", "offset"]
+      },
+      "APILinkResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique link ID"
+          },
+          "url": {
+            "type": "string",
+            "description": "The target URL"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the linked page"
+          },
+          "user": {
+            "type": "string",
+            "description": "Username who submitted the link"
+          },
+          "clicks": {
+            "type": "integer",
+            "description": "Number of verified clicks"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link was submitted"
+          }
+        },
+        "required": ["id", "url", "user", "created_at"],
+        "example": {
+          "id": 42,
+          "url": "https://example.com/article",
+          "title": "Example Article",
+          "user": "alice",
+          "clicks": 15,
+          "created_at": "2026-01-15T10:30:00Z"
+        }
+      },
+      "APILinkCreateResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/APILinkResponse" },
+          {
+            "type": "object",
+            "properties": {
+              "is_duplicate": {
+                "type": "boolean",
+                "description": "Whether this URL was previously submitted"
+              },
+              "previous_submissions": {
+                "type": "array",
+                "description": "List of prior submissions if duplicate",
+                "items": {
+                  "$ref": "#/components/schemas/APIPreviousSubmission"
+                }
+              }
+            }
+          }
+        ],
+        "example": {
+          "id": 456,
+          "url": "https://example.com/article",
+          "title": "Example Article",
+          "user": "bob",
+          "clicks": 0,
+          "created_at": "2026-02-08T14:30:00Z",
+          "is_duplicate": true,
+          "previous_submissions": [
+            {
+              "id": 123,
+              "user": "alice",
+              "created_at": "2026-01-15T10:30:00Z",
+              "title": "Example Article"
+            }
+          ]
+        }
+      },
+      "APIPreviousSubmission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID of the previous submission"
+          },
+          "user": {
+            "type": "string",
+            "description": "Username who submitted previously"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link was previously submitted"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the previous submission"
+          }
+        },
+        "required": ["id", "user", "created_at"]
+      },
+      "APILinksListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APILinkResponse"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/APIMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "APIQuoteResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique quote ID"
+          },
+          "quote": {
+            "type": "string",
+            "description": "The quote text"
+          },
+          "author": {
+            "type": "string",
+            "description": "Author of the quote"
+          },
+          "poster": {
+            "type": "string",
+            "description": "Username who submitted the quote"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the quote was submitted"
+          }
+        },
+        "required": ["id", "quote", "created_at"],
+        "example": {
+          "id": 42,
+          "quote": "The only way to do great work is to love what you do.",
+          "author": "Steve Jobs",
+          "poster": "alice",
+          "created_at": "2026-01-15T10:30:00Z"
+        }
+      },
+      "APIQuotesListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APIQuoteResponse"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/APIMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "APISearchResponse": {
+        "type": "object",
+        "properties": {
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APILinkResponse"
+            }
+          },
+          "quotes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APIQuoteResponse"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "total_links": {
+                "type": "integer",
+                "description": "Total matching links"
+              },
+              "total_quotes": {
+                "type": "integer",
+                "description": "Total matching quotes"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "required": ["links", "quotes", "meta"]
+      },
+      "APIStatsResponse": {
+        "type": "object",
+        "properties": {
+          "site": {
+            "type": "object",
+            "properties": {
+              "total_links": {
+                "type": "integer",
+                "description": "Total links on the site"
+              },
+              "total_quotes": {
+                "type": "integer",
+                "description": "Total quotes on the site"
+              },
+              "total_users": {
+                "type": "integer",
+                "description": "Total unique users"
+              }
+            },
+            "required": ["total_links", "total_quotes", "total_users"]
+          },
+          "leaderboard": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APIUserStats"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/APIMeta"
+          }
+        },
+        "required": ["site", "leaderboard", "meta"],
+        "example": {
+          "site": {
+            "total_links": 15000,
+            "total_quotes": 3200,
+            "total_users": 47
+          },
+          "leaderboard": [
+            { "user": "alice", "link_count": 500, "quote_count": 120 },
+            { "user": "bob", "link_count": 450, "quote_count": 85 }
+          ],
+          "meta": {
+            "total": 47,
+            "limit": 50,
+            "offset": 0
+          }
+        }
+      },
+      "APIUserStats": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "Username"
+          },
+          "link_count": {
+            "type": "integer",
+            "description": "Number of links submitted"
+          },
+          "quote_count": {
+            "type": "integer",
+            "description": "Number of quotes submitted"
+          }
+        },
+        "required": ["user", "link_count", "quote_count"]
+      },
+      "APIUserStatsResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "Username"
+          },
+          "link_count": {
+            "type": "integer",
+            "description": "Number of links submitted"
+          },
+          "quote_count": {
+            "type": "integer",
+            "description": "Number of quotes submitted"
+          }
+        },
+        "required": ["user", "link_count", "quote_count"],
+        "example": {
+          "user": "alice",
+          "link_count": 500,
+          "quote_count": 120
+        }
+      },
+      "APICacheResponse": {
+        "type": "object",
+        "properties": {
+          "cleared": {
+            "type": "string",
+            "description": "What was cleared ('all' or the specific URL)"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of entries cleared (only for 'all')"
+          }
+        },
+        "required": ["cleared"],
+        "example": {
+          "cleared": "all",
+          "count": 47
+        }
+      },
+      "APIDailyKittenResponse": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL of the kitten image"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date for this kitten"
+          },
+          "fetched": {
+            "type": "boolean",
+            "description": "Whether a new kitten was fetched (PUT only)"
+          }
+        },
+        "required": ["url", "date"],
+        "example": {
+          "url": "https://cataas.com/cat/abc123",
+          "date": "2026-02-08"
+        }
+      },
+      "LinkCreateRequest": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The URL to submit"
+          },
+          "user": {
+            "type": "string",
+            "description": "Username of the submitter"
+          }
+        },
+        "required": ["url", "user"],
+        "example": {
+          "url": "https://example.com/article",
+          "user": "alice"
+        }
+      },
+      "QuoteCreateRequest": {
+        "type": "object",
+        "properties": {
+          "quote": {
+            "type": "string",
+            "description": "The quote text"
+          },
+          "author": {
+            "type": "string",
+            "description": "Author of the quote"
+          },
+          "poster": {
+            "type": "string",
+            "description": "Username of the submitter"
+          }
+        },
+        "required": ["quote"],
+        "example": {
+          "quote": "The only way to do great work is to love what you do.",
+          "author": "Steve Jobs",
+          "poster": "alice"
+        }
+      }
+    }
+  },
   "paths": {
+    "/r/{id}": {
+      "get": {
+        "summary": "Redirect to Link URL",
+        "description": "Redirects to the URL associated with the given link ID. This is the public shortlink endpoint.",
+        "tags": ["Shortlinks"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sig",
+            "in": "query",
+            "description": "Click signature for verified click tracking",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirects to the target URL"
+          },
+          "404": {
+            "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/links": {
+      "get": {
+        "summary": "List Links",
+        "description": "Returns a paginated list of links. Can be filtered by user.",
+        "tags": ["Links"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results (default: 50, max: 1000)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip (default: 0)",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "description": "Filter by submitter username",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of links with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APILinksListResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation of links"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Link",
+        "description": "Submits a new link. Links are always created even if the URL was previously submitted. Duplicate information is included in the response.",
+        "tags": ["Links"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Link created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APILinkCreateResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "123",
+                  "description": "Link ID (plain text format)"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (malformed JSON)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (invalid URL or missing fields)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/links/{id}": {
+      "get": {
+        "summary": "Get Link",
+        "description": "Returns a single link by ID.",
+        "tags": ["Links"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APILinkResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Link",
+        "description": "Deletes a link by ID. Requires API key authentication.",
+        "tags": ["Links"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Link deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized (missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (invalid API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes": {
+      "get": {
+        "summary": "List Quotes",
+        "description": "Returns a paginated list of quotes.",
+        "tags": ["Quotes"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results (default: 50, max: 1000)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip (default: 0)",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of quotes with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIQuotesListResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation of quotes"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Quote",
+        "description": "Submits a new quote. Only the quote text is required.",
+        "tags": ["Quotes"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quote created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIQuoteResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "42",
+                  "description": "Quote ID (plain text format)"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (malformed JSON)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (missing quote text)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quotes/{id}": {
+      "get": {
+        "summary": "Get Quote",
+        "description": "Returns a single quote by ID.",
+        "tags": ["Quotes"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The quote ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIQuoteResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Quote",
+        "description": "Deletes a quote by ID. Requires API key authentication.",
+        "tags": ["Quotes"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The quote ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Quote deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized (missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (invalid API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stats": {
+      "get": {
+        "summary": "Get Site Statistics",
+        "description": "Returns site-wide statistics and a leaderboard of users by activity.",
+        "tags": ["Statistics"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum leaderboard entries (default: 50, max: 1000)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 1000
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of leaderboard entries to skip (default: 0)",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site statistics and leaderboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIStatsResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user}/stats": {
+      "get": {
+        "summary": "Get User Statistics",
+        "description": "Returns statistics for a specific user.",
+        "tags": ["Statistics"],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "description": "The username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIUserStatsResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found (no submissions)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "summary": "Search Content",
+        "description": "Search links and quotes by keyword. Minimum 4 characters required.",
+        "tags": ["Search"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query (minimum 4 characters)",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 4
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Content types to search (comma-separated: links, quotes). Defaults to both.",
+            "schema": {
+              "type": "string",
+              "example": "links,quotes"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum results per type (default: 50)",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of results to skip per type (default: 0)",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APISearchResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error (query too short)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cache": {
+      "delete": {
+        "summary": "Clear Preview Cache",
+        "description": "Clears the link preview cache. Can clear all entries or a specific URL.",
+        "tags": ["Cache"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "description": "Specific URL to clear from cache. If omitted, clears all cache.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cache cleared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APICacheResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (invalid API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kittens/daily": {
+      "get": {
+        "summary": "Get Daily Kitten",
+        "description": "Returns today's kitten without triggering a fetch.",
+        "tags": ["Kittens"],
+        "responses": {
+          "200": {
+            "description": "Today's kitten",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIDailyKittenResponse"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "description": "Kitten URL"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No kitten exists for today",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Ensure Daily Kitten",
+        "description": "Fetches a new kitten if one doesn't exist for today. Returns the existing kitten if one already exists.",
+        "tags": ["Kittens"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily kitten (new or existing)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/APIDailyKittenResponse" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "fetched": {
+                          "type": "boolean",
+                          "description": "True if a new kitten was fetched, false if one already existed"
+                        }
+                      }
+                    }
+                  ],
+                  "example": {
+                    "url": "https://cataas.com/cat/abc123",
+                    "date": "2026-02-08",
+                    "fetched": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (invalid API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove Daily Kitten",
+        "description": "Removes today's kitten. Use this to remove an undesirable kitten, then PUT to fetch a new one.",
+        "tags": ["Kittens"],
+        "security": [
+          { "apiKey": [] }
+        ],
+        "responses": {
+          "204": {
+            "description": "Kitten removed successfully"
+          },
+          "401": {
+            "description": "Unauthorized (missing API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden (invalid API key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No kitten exists for today",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/caching/invalidate": {
       "get": {
-        "summary": "Invalidate Link Preview Cache",
-        "description": "Removes a URL from the server-side link preview cache.",
+        "summary": "Invalidate Link Preview Cache (Deprecated)",
+        "description": "DEPRECATED: Use DELETE /api/v1/cache instead. Removes a URL from the server-side link preview cache.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "url",
@@ -50,8 +1399,10 @@
     },
     "/api/kitten/fetch": {
       "post": {
-        "summary": "Force Fetch Daily Kitten",
-        "description": "Forces a new daily kitten to be fetched from cataas.com. Deletes today's existing kitten (if any) and fetches a new one with a stable URL. Useful for testing.",
+        "summary": "Force Fetch Daily Kitten (Deprecated)",
+        "description": "DEPRECATED: Use PUT /api/v1/kittens/daily instead. Forces a new daily kitten to be fetched from cataas.com.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "responses": {
           "200": {
             "description": "Kitten fetched successfully",
@@ -89,8 +1440,10 @@
     },
     "/link/": {
       "post": {
-        "summary": "Submit a new Link",
-        "description": "Submits a new link. Links are always added even if duplicates exist. Returns different status codes and contextual information about previous submissions when duplicates are detected.",
+        "summary": "Submit a new Link (Deprecated)",
+        "description": "DEPRECATED: Use POST /api/v1/links instead. Submits a new link using query parameters.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "user",
@@ -113,135 +1466,19 @@
           {
             "name": "source",
             "in": "query",
-            "description": "Source of submission. 'irc' returns plain text ID with duplicate marker. 'api' or Accept: application/json returns JSON with duplicate context.",
+            "description": "Source of submission",
             "schema": {
               "type": "string",
-              "enum": [
-                "irc",
-                "api",
-                "web"
-              ]
+              "enum": ["irc", "api", "web"]
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Link created successfully (HTML response)",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string",
-                  "description": "HTML redirect page with optional duplicate notification"
-                }
-              }
-            }
-          },
           "201": {
-            "description": "New link created successfully (JSON response)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "link_id": {
-                      "type": "integer",
-                      "description": "ID of the newly created link"
-                    },
-                    "is_duplicate": {
-                      "type": "boolean",
-                      "description": "Always false for 201 responses"
-                    },
-                    "previous_submissions": {
-                      "type": "array",
-                      "description": "Empty for new links",
-                      "items": {
-                        "type": "object"
-                      }
-                    }
-                  },
-                  "example": {
-                    "link_id": 123,
-                    "is_duplicate": false,
-                    "previous_submissions": []
-                  }
-                }
-              },
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "123",
-                  "description": "Link ID (IRC source)"
-                }
-              }
-            }
+            "description": "Link created"
           },
           "208": {
-            "description": "Link already reported - duplicate detected (JSON response)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "link_id": {
-                      "type": "integer",
-                      "description": "ID of the newly created link"
-                    },
-                    "is_duplicate": {
-                      "type": "boolean",
-                      "description": "Always true for 208 responses"
-                    },
-                    "previous_submissions": {
-                      "type": "array",
-                      "description": "List of all previous submissions of this URL",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "link_id": {
-                            "type": "integer",
-                            "description": "ID of the previous submission"
-                          },
-                          "user": {
-                            "type": "string",
-                            "description": "Username who submitted previously"
-                          },
-                          "timestamp": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "When the link was previously submitted"
-                          },
-                          "title": {
-                            "type": "string",
-                            "description": "Title of the previous submission"
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "example": {
-                    "link_id": 456,
-                    "is_duplicate": true,
-                    "previous_submissions": [
-                      {
-                        "link_id": 123,
-                        "user": "alice",
-                        "timestamp": "2026-01-15T10:30:00Z",
-                        "title": "Example Page"
-                      }
-                    ]
-                  }
-                }
-              },
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "456 (duplicate, previously posted by alice)",
-                  "description": "Link ID with duplicate marker (IRC source)"
-                }
-              }
-            }
-          },
-          "308": {
-            "description": "Permanent redirect (preserves POST method) - occurs when trailing slash is missing from URL"
+            "description": "Duplicate link created"
           },
           "500": {
             "description": "Server Error"
@@ -251,25 +1488,18 @@
     },
     "/link/{id}": {
       "get": {
-        "summary": "Redirect to a Link",
-        "description": "Redirects to the URL associated with the given ID.",
+        "summary": "Redirect to a Link (Deprecated)",
+        "description": "DEPRECATED: Use GET /r/{id} instead. Redirects to the URL associated with the given ID.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "The ID of the link to redirect to",
+            "description": "The ID of the link",
             "required": true,
             "schema": {
               "type": "integer"
-            }
-          },
-          {
-            "name": "sig",
-            "in": "query",
-            "description": "Click signature for verified click tracking",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -279,20 +1509,19 @@
           },
           "404": {
             "description": "Link not found"
-          },
-          "400": {
-            "description": "Invalid ID"
           }
         }
       },
       "delete": {
-        "summary": "Delete a link",
-        "description": "Deletes a link by ID. Requires admin authentication via X-Admin-Secret header or secret query parameter.",
+        "summary": "Delete a link (Deprecated)",
+        "description": "DEPRECATED: Use DELETE /api/v1/links/{id} instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "The ID of the link to delete",
+            "description": "The ID of the link",
             "required": true,
             "schema": {
               "type": "integer"
@@ -300,25 +1529,24 @@
           }
         ],
         "responses": {
-            "200": {
-                "description": "Link deleted successfully"
-            },
-            "308": {
-                "description": "Permanent redirect (preserves DELETE method) - occurs when trailing slash is missing"
-            },
-            "403": {
-                "description": "Forbidden - invalid or missing admin secret"
-            },
-            "404": {
-                "description": "Link not found"
-            }
+          "200": {
+            "description": "Link deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          }
         }
       }
     },
     "/link/{id}.json": {
       "get": {
-        "summary": "Get Link Metadata",
-        "description": "Returns the full link metadata as JSON, including the owner (user), title, URL, click count, and timestamp.",
+        "summary": "Get Link Metadata (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/links/{id} instead. Returns link metadata as JSON.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "id",
@@ -338,44 +1566,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ircLinkID": {
-                      "type": "integer",
-                      "description": "The unique link ID"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "description": "When the link was submitted"
-                    },
-                    "user": {
-                      "type": "string",
-                      "description": "The username who submitted the link"
-                    },
-                    "title": {
-                      "type": "string",
-                      "description": "The title of the linked page"
-                    },
-                    "url": {
-                      "type": "string",
-                      "description": "The target URL"
-                    },
-                    "clicks": {
-                      "type": "integer",
-                      "description": "Number of verified clicks"
-                    },
-                    "content_type": {
-                      "type": "string",
-                      "description": "Content type hint (e.g., 'image' for images)"
-                    }
-                  },
-                  "example": {
-                    "ircLinkID": 42,
-                    "timestamp": "2026-01-15T10:30:00Z",
-                    "user": "alice",
-                    "title": "Example Article",
-                    "url": "http://example.com/article",
-                    "clicks": 15,
-                    "content_type": "0"
+                    "ircLinkID": { "type": "integer" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "user": { "type": "string" },
+                    "title": { "type": "string" },
+                    "url": { "type": "string" },
+                    "clicks": { "type": "integer" }
                   }
                 }
               }
@@ -383,90 +1579,36 @@
           },
           "404": {
             "description": "Link not found"
-          },
-          "400": {
-            "description": "Invalid ID"
-          }
-        }
-      }
-    },
-    "/ogpreview": {
-      "get": {
-        "summary": "Get OpenGraph Preview",
-        "parameters": [
-          {
-            "name": "url",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OpenGraph Metadata",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "title": { "type": "string" },
-                    "description": { "type": "string" },
-                    "image": { "type": "string" }
-                  }
-                }
-              }
-            }
           }
         }
       }
     },
     "/quote/": {
       "get": {
-        "summary": "Get a Random Quote",
+        "summary": "Get a Random Quote (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/quotes instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "responses": {
           "200": {
-            "description": "Random Quote",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "Wise words -- Author"
-                }
-              },
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "quoteID": { "type": "integer" },
-                    "timestamp": { "type": "string", "format": "date-time" },
-                    "quote": { "type": "string" },
-                    "author": { "type": "string" },
-                    "poster": { "type": "string", "description": "The person who posted/submitted the quote" }
-                  }
-                }
-              }
-            }
+            "description": "Random Quote"
           }
         }
       },
       "post": {
-        "summary": "Submit a Quote",
+        "summary": "Submit a Quote (Deprecated)",
+        "description": "DEPRECATED: Use POST /api/v1/quotes instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "requestBody": {
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "quote": { "type": "string", "description": "The quote text (required)" },
-                  "author": { "type": "string", "description": "The author of the quote (optional)" },
-                  "poster": { "type": "string", "description": "The person posting/submitting the quote (optional)" }
+                  "quote": { "type": "string" },
+                  "author": { "type": "string" },
+                  "poster": { "type": "string" }
                 },
                 "required": ["quote"]
               }
@@ -475,19 +1617,7 @@
         },
         "responses": {
           "200": {
-            "description": "Quote created",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "http://example.com/quote/42",
-                  "description": "Permalink URL to the newly created quote"
-                }
-              }
-            }
-          },
-          "308": {
-            "description": "Permanent redirect (preserves POST method) - occurs when trailing slash is missing from URL"
+            "description": "Quote created"
           },
           "400": {
             "description": "Missing inputs"
@@ -497,8 +1627,10 @@
     },
     "/quote/{id}": {
       "get": {
-        "summary": "Get Quote by ID (Permalink)",
-        "description": "Returns a specific quote by ID. Defaults to HTML page for browser visits, or returns JSON with Accept: application/json header.",
+        "summary": "Get Quote by ID (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/quotes/{id} instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "id",
@@ -512,67 +1644,23 @@
         ],
         "responses": {
           "200": {
-            "description": "Quote found",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string",
-                  "description": "HTML page displaying the quote"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "quoteID": {
-                      "type": "integer",
-                      "description": "The unique quote ID"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "description": "When the quote was submitted"
-                    },
-                    "quote": {
-                      "type": "string",
-                      "description": "The quote text"
-                    },
-                    "author": {
-                      "type": "string",
-                      "description": "The author of the quote"
-                    },
-                    "poster": {
-                      "type": "string",
-                      "description": "The person who posted/submitted the quote"
-                    }
-                  },
-                  "example": {
-                    "quoteID": 42,
-                    "timestamp": "2026-01-15T10:30:00Z",
-                    "quote": "The only way to do great work is to love what you do.",
-                    "author": "Steve Jobs",
-                    "poster": "alice"
-                  }
-                }
-              }
-            }
+            "description": "Quote found"
           },
           "404": {
             "description": "Quote not found"
-          },
-          "400": {
-            "description": "Invalid ID"
           }
         }
       },
       "delete": {
-        "summary": "Delete a quote",
-        "description": "Deletes a quote by ID. Requires admin authentication via X-Admin-Secret header or secret query parameter.",
+        "summary": "Delete a quote (Deprecated)",
+        "description": "DEPRECATED: Use DELETE /api/v1/quotes/{id} instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "The ID of the quote to delete",
+            "description": "The ID of the quote",
             "required": true,
             "schema": {
               "type": "integer"
@@ -581,24 +1669,23 @@
         ],
         "responses": {
           "200": {
-            "description": "Quote deleted successfully"
-          },
-          "308": {
-            "description": "Permanent redirect (preserves DELETE method) - occurs when trailing slash is missing"
+            "description": "Quote deleted"
           },
           "403": {
-            "description": "Forbidden - invalid or missing admin secret"
+            "description": "Forbidden"
           },
           "404": {
-            "description": "Quote not found"
+            "description": "Not found"
           }
         }
       }
     },
     "/quote/{id}.json": {
       "get": {
-        "summary": "Get Quote Metadata as JSON",
-        "description": "Returns the quote as JSON, regardless of Accept header.",
+        "summary": "Get Quote Metadata as JSON (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/quotes/{id} instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "id",
@@ -612,57 +1699,20 @@
         ],
         "responses": {
           "200": {
-            "description": "Quote metadata",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "quoteID": {
-                      "type": "integer",
-                      "description": "The unique quote ID"
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "description": "When the quote was submitted"
-                    },
-                    "quote": {
-                      "type": "string",
-                      "description": "The quote text"
-                    },
-                    "author": {
-                      "type": "string",
-                      "description": "The author of the quote"
-                    },
-                    "poster": {
-                      "type": "string",
-                      "description": "The person who posted/submitted the quote"
-                    }
-                  },
-                  "example": {
-                    "quoteID": 42,
-                    "timestamp": "2026-01-15T10:30:00Z",
-                    "quote": "The only way to do great work is to love what you do.",
-                    "author": "Steve Jobs",
-                    "poster": "alice"
-                  }
-                }
-              }
-            }
+            "description": "Quote metadata"
           },
           "404": {
             "description": "Quote not found"
-          },
-          "400": {
-            "description": "Invalid ID"
           }
         }
       }
     },
     "/search": {
       "get": {
-        "summary": "Search Content",
+        "summary": "Search Content (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/search instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
             "name": "search",
@@ -676,33 +1726,66 @@
         ],
         "responses": {
           "200": {
-            "description": "Search Results HTML",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "Search Results HTML"
           }
         }
       }
     },
     "/stats": {
       "get": {
-        "summary": "Get User Statistics",
+        "summary": "Get User Statistics (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/stats instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
+        "responses": {
+          "200": {
+            "description": "Statistics HTML Page"
+          }
+        }
+      }
+    },
+    "/stats.json": {
+      "get": {
+        "summary": "Get User Statistics as JSON (Deprecated)",
+        "description": "DEPRECATED: Use GET /api/v1/stats instead.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
         "parameters": [
           {
-            "name": "page",
+            "name": "limit",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "default": 50
             }
           },
           {
-            "name": "sort",
+            "name": "offset",
             "in": "query",
-            "description": "Sort order (default: links)",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of user statistics"
+          }
+        }
+      }
+    },
+    "/ogpreview": {
+      "get": {
+        "summary": "Get OpenGraph Preview (Deprecated)",
+        "description": "DEPRECATED: This endpoint may be removed in a future release.",
+        "deprecated": true,
+        "tags": ["Deprecated"],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -710,90 +1793,44 @@
         ],
         "responses": {
           "200": {
-            "description": "Statistics HTML Page",
-            "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/stats.json": {
-      "get": {
-        "summary": "Get User Statistics as JSON",
-        "description": "Returns user statistics including link and quote counts for each user, sorted by link count descending. Supports pagination.",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of results to return (default: 50, max: 1000)",
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "minimum": 1,
-              "maximum": 1000
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Number of results to skip (default: 0)",
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "minimum": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of user statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "user": {
-                        "type": "string",
-                        "description": "The username"
-                      },
-                      "link_count": {
-                        "type": "integer",
-                        "description": "Number of links submitted by this user"
-                      },
-                      "quote_count": {
-                        "type": "integer",
-                        "description": "Number of quotes submitted by this user"
-                      }
-                    }
-                  },
-                  "example": [
-                    {
-                      "user": "alice",
-                      "link_count": 150,
-                      "quote_count": 42
-                    },
-                    {
-                      "user": "bob",
-                      "link_count": 120,
-                      "quote_count": 35
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Server Error"
+            "description": "OpenGraph Metadata"
           }
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Shortlinks",
+      "description": "Public shortlink redirects"
+    },
+    {
+      "name": "Links",
+      "description": "Link management endpoints"
+    },
+    {
+      "name": "Quotes",
+      "description": "Quote management endpoints"
+    },
+    {
+      "name": "Statistics",
+      "description": "Site and user statistics"
+    },
+    {
+      "name": "Search",
+      "description": "Search functionality"
+    },
+    {
+      "name": "Cache",
+      "description": "Cache management"
+    },
+    {
+      "name": "Kittens",
+      "description": "Daily kitten management"
+    },
+    {
+      "name": "Deprecated",
+      "description": "Legacy endpoints - will be removed in a future release"
+    }
+  ]
 }
