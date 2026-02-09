@@ -1002,7 +1002,8 @@ body {
 /* Material Symbols Sizing */
 
 /* Mobile Elements - hidden on desktop */
-.mobile-hamburger,
+/* .mobile-hamburger needs higher specificity to beat .nav-icon-btn { display: flex } */
+.mobile-hamburger.nav-icon-btn,
 .mobile-site-name,
 .mobile-drawer,
 .mobile-drawer-backdrop {
@@ -1043,7 +1044,7 @@ body {
     letter-spacing: -0.02em;
   }
 
-  .mobile-hamburger {
+  .mobile-hamburger.nav-icon-btn {
     display: flex;
   }
 

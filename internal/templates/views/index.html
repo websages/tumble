@@ -325,6 +325,10 @@
                     '" ' + onClickAttr + embedHtmlAttr + aspectAttr + '>' +
                     innerContent +
                     "</div>";
+                } else if (!imageUrl && data.embed_html && (data.type === "video" || data.type === "rich")) {
+                  // Embed exists but no thumbnail image — create container for auto-expand
+                  var embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
+                  previewHTML += '<div class="og-image is-video"' + embedHtmlAttr + ' data-aspect="video"></div>';
                 }
 
                 // Text Content - skip for GIPHY (title is redundant with the gif)

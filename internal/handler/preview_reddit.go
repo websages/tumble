@@ -45,6 +45,11 @@ func (h *Handler) GetRedditPreview(targetURL string) (map[string]string, error) 
 		}
 	}
 
+	// Ensure provider_name is always set for Reddit URLs
+	if meta["provider_name"] == "" {
+		meta["provider_name"] = "Reddit"
+	}
+
 	return meta, nil
 }
 
