@@ -30,18 +30,19 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/58x1glcig8inznfv5sdrigljk4rn4lb0-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/2x0iq3b0ldv411ld1i6a9ma8dh182h14-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T04:27:54.825501Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T04:35:55.618003Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -51,9 +52,10 @@
         "out"
       ],
       "outputs": {
-        "info": "/nix/store/mmvr4hwsambcigjihl7lf3aiprhkdcd2-gnumake-4.4.1-info",
-        "man": "/nix/store/b5lxm0lk6x1bix95n07cz810qfli84c5-gnumake-4.4.1-man",
-        "out": "/nix/store/p15ia8pn2wxzdqaf07nrwdspfwsyrzyn-gnumake-4.4.1"
+        "doc": "/nix/store/8cnmyqhnlxpl7k9z15cridfdd9kka64b-gnumake-4.4.1-doc",
+        "info": "/nix/store/jar06k1k53zsig2iah8vaw1y9r0wxa55-gnumake-4.4.1-info",
+        "man": "/nix/store/2cd4idcvj4fnn4ss1ffz9fqagfhvjpy1-gnumake-4.4.1-man",
+        "out": "/nix/store/cz4rjcd28s9qqk2zcnn9d8pgs5l6qqy9-gnumake-4.4.1"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -62,18 +64,19 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/sklna5kvkyxs68s80xnyggz1z8b702b6-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/n3nk5kyi8ckasq265skqni13m34d2v20-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:02:21.156754Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:05:24.891998Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -83,10 +86,11 @@
         "out"
       ],
       "outputs": {
-        "debug": "/nix/store/nzgvdhdnqcg0bpcq4k2aa2zd5qmwgg9x-gnumake-4.4.1-debug",
-        "info": "/nix/store/ij1n1xja5ixfhv4fqi5j8xlkbc80n1lc-gnumake-4.4.1-info",
-        "man": "/nix/store/3nailcskmiij9a4hb6dihaf0hqsfy7kg-gnumake-4.4.1-man",
-        "out": "/nix/store/644anc4jyqal79d739mwr5bxznb1i5qx-gnumake-4.4.1"
+        "debug": "/nix/store/4wnafz38wr2jld58vr5j41b6mc4n26r6-gnumake-4.4.1-debug",
+        "doc": "/nix/store/15r3aanv0lh7mqi1gm3l8blpcnp05qzy-gnumake-4.4.1-doc",
+        "info": "/nix/store/gjd78rqz1k94n1c2s2kip126f8gjbb6g-gnumake-4.4.1-info",
+        "man": "/nix/store/i0rnnv9fm87c0228z34pgvk24ifqn6bm-gnumake-4.4.1-man",
+        "out": "/nix/store/z9wllcd2plhx8863ka0zfh0mffxm6jir-gnumake-4.4.1"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -95,18 +99,19 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/2v7zdb79wj91xd2pgpm3hs7bvc16w62i-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/dhwc8f7yshq6m26lfn8sdsw9crnzfzkk-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:34:06.667013Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:33:33.872842Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -116,9 +121,10 @@
         "out"
       ],
       "outputs": {
-        "info": "/nix/store/rbyz3pnr7n8wprrhy588siv2csisr5va-gnumake-4.4.1-info",
-        "man": "/nix/store/rv8sy3pwwdn90a5vzk47rm5rx8q040dc-gnumake-4.4.1-man",
-        "out": "/nix/store/w1zxhygdjxaff1rrp6na4qkh9x4aks8p-gnumake-4.4.1"
+        "doc": "/nix/store/2kpsfrqzyr0kzckkdjbqnsdcz2d719lk-gnumake-4.4.1-doc",
+        "info": "/nix/store/jlb9r2mzq8660lhn9my1pgri15jiqljq-gnumake-4.4.1-info",
+        "man": "/nix/store/x7p2q0wx9828p9n8r3pisbijncsfphvr-gnumake-4.4.1-man",
+        "out": "/nix/store/sqp22z2pm7s7n0wb3al4c3h47shw5aic-gnumake-4.4.1"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -127,18 +133,19 @@
     {
       "attr_path": "gnumake",
       "broken": false,
-      "derivation": "/nix/store/c8z2mcy4jhgpzm02s88gz34n8qa2k2ix-gnumake-4.4.1.drv",
+      "derivation": "/nix/store/cy06y5fkvbiif016ab9icsj7vqyyiky1-gnumake-4.4.1.drv",
       "description": "Tool to control the generation of non-source files from sources",
       "install_id": "gnumake",
       "license": "GPL-3.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "gnumake-4.4.1",
       "pname": "gnumake",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T06:20:21.629365Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T06:05:47.941579Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -148,10 +155,11 @@
         "out"
       ],
       "outputs": {
-        "debug": "/nix/store/sg196gmr26wc93qj8ajzr5nw5hy54hfq-gnumake-4.4.1-debug",
-        "info": "/nix/store/mcbi0v4cy602a08rkaxl3w3r3k1qmds2-gnumake-4.4.1-info",
-        "man": "/nix/store/9l7klscdz1cf1wdhm6ihd0as6dxlxg72-gnumake-4.4.1-man",
-        "out": "/nix/store/n5m6p0j4anvf5cyy79nb2qn7smkzs176-gnumake-4.4.1"
+        "debug": "/nix/store/fa0f3msdrc5il96nn5qvrbhf6779vvh1-gnumake-4.4.1-debug",
+        "doc": "/nix/store/j2vz6gm38023yfg359cnawzvabqc0w9v-gnumake-4.4.1-doc",
+        "info": "/nix/store/2pqq9mdchp0s0cgl1qqql38v502kbdi1-gnumake-4.4.1-info",
+        "man": "/nix/store/an38a5jy0ivp1504yjbzgl4prvhjnix7-gnumake-4.4.1-man",
+        "out": "/nix/store/5lyy21zm97pj8l67r2xapdkxpxb6v6y0-gnumake-4.4.1"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -160,18 +168,19 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/hgsy7836w5mmvbmfqq85ahvaijxp6hg5-go-1.25.5.drv",
+      "derivation": "/nix/store/h19kjqi10ynjk0i6scllhv82gx45p58w-go-1.25.5.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T04:27:54.834801Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T04:35:55.626708Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -180,7 +189,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/fy2aq0rg6vbiyjfdpqy3429hqsan7iwm-go-1.25.5"
+        "out": "/nix/store/wh88zz6r1ihcp2mm7ys1f2anp8aga6n2-go-1.25.5"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -189,18 +198,19 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/szsqy070dn220802p3xz4qzayg21v51h-go-1.25.5.drv",
+      "derivation": "/nix/store/32f3plvjz6apyxgi010l0c0ngqydzbyj-go-1.25.5.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:02:21.171130Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:05:24.906231Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -209,7 +219,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/30d96229dgrh6n6bmd4hn9r1hcngj9bn-go-1.25.5"
+        "out": "/nix/store/k3knzdi0v21bf2m7vcxpdy1jnqg1h0zk-go-1.25.5"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -218,18 +228,19 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/h6nns7plcgc96n5d5fx6d3gaimdb5ji1-go-1.25.5.drv",
+      "derivation": "/nix/store/5m70w19x64mr74nzlmlmv2mia2k6mykd-go-1.25.5.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:34:06.675736Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:33:33.881589Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -238,7 +249,7 @@
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/wzakp2xy6if4n2b4fb1fkdjwilwlpifk-go-1.25.5"
+        "out": "/nix/store/bwdahzajhqd5x14dbvkqww5f1wpsxif3-go-1.25.5"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -247,27 +258,30 @@
     {
       "attr_path": "go",
       "broken": false,
-      "derivation": "/nix/store/zl4wd83m32ygpjcljdl5wqsn0fq9093j-go-1.25.5.drv",
+      "derivation": "/nix/store/3xvlqyw28f7hk7qmk3f18pzi6c7ymzy8-go-1.25.5.drv",
       "description": "Go Programming language",
       "install_id": "go",
       "license": "BSD-3-Clause",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "go-1.25.5",
       "pname": "go",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T06:20:21.644404Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T06:05:47.956603Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
       "version": "1.25.5",
       "outputs_to_install": [
+        "out",
+        "out",
         "out"
       ],
       "outputs": {
-        "out": "/nix/store/60z37432vmgkg54krwr1z057bqwp7583-go-1.25.5"
+        "out": "/nix/store/zzvsjgylnphvhms3lgr2qlwdxmc68z66-go-1.25.5"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -276,29 +290,30 @@
     {
       "attr_path": "imagemagick",
       "broken": false,
-      "derivation": "/nix/store/d8nk6g95awn7j0d0ajz7qp72xkgbx1jv-imagemagick-7.1.2-11.drv",
+      "derivation": "/nix/store/kkvx0wx9n2073yp0k00q9qpzfmirakci-imagemagick-7.1.2-12.drv",
       "description": "Software suite to create, edit, compose, or convert bitmap images",
       "install_id": "imagemagick",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "imagemagick-7.1.2-11",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "imagemagick-7.1.2-12",
       "pname": "imagemagick",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T04:28:09.158015Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T04:36:09.821633Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "7.1.2-11",
+      "version": "7.1.2-12",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "dev": "/nix/store/h62nffpg06sg3z8m1f8zylh18bf73rns-imagemagick-7.1.2-11-dev",
-        "doc": "/nix/store/fpnfkb98b4914f5rhi3wb4nns37s9qlg-imagemagick-7.1.2-11-doc",
-        "out": "/nix/store/fq59i9l5chsnhxh1ahj22df3if39vg0x-imagemagick-7.1.2-11"
+        "dev": "/nix/store/mxks47yhp0ax42p27mdidzyx6970w0kh-imagemagick-7.1.2-12-dev",
+        "doc": "/nix/store/iqiqy0rhcl992qb149675737ga0w0v7d-imagemagick-7.1.2-12-doc",
+        "out": "/nix/store/qm3i85s0dfha5r320c5gyygaqnqxap0k-imagemagick-7.1.2-12"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -307,30 +322,31 @@
     {
       "attr_path": "imagemagick",
       "broken": false,
-      "derivation": "/nix/store/qznl8x76hpa4mwr74lqf0iwjnm7rbsj6-imagemagick-7.1.2-11.drv",
+      "derivation": "/nix/store/hfyxi3ji1x3gfi9z9n5r80wipd7njjxn-imagemagick-7.1.2-12.drv",
       "description": "Software suite to create, edit, compose, or convert bitmap images",
       "install_id": "imagemagick",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "imagemagick-7.1.2-11",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "imagemagick-7.1.2-12",
       "pname": "imagemagick",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:02:38.341105Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:05:42.195472Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "7.1.2-11",
+      "version": "7.1.2-12",
       "outputs_to_install": [
         "out",
         "out"
       ],
       "outputs": {
-        "dev": "/nix/store/c3mzw08f2sywj5pcqfyvp2vg3paf0acn-imagemagick-7.1.2-11-dev",
-        "doc": "/nix/store/p461inbsj7x41shq5nz2c6giqsxwj4aq-imagemagick-7.1.2-11-doc",
-        "out": "/nix/store/jgxnhc6dd5s5vn0k0blf6csyi0vab8fd-imagemagick-7.1.2-11"
+        "dev": "/nix/store/mk9cs25z5ngs8ip2z9m8kg2pp3sf4sr5-imagemagick-7.1.2-12-dev",
+        "doc": "/nix/store/qaa257fbjzw8v9x2cy650cnlw954yib1-imagemagick-7.1.2-12-doc",
+        "out": "/nix/store/ynkqmcr4kqx6jjp8mn0q7sqiax129yg5-imagemagick-7.1.2-12"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -339,29 +355,30 @@
     {
       "attr_path": "imagemagick",
       "broken": false,
-      "derivation": "/nix/store/qs11c4vdx5s8bi78yka0913nar82qc0d-imagemagick-7.1.2-11.drv",
+      "derivation": "/nix/store/4kqp9r393ly2c4nl2n8ni57c8ksmp9jv-imagemagick-7.1.2-12.drv",
       "description": "Software suite to create, edit, compose, or convert bitmap images",
       "install_id": "imagemagick",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "imagemagick-7.1.2-11",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "imagemagick-7.1.2-12",
       "pname": "imagemagick",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:34:20.743720Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:33:48.071759Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "7.1.2-11",
+      "version": "7.1.2-12",
       "outputs_to_install": [
         "out"
       ],
       "outputs": {
-        "dev": "/nix/store/r4a0ydcxifpifh1r9z6s4grc8pdwzgvr-imagemagick-7.1.2-11-dev",
-        "doc": "/nix/store/mv4avnfgxsf517llf0f4h9ag74pchga0-imagemagick-7.1.2-11-doc",
-        "out": "/nix/store/v00m47mxdmx2fzvxjg9147qqcvmdnybj-imagemagick-7.1.2-11"
+        "dev": "/nix/store/bg195ahm482lwhn2zyambfywvkis9gvq-imagemagick-7.1.2-12-dev",
+        "doc": "/nix/store/nmmii01cniapjkz0cdrzz8lfj92gkaym-imagemagick-7.1.2-12-doc",
+        "out": "/nix/store/f3ngpyhmhpiw0z52gmajfhc3yirn364h-imagemagick-7.1.2-12"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -370,30 +387,31 @@
     {
       "attr_path": "imagemagick",
       "broken": false,
-      "derivation": "/nix/store/lgkgpinhfw8kil0r83r9ycawhsik1xa3-imagemagick-7.1.2-11.drv",
+      "derivation": "/nix/store/37ps1mzz6fi65h52nhs61vd8fhslwdba-imagemagick-7.1.2-12.drv",
       "description": "Software suite to create, edit, compose, or convert bitmap images",
       "install_id": "imagemagick",
       "license": "Apache-2.0",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "imagemagick-7.1.2-11",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "imagemagick-7.1.2-12",
       "pname": "imagemagick",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T06:20:40.171110Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T06:06:06.360766Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "7.1.2-11",
+      "version": "7.1.2-12",
       "outputs_to_install": [
         "out",
         "out"
       ],
       "outputs": {
-        "dev": "/nix/store/47y76bq8qcnpxizqgl0c0j15s7ciix5r-imagemagick-7.1.2-11-dev",
-        "doc": "/nix/store/y4ncgbx0fwj3fn0j8q71fb1dk5jplzd1-imagemagick-7.1.2-11-doc",
-        "out": "/nix/store/dfj4g2rpz8yf1g6ybj7d37p4kmwsl772-imagemagick-7.1.2-11"
+        "dev": "/nix/store/pj6ixbvy24gfsb68p7i0214dgwnwm3lf-imagemagick-7.1.2-12-dev",
+        "doc": "/nix/store/s3ds4smhj3s2kwwbazz4qz6lrhv7zqvn-imagemagick-7.1.2-12-doc",
+        "out": "/nix/store/x60ccfr9gd8dqm91aqz8x5s8dhsdvr69-imagemagick-7.1.2-12"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -402,18 +420,19 @@
     {
       "attr_path": "jq",
       "broken": false,
-      "derivation": "/nix/store/xh7sg4v2x4d44yzvmx9zcr71gn7z6b03-jq-1.8.1.drv",
+      "derivation": "/nix/store/44r4r3dsjbhqmddw2vvxn9jra5sl12cq-jq-1.8.1.drv",
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T04:28:09.719633Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T04:36:10.345782Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -423,11 +442,11 @@
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/9rm6fm3zq1jq8rgsx528cw8wkmfya2gf-jq-1.8.1-bin",
-        "dev": "/nix/store/5camppj4hz2mgkdbxs0kr6nvh6qa65wf-jq-1.8.1-dev",
-        "doc": "/nix/store/lak094rhhxlaj1qycadmxyfphgjadj5r-jq-1.8.1-doc",
-        "man": "/nix/store/cv999saj62xhq7xv5i7q6944vljykfmw-jq-1.8.1-man",
-        "out": "/nix/store/g371yvjasdr552v98p5kav7n35s1dfib-jq-1.8.1"
+        "bin": "/nix/store/qjs0qndyz1g97rsc1zp4cd692y5iph64-jq-1.8.1-bin",
+        "dev": "/nix/store/bhryp10d5w5h9rsav5k9m9jb55z26bsl-jq-1.8.1-dev",
+        "doc": "/nix/store/238sn0gg3i3i9v6kgx4g1k6b19frzy49-jq-1.8.1-doc",
+        "man": "/nix/store/jlpyybc7pdh4gk17dc266d6a1szm7dk6-jq-1.8.1-man",
+        "out": "/nix/store/n64h0247s3674kry90l6kszx06zyrgfn-jq-1.8.1"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -436,18 +455,19 @@
     {
       "attr_path": "jq",
       "broken": false,
-      "derivation": "/nix/store/900w59hvyx6q26igzlgk2pn2wjx0fsss-jq-1.8.1.drv",
+      "derivation": "/nix/store/gcqa6ab6iifng1rpfs5bb34nx9czg705-jq-1.8.1.drv",
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:02:39.216741Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:05:43.049936Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -458,11 +478,11 @@
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/m8qv4g54q3jmjb8i33v9lljcwhydx2vd-jq-1.8.1-bin",
-        "dev": "/nix/store/5ykn83b3hhvnnq0p5vqgcrzihrl9wpsl-jq-1.8.1-dev",
-        "doc": "/nix/store/37ypy1595g6rj3cymh1mpk2b25fx40g7-jq-1.8.1-doc",
-        "man": "/nix/store/9x2457g76jikfy7xq4mjqwzl8iz3zvxj-jq-1.8.1-man",
-        "out": "/nix/store/16lg603jzppwjanlakcak1ais69mkd03-jq-1.8.1"
+        "bin": "/nix/store/c1qm5fsn6qbl09xdjx649vifabypyywd-jq-1.8.1-bin",
+        "dev": "/nix/store/2sy4y09ddbi64pbg4is078110z70jsdw-jq-1.8.1-dev",
+        "doc": "/nix/store/vx81xggapqwdd2l64mmxrkbafih461jc-jq-1.8.1-doc",
+        "man": "/nix/store/2pjwv0ab8nilrg1lvjazf9y9w6g6pk5y-jq-1.8.1-man",
+        "out": "/nix/store/cfhajjz1k7gf31krbj18q9acb54xp5z9-jq-1.8.1"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -471,18 +491,19 @@
     {
       "attr_path": "jq",
       "broken": false,
-      "derivation": "/nix/store/cajf8n8zpw65sd9ch7av6lwwb2qkvx8v-jq-1.8.1.drv",
+      "derivation": "/nix/store/9bq94zr10wpaijpz606hwnkk08brv1md-jq-1.8.1.drv",
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:34:21.285253Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:33:48.598583Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -492,11 +513,11 @@
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/kkb17whpkdrmn9g3gk7y6l69vipxsw0i-jq-1.8.1-bin",
-        "dev": "/nix/store/lypnqs272644l8ff6wfji9rg5jw10v7h-jq-1.8.1-dev",
-        "doc": "/nix/store/nyw97c4pywfcqqap5hyk9xjghczlbshl-jq-1.8.1-doc",
-        "man": "/nix/store/iwr61wi83kflqvz8j5nf7ridaqq6nh2w-jq-1.8.1-man",
-        "out": "/nix/store/ri930a557685c64bdh88a5031i7hx3vy-jq-1.8.1"
+        "bin": "/nix/store/51343hgchh7by4l8r1g244ma05ny3x0b-jq-1.8.1-bin",
+        "dev": "/nix/store/pp2hrljvalrrwyxh7is69nnlmxb2m7lk-jq-1.8.1-dev",
+        "doc": "/nix/store/h05xaf7fsasgp8cpyar2195cc8lbgih8-jq-1.8.1-doc",
+        "man": "/nix/store/vx840ik1sj1h8fhqwa40aglvrgpa0r18-jq-1.8.1-man",
+        "out": "/nix/store/bmg2xfw86wavg7fm062nyf6v48xzxh0j-jq-1.8.1"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -505,18 +526,19 @@
     {
       "attr_path": "jq",
       "broken": false,
-      "derivation": "/nix/store/ig0anfgqf7v924r7djvvp8vi46r74g5k-jq-1.8.1.drv",
+      "derivation": "/nix/store/ni2zx8nd9ja3ar6ar568r8l4wy80knn2-jq-1.8.1.drv",
       "description": "Lightweight and flexible command-line JSON processor",
       "install_id": "jq",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "jq-1.8.1",
       "pname": "jq",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T06:20:41.197450Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T06:06:07.320364Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -527,11 +549,11 @@
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/zssasryipb2x4gk2ahzacl4mvvcmk48j-jq-1.8.1-bin",
-        "dev": "/nix/store/rmxxm5jnxq93kvkhbr2b3hzj6v3ldp8z-jq-1.8.1-dev",
-        "doc": "/nix/store/mkhfvc69grlky3iblibkw9wcc12jcdqq-jq-1.8.1-doc",
-        "man": "/nix/store/7d4pv1iymyqk2lykwj1ydml3rjhc6gl3-jq-1.8.1-man",
-        "out": "/nix/store/807g765zgpmp1c8fm5y40rw2gbr1k6dk-jq-1.8.1"
+        "bin": "/nix/store/qnaw7i777j52fpgbl5pgmzkq85znp083-jq-1.8.1-bin",
+        "dev": "/nix/store/d73i1fvhrqms0sbfrvqaynsr8iva216v-jq-1.8.1-dev",
+        "doc": "/nix/store/3ynrp4ypwv1g1jgsk638443p8lpd9g8f-jq-1.8.1-doc",
+        "man": "/nix/store/6mh88qsh57ivh31c5nqxc43n0hv9xhbk-jq-1.8.1-man",
+        "out": "/nix/store/fgsvqffyvcpjqs093wwf2d6dzxnmnqnv-jq-1.8.1"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -540,29 +562,31 @@
     {
       "attr_path": "libxml2",
       "broken": false,
-      "derivation": "/nix/store/j4kv9crjgn56l7hxszbs6bbibymp63qf-libxml2-2.15.1.drv",
+      "derivation": "/nix/store/jbsga8ix401qgz316xqqkfgpbl897plg-libxml2-2.15.1.drv",
       "description": "XML parsing library for C",
       "install_id": "libxml2",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "libxml2-2.15.1",
       "pname": "libxml2",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T04:28:11.980742Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T04:36:12.537832Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
       "version": "2.15.1",
       "outputs_to_install": [
+        "bin",
         "bin"
       ],
       "outputs": {
-        "bin": "/nix/store/4qfb3xm18gfgwxwz640n3665q48qrl51-libxml2-2.15.1-bin",
-        "dev": "/nix/store/9pna2kdj9358d9k9z02vidlbl25ra6hw-libxml2-2.15.1-dev",
-        "out": "/nix/store/48r5zq08j370snpb43x83il9pikmxn02-libxml2-2.15.1"
+        "bin": "/nix/store/h3laz2d0imz3mmvbp42psr9jxrxzmk3h-libxml2-2.15.1-bin",
+        "dev": "/nix/store/ab43gk9xl2ssnz3yzs484csd5axv1kqk-libxml2-2.15.1-dev",
+        "out": "/nix/store/xawkykvib1nndn83897hpqch02n087gg-libxml2-2.15.1"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -571,18 +595,19 @@
     {
       "attr_path": "libxml2",
       "broken": false,
-      "derivation": "/nix/store/xv1k7m3rmc26iy1par91bdmg2cwrhxbh-libxml2-2.15.1.drv",
+      "derivation": "/nix/store/sknkyhhh0l050hfkkk93cf2xps2fbkzz-libxml2-2.15.1.drv",
       "description": "XML parsing library for C",
       "install_id": "libxml2",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "libxml2-2.15.1",
       "pname": "libxml2",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:02:43.190080Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:05:47.071422Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -592,9 +617,9 @@
         "bin"
       ],
       "outputs": {
-        "bin": "/nix/store/ckm86lqsa8knk6gkvkibxh9lawdixzf4-libxml2-2.15.1-bin",
-        "dev": "/nix/store/p17klc3qq4nl9ihfwqfpi8cnqvcf92xz-libxml2-2.15.1-dev",
-        "out": "/nix/store/wfk1mrpj1r5f7iyihjnh0jjixr900z7y-libxml2-2.15.1"
+        "bin": "/nix/store/l8xc4za7xcsrsmz32vxvqx0wjkgqvlkl-libxml2-2.15.1-bin",
+        "dev": "/nix/store/wcp4b4rp8k1iigl43hc7i3nksq3q3agk-libxml2-2.15.1-dev",
+        "out": "/nix/store/r2rrlbp936ipkhcwc67zxmkqzghvgc3a-libxml2-2.15.1"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -603,18 +628,19 @@
     {
       "attr_path": "libxml2",
       "broken": false,
-      "derivation": "/nix/store/91f3jqbbk7x5qdbcnxwrkb5z2s9rwijc-libxml2-2.15.1.drv",
+      "derivation": "/nix/store/gi5b9nniaw0cbvfymabcjimk2s9fwhpa-libxml2-2.15.1.drv",
       "description": "XML parsing library for C",
       "install_id": "libxml2",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "libxml2-2.15.1",
       "pname": "libxml2",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:34:23.453777Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:33:50.816781Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -623,9 +649,9 @@
         "bin"
       ],
       "outputs": {
-        "bin": "/nix/store/a0gpzvavak3x4wz1v7f4dk2mixckajpv-libxml2-2.15.1-bin",
-        "dev": "/nix/store/f9z95b0blsfd6ws0jnx99j7ijrghzpfc-libxml2-2.15.1-dev",
-        "out": "/nix/store/kwj8y03m3s5qsw3105lh3r679drrk7j6-libxml2-2.15.1"
+        "bin": "/nix/store/g64fl93gz71liz9zdqvf6g2ny7rsax9a-libxml2-2.15.1-bin",
+        "dev": "/nix/store/18kdbs2m7xnip0ga1acj70a347xyppca-libxml2-2.15.1-dev",
+        "out": "/nix/store/1jjbhma370vyaz3kl31k4qiz37l3az6b-libxml2-2.15.1"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -634,18 +660,19 @@
     {
       "attr_path": "libxml2",
       "broken": false,
-      "derivation": "/nix/store/rp4jlfwhr2ni4v2bpr5kr8ss77r8mq7j-libxml2-2.15.1.drv",
+      "derivation": "/nix/store/yfb66x307b6cp9anhz6h2i3w7688qj7r-libxml2-2.15.1.drv",
       "description": "XML parsing library for C",
       "install_id": "libxml2",
       "license": "MIT",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
       "name": "libxml2-2.15.1",
       "pname": "libxml2",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T06:20:45.643871Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T06:06:11.594621Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
@@ -655,9 +682,9 @@
         "bin"
       ],
       "outputs": {
-        "bin": "/nix/store/mvfalwl76ms34wxrh9jsw6g46fsl9nbh-libxml2-2.15.1-bin",
-        "dev": "/nix/store/5nl2zr46dic7mxcw6cvbq85wa8c2gngh-libxml2-2.15.1-dev",
-        "out": "/nix/store/y68hvcdj0j31x7hy9qnijswqykp21wvz-libxml2-2.15.1"
+        "bin": "/nix/store/r40kqrp7ghjypfc0p9kjwgb14mxmjciw-libxml2-2.15.1-bin",
+        "dev": "/nix/store/yl9p47yg3qzw1xf9b3pnfav0mgy1qik9-libxml2-2.15.1-dev",
+        "out": "/nix/store/81cfgyhfaadhh0vs4nf74yhcclgbav87-libxml2-2.15.1"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
@@ -666,32 +693,33 @@
     {
       "attr_path": "sqlite",
       "broken": false,
-      "derivation": "/nix/store/ld25n61svsdllkxxnkazbvl2s9q9hc47-sqlite-3.51.1.drv",
+      "derivation": "/nix/store/h7mxlki0cbrr6q9j4zw705xvmrbmc2mz-sqlite-3.51.2.drv",
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "sqlite-3.51.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "sqlite-3.51.2",
       "pname": "sqlite",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T04:29:42.519920Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T04:37:36.814097Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "3.51.1",
+      "version": "3.51.2",
       "outputs_to_install": [
         "bin",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/a186f18sdws3qklx5va41s7ifw7bsb00-sqlite-3.51.1-bin",
-        "dev": "/nix/store/x41hb0yp57sld90svdj6avg6wkpjh49w-sqlite-3.51.1-dev",
-        "doc": "/nix/store/y9v5vg60im2d4pg26d21f89lkfsnkbwc-sqlite-3.51.1-doc",
-        "man": "/nix/store/gkzxfzbwrhhg2ravkl9dkjdsg513a8mk-sqlite-3.51.1-man",
-        "out": "/nix/store/6yawzw96lhv44d6rfkk8l5k22srfc81q-sqlite-3.51.1"
+        "bin": "/nix/store/25h87i04f812ydbmkx2fsbfk3h6ahvkq-sqlite-3.51.2-bin",
+        "dev": "/nix/store/bd2pljz7hw0iygf9rxgqq28p4i6snl12-sqlite-3.51.2-dev",
+        "doc": "/nix/store/kxa6w751kzbjxmp1f4kqkycn8p0790pp-sqlite-3.51.2-doc",
+        "man": "/nix/store/ga13w56hr55angkn8sd7d42j04hb44ly-sqlite-3.51.2-man",
+        "out": "/nix/store/dzj2h6c2kb3hizbk2w5r45kjk57mxxkh-sqlite-3.51.2"
       },
       "system": "aarch64-darwin",
       "group": "toplevel",
@@ -700,33 +728,35 @@
     {
       "attr_path": "sqlite",
       "broken": false,
-      "derivation": "/nix/store/11v3vfn6vv1xba999i4lgf0qi1s239pp-sqlite-3.51.1.drv",
+      "derivation": "/nix/store/3cbj25czswrs8fdaj2dlamdjx2pk8hk7-sqlite-3.51.2.drv",
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "sqlite-3.51.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "sqlite-3.51.2",
       "pname": "sqlite",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:04:34.424207Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:07:38.234151Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "3.51.1",
+      "version": "3.51.2",
       "outputs_to_install": [
+        "bin",
         "bin",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/9prciviq1v39c1xfg7zz1dnh3gf54071-sqlite-3.51.1-bin",
-        "debug": "/nix/store/hjycafslwds8364ykxrcn98fm34pznq0-sqlite-3.51.1-debug",
-        "dev": "/nix/store/ayxchn2mch6cx8kjapnffsp0rpg63z8i-sqlite-3.51.1-dev",
-        "doc": "/nix/store/kkq2w59ryaiwjfc1ffrd3pf7s5pkfbm9-sqlite-3.51.1-doc",
-        "man": "/nix/store/v0i0f74zf9ap6lm6gyi500hx04pg4lkv-sqlite-3.51.1-man",
-        "out": "/nix/store/kg79jrqc5cpf4y8xdq4skxfhwnwkv4nq-sqlite-3.51.1"
+        "bin": "/nix/store/1bi4xrs6jbpqwaykj4w0slfpfb0253vs-sqlite-3.51.2-bin",
+        "debug": "/nix/store/ndrjv00qqj6cpb61mr6p1crd7hpkspxc-sqlite-3.51.2-debug",
+        "dev": "/nix/store/dx1imkvdvkr03im68b57ma9plwbgyav3-sqlite-3.51.2-dev",
+        "doc": "/nix/store/99mz6yhf35z64vfz0fmz10kd6105b5sr-sqlite-3.51.2-doc",
+        "man": "/nix/store/7bsd9hcr21w4mshkxcp9h7zddkc1ss3c-sqlite-3.51.2-man",
+        "out": "/nix/store/mcwq5pax85mbpic10kzl03h0j6wqdr50-sqlite-3.51.2"
       },
       "system": "aarch64-linux",
       "group": "toplevel",
@@ -735,32 +765,33 @@
     {
       "attr_path": "sqlite",
       "broken": false,
-      "derivation": "/nix/store/a0iv2zzs04ndy8pq29rqgzwv0bh7lp7j-sqlite-3.51.1.drv",
+      "derivation": "/nix/store/r26rm7pqlbdw5cb7m0q8agvjgz9ip3qh-sqlite-3.51.2.drv",
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "sqlite-3.51.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "sqlite-3.51.2",
       "pname": "sqlite",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T05:35:47.630880Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T05:35:15.660423Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "3.51.1",
+      "version": "3.51.2",
       "outputs_to_install": [
         "bin",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/yiflnvqlacl3m8dwk32v2jkcvk880db9-sqlite-3.51.1-bin",
-        "dev": "/nix/store/7mkpb5j5am0kb1x4bslpr4wkfnpa2ifa-sqlite-3.51.1-dev",
-        "doc": "/nix/store/yxpcziz52mnywkp0bdv8hfll6zp0hjxz-sqlite-3.51.1-doc",
-        "man": "/nix/store/3ds853wgkqb16ak9bw5dz2dh3529i7j4-sqlite-3.51.1-man",
-        "out": "/nix/store/3s77d97c92iwc8vka16ax5fdw0hq82bk-sqlite-3.51.1"
+        "bin": "/nix/store/kq48w155fqa4zryz8gxllfjhjwqfx2lj-sqlite-3.51.2-bin",
+        "dev": "/nix/store/j5j0nsdspwxbdbkz9aphphilg2js9ay9-sqlite-3.51.2-dev",
+        "doc": "/nix/store/flxpy3hknw99hpvks972qb7a5bjb4qc3-sqlite-3.51.2-doc",
+        "man": "/nix/store/2pcbkvyq1v51imf3m36yjsmq6nsa45ya-sqlite-3.51.2-man",
+        "out": "/nix/store/s2yjnam2n2chcflj2b4ihp231l3v32iz-sqlite-3.51.2"
       },
       "system": "x86_64-darwin",
       "group": "toplevel",
@@ -769,34 +800,35 @@
     {
       "attr_path": "sqlite",
       "broken": false,
-      "derivation": "/nix/store/l9p90hm8zslgx0y076nfi30jijkk15fi-sqlite-3.51.1.drv",
+      "derivation": "/nix/store/92v98y0ik0kmigs2qxszgbi9vxilysmc-sqlite-3.51.2.drv",
       "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
       "install_id": "sqlite",
       "license": "Public Domain",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "name": "sqlite-3.51.1",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "name": "sqlite-3.51.2",
       "pname": "sqlite",
-      "rev": "80e4adbcf8992d3fd27ad4964fbb84907f9478b0",
-      "rev_count": 930839,
-      "rev_date": "2026-01-20T05:17:20Z",
-      "scrape_date": "2026-01-22T06:22:51.878481Z",
+      "rev": "00c21e4c93d963c50d4c0c89bfa84ed6e0694df2",
+      "rev_count": 940249,
+      "rev_date": "2026-02-04T09:32:58Z",
+      "scrape_date": "2026-02-06T06:08:09.662506Z",
       "stabilities": [
+        "staging",
         "unstable"
       ],
       "unfree": false,
-      "version": "3.51.1",
+      "version": "3.51.2",
       "outputs_to_install": [
         "bin",
         "bin",
         "man"
       ],
       "outputs": {
-        "bin": "/nix/store/lbm0vi6xqrmvin5a9cj7v69qc5ayg5q0-sqlite-3.51.1-bin",
-        "debug": "/nix/store/az4zy215sxq147n227i99fgggzj9cqpy-sqlite-3.51.1-debug",
-        "dev": "/nix/store/byl3w16n1zd8rnx040afcyy8zhn996w1-sqlite-3.51.1-dev",
-        "doc": "/nix/store/ki6c1dpgsijg715nkgciyg3zsksixyq4-sqlite-3.51.1-doc",
-        "man": "/nix/store/943jfmi9yq1yva0c1d50p9pzmssg47c6-sqlite-3.51.1-man",
-        "out": "/nix/store/f6zwd0xdld51287as0sv79kbaf2pcayh-sqlite-3.51.1"
+        "bin": "/nix/store/ryc68h6m05msqkf2wqm306cwrvx2fqr2-sqlite-3.51.2-bin",
+        "debug": "/nix/store/p99lmc4ss85q9gnr4dq3w30jm8c0yql6-sqlite-3.51.2-debug",
+        "dev": "/nix/store/6k6dpcdv1bxcipcgdbi89g9fxws0vhvc-sqlite-3.51.2-dev",
+        "doc": "/nix/store/nhy8izfz9fp3i1dsg5vq8f2cx0p02kkl-sqlite-3.51.2-doc",
+        "man": "/nix/store/3lg4rpp0ygbzfan62jn6smmyy6k2mhsf-sqlite-3.51.2-man",
+        "out": "/nix/store/bn7m7qn8k7b27jy5lkq3bg4vcxnyjpq0-sqlite-3.51.2"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
