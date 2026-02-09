@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // APIv1LinksHandler routes requests to /api/v1/links endpoints.
@@ -106,10 +109,95 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
+// APILinkCreateRequest is the request body for POST /api/v1/links.
+type APILinkCreateRequest struct {
+	URL  string `json:"url"`
+	User string `json:"user"`
+}
+
 // apiV1CreateLink handles POST /api/v1/links
-// Stub for now - to be implemented in Task 2.3
+// Creates a new link with duplicate detection.
 func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
-	writeAPIError(w, http.StatusNotImplemented, "not_implemented", "Not yet implemented")
+	ctx := r.Context()
+
+	// Decode JSON body
+	var req APILinkCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_request", "Invalid JSON request body")
+		return
+	}
+
+	// Validate required fields
+	errors := make(map[string]string)
+	if req.URL == "" {
+		errors["url"] = "url is required"
+	} else if !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
+		errors["url"] = "url must start with http:// or https://"
+	}
+	if req.User == "" {
+		errors["user"] = "user is required"
+	}
+	if len(errors) > 0 {
+		writeValidationError(w, errors)
+		return
+	}
+
+	// Check for duplicates
+	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to check for duplicates")
+		return
+	}
+
+	// Insert the link (use URL as title for now; existing code fetches title async)
+	linkID, err := h.Store.InsertIRCLink(ctx, req.User, req.URL, req.URL, "")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create link")
+		return
+	}
+
+	// Build response
+	isDuplicate := len(existingLinks) > 0
+	var previousSubmissions []APIPreviousSubmission
+	if isDuplicate {
+		previousSubmissions = make([]APIPreviousSubmission, 0, len(existingLinks))
+		for _, link := range existingLinks {
+			previousSubmissions = append(previousSubmissions, APIPreviousSubmission{
+				ID:        link.ID,
+				User:      link.User,
+				CreatedAt: link.Timestamp,
+				Title:     link.Title,
+			})
+		}
+	}
+
+	// Check content negotiation for plain text
+	if wantsPlainText(r) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusCreated)
+		if isDuplicate {
+			firstDup := existingLinks[0]
+			fmt.Fprintf(w, "Created link %d: %s (duplicate of link %d by %s)", linkID, req.URL, firstDup.ID, firstDup.User)
+		} else {
+			fmt.Fprintf(w, "Created link %d: %s", linkID, req.URL)
+		}
+		return
+	}
+
+	resp := APILinkCreateResponse{
+		APILinkResponse: APILinkResponse{
+			ID:        linkID,
+			URL:       req.URL,
+			Title:     req.URL,
+			User:      req.User,
+			Clicks:    0,
+			CreatedAt: time.Now(),
+		},
+		IsDuplicate:         isDuplicate,
+		PreviousSubmissions: previousSubmissions,
+	}
+
+	writeJSON(w, http.StatusCreated, resp)
 }
 
 // apiV1GetLink handles GET /api/v1/links/{id}
