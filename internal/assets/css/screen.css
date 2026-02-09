@@ -1448,6 +1448,11 @@ html.fonts-loaded .material-symbols-rounded {
   white-space: nowrap;
 }
 
+/* Hide URL subtitle in Scott Mode */
+[data-scott-mode="true"] .link-url {
+  display: none;
+}
+
 /* Ensure anchor inside .link truncates */
 [data-scott-mode="true"] .link a {
   font-weight: bold;
