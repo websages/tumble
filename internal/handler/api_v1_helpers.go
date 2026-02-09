@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"crypto/subtle"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -123,4 +125,33 @@ func trimFormatSuffix(path string) string {
 		return strings.TrimSuffix(path, ".txt")
 	}
 	return path
+}
+
+// isAuthorizedAPIKey checks if the request has a valid API key.
+// Uses X-API-Key header only (no query param auth - per design doc).
+// Always allows localhost requests.
+func isAuthorizedAPIKey(r *http.Request, secret string) bool {
+	// Localhost is always allowed
+	remoteAddr := r.RemoteAddr
+	if strings.HasPrefix(remoteAddr, "127.0.0.1") ||
+		strings.HasPrefix(remoteAddr, "localhost") ||
+		strings.HasPrefix(remoteAddr, "[::1]") {
+		return true
+	}
+
+	// No secret configured
+	if secret == "" {
+		log.Printf("API auth failed: no secret configured")
+		return false
+	}
+
+	// Check X-API-Key header
+	apiKey := r.Header.Get("X-API-Key")
+	if apiKey == "" {
+		log.Printf("API auth failed: missing X-API-Key header")
+		return false
+	}
+
+	// Constant-time comparison to prevent timing attacks
+	return subtle.ConstantTimeCompare([]byte(apiKey), []byte(secret)) == 1
 }
