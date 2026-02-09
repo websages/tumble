@@ -88,6 +88,7 @@ type APIUserStats struct {
 type APIStatsResponse struct {
 	Site        APISiteStats   `json:"site"`
 	Leaderboard []APIUserStats `json:"leaderboard"`
+	Meta        APIMeta        `json:"meta"`
 }
 
 // APISearchMeta extends APIMeta with search-specific counts.
