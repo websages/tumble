@@ -25,6 +25,7 @@ type mockAPIStore struct {
 	linksByURLFn     func(url string) ([]data.IRCLink, error)
 	insertedLinkID   int
 	insertLinkFn     func(user, title, url, contentType string) (int, error)
+	deleteLinkFn     func(id int) error
 	err              error
 }
 
@@ -63,6 +64,16 @@ func (m *mockAPIStore) InsertIRCLink(ctx context.Context, user, title, url, cont
 		return 0, m.err
 	}
 	return m.insertedLinkID, nil
+}
+
+func (m *mockAPIStore) DeleteIRCLink(ctx context.Context, id int) error {
+	if m.deleteLinkFn != nil {
+		return m.deleteLinkFn(id)
+	}
+	if m.err != nil {
+		return m.err
+	}
+	return nil
 }
 
 func TestAPIv1_ListLinks(t *testing.T) {
@@ -834,5 +845,239 @@ func TestAPIv1_CreateLink_StoreError(t *testing.T) {
 
 	if resp.Error.Code != "internal_error" {
 		t.Errorf("expected code internal_error, got %s", resp.Error.Code)
+	}
+}
+
+func TestAPIv1_DeleteLink(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		path           string
+		linkByID       *data.IRCLink
+		linkByIDFn     func(id int) (*data.IRCLink, error)
+		deleteLinkFn   func(id int) error
+		remoteAddr     string
+		apiKey         string
+		adminSecret    string
+		expectedStatus int
+		checkBody      func(t *testing.T, body []byte)
+	}{
+		{
+			name: "authorized delete returns 204",
+			path: "/api/v1/links/1",
+			linkByID: &data.IRCLink{
+				ID:        1,
+				Timestamp: now,
+				User:      "testuser",
+				Title:     "Test Link",
+				URL:       "https://example.com",
+			},
+			remoteAddr:     "127.0.0.1:12345",
+			expectedStatus: http.StatusNoContent,
+			checkBody: func(t *testing.T, body []byte) {
+				if len(body) != 0 {
+					t.Errorf("expected empty body, got %q", string(body))
+				}
+			},
+		},
+		{
+			name:           "unauthorized (no header) returns 403",
+			path:           "/api/v1/links/1",
+			linkByID:       &data.IRCLink{ID: 1},
+			remoteAddr:     "192.168.1.100:12345",
+			adminSecret:    "secret123",
+			expectedStatus: http.StatusForbidden,
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APIErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "forbidden" {
+					t.Errorf("expected code forbidden, got %s", resp.Error.Code)
+				}
+			},
+		},
+		{
+			name:           "unauthorized (wrong key) returns 403",
+			path:           "/api/v1/links/1",
+			linkByID:       &data.IRCLink{ID: 1},
+			remoteAddr:     "192.168.1.100:12345",
+			apiKey:         "wrongkey",
+			adminSecret:    "secret123",
+			expectedStatus: http.StatusForbidden,
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APIErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "forbidden" {
+					t.Errorf("expected code forbidden, got %s", resp.Error.Code)
+				}
+			},
+		},
+		{
+			name:           "delete non-existent link returns 404",
+			path:           "/api/v1/links/999",
+			linkByID:       nil,
+			remoteAddr:     "127.0.0.1:12345",
+			expectedStatus: http.StatusNotFound,
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APIErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "not_found" {
+					t.Errorf("expected code not_found, got %s", resp.Error.Code)
+				}
+			},
+		},
+		{
+			name: "localhost always authorized (no key needed)",
+			path: "/api/v1/links/1",
+			linkByID: &data.IRCLink{
+				ID:        1,
+				Timestamp: now,
+				User:      "testuser",
+				Title:     "Test Link",
+				URL:       "https://example.com",
+			},
+			remoteAddr:     "127.0.0.1:12345",
+			adminSecret:    "secret123",
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name: "valid API key authorizes delete",
+			path: "/api/v1/links/1",
+			linkByID: &data.IRCLink{
+				ID:        1,
+				Timestamp: now,
+				User:      "testuser",
+				Title:     "Test Link",
+				URL:       "https://example.com",
+			},
+			remoteAddr:     "192.168.1.100:12345",
+			apiKey:         "secret123",
+			adminSecret:    "secret123",
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name:           "invalid ID returns 400",
+			path:           "/api/v1/links/abc",
+			remoteAddr:     "127.0.0.1:12345",
+			expectedStatus: http.StatusBadRequest,
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APIErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "invalid_id" {
+					t.Errorf("expected code invalid_id, got %s", resp.Error.Code)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := &mockAPIStore{
+				linkByID:     tt.linkByID,
+				linkByIDFn:   tt.linkByIDFn,
+				deleteLinkFn: tt.deleteLinkFn,
+			}
+			handler := &Handler{
+				Store: store,
+				Config: &config.Config{
+					AdminSecret: tt.adminSecret,
+				},
+			}
+
+			req := httptest.NewRequest(http.MethodDelete, tt.path, nil)
+			req.RemoteAddr = tt.remoteAddr
+			if tt.apiKey != "" {
+				req.Header.Set("X-API-Key", tt.apiKey)
+			}
+			w := httptest.NewRecorder()
+
+			handler.APIv1LinksHandler(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d. Body: %s", tt.expectedStatus, w.Code, w.Body.String())
+			}
+
+			if tt.checkBody != nil {
+				tt.checkBody(t, w.Body.Bytes())
+			}
+		})
+	}
+}
+
+func TestAPIv1_DeleteLink_StoreError(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		linkByIDFn     func(id int) (*data.IRCLink, error)
+		deleteLinkFn   func(id int) error
+		expectedStatus int
+		expectedCode   string
+	}{
+		{
+			name: "GetIRCLinkByID error returns 500",
+			linkByIDFn: func(id int) (*data.IRCLink, error) {
+				return nil, context.DeadlineExceeded
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedCode:   "internal_error",
+		},
+		{
+			name: "DeleteIRCLink error returns 500",
+			linkByIDFn: func(id int) (*data.IRCLink, error) {
+				return &data.IRCLink{
+					ID:        1,
+					Timestamp: now,
+					User:      "testuser",
+					Title:     "Test Link",
+					URL:       "https://example.com",
+				}, nil
+			},
+			deleteLinkFn: func(id int) error {
+				return context.DeadlineExceeded
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedCode:   "internal_error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := &mockAPIStore{
+				linkByIDFn:   tt.linkByIDFn,
+				deleteLinkFn: tt.deleteLinkFn,
+			}
+			handler := &Handler{
+				Store:  store,
+				Config: &config.Config{},
+			}
+
+			req := httptest.NewRequest(http.MethodDelete, "/api/v1/links/1", nil)
+			req.RemoteAddr = "127.0.0.1:12345"
+			w := httptest.NewRecorder()
+
+			handler.APIv1LinksHandler(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			var resp APIErrorResponse
+			if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("failed to unmarshal response: %v", err)
+			}
+
+			if resp.Error.Code != tt.expectedCode {
+				t.Errorf("expected code %s, got %s", tt.expectedCode, resp.Error.Code)
+			}
+		})
 	}
 }

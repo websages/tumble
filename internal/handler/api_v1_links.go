@@ -233,7 +233,32 @@ func (h *Handler) apiV1GetLink(w http.ResponseWriter, r *http.Request, id int) {
 }
 
 // apiV1DeleteLink handles DELETE /api/v1/links/{id}
-// Stub for now - to be implemented in Task 2.4
+// Requires X-API-Key header for authorization (localhost always allowed).
 func (h *Handler) apiV1DeleteLink(w http.ResponseWriter, r *http.Request, id int) {
-	writeAPIError(w, http.StatusNotImplemented, "not_implemented", "Not yet implemented")
+	// Check authorization - requires X-API-Key header
+	if !isAuthorizedAPIKey(r, h.Config.AdminSecret) {
+		writeAPIError(w, http.StatusForbidden, "forbidden", "Invalid or missing API key")
+		return
+	}
+
+	ctx := r.Context()
+
+	// Check if link exists
+	link, err := h.Store.GetIRCLinkByID(ctx, id)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch link")
+		return
+	}
+	if link == nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "Link not found")
+		return
+	}
+
+	// Delete the link
+	if err := h.Store.DeleteIRCLink(ctx, id); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to delete link")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent) // 204
 }
