@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tumble API Docs</title>
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+  <link rel="stylesheet" href="/css/screen.css" media="screen" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <script>
     (function () {
@@ -13,102 +14,24 @@
       if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
         document.documentElement.setAttribute("data-theme", "dark");
       }
+
+      // Font loading detection
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() {
+          document.documentElement.classList.add("fonts-loaded");
+        });
+      } else {
+        // Fallback: show icons after short delay
+        setTimeout(function() {
+          document.documentElement.classList.add("fonts-loaded");
+        }, 100);
+      }
     })();
   </script>
   <style>
-    :root {
-      --bg-color: #ffffff;
-      --text-color: #333333;
-
-      /* Gray scale for header */
-      --gray-0: #ffffff;
-      --gray-1: #f6f8fa;
-      --gray-2: #eaeef2;
-      --gray-3: #d0d7de;
-      --gray-4: #8c959f;
-      --gray-5: #57606a;
-      --gray-6: #24292f;
-
-      /* Header variables */
-      --bg-canvas: var(--gray-0);
-      --bg-surface: var(--gray-1);
-      --border-default: var(--gray-3);
-      --text-primary: var(--gray-6);
-      --accent-primary: #10b981;
-      --card-bg: var(--gray-0);
-
-      /* Footer Variables */
-      --footer-bg: #f5f5f5;
-      --footer-border: #eee;
-      --footer-text: #666;
-      --footer-link: #444;
-      --icon-fill: #000000;
-    }
-    [data-theme="dark"] {
-      --bg-color: #0d1117;
-      --text-color: #c9d1d9;
-
-      /* Gray scale for header */
-      --gray-0: #0d1117;
-      --gray-1: #161b22;
-      --gray-2: #21262d;
-      --gray-3: #30363d;
-      --gray-4: #484f58;
-      --gray-5: #8b949e;
-      --gray-6: #c9d1d9;
-
-      /* Header variables */
-      --bg-canvas: var(--gray-0);
-      --bg-surface: var(--gray-1);
-      --border-default: var(--gray-3);
-      --text-primary: var(--gray-6);
-      --accent-primary: #34d399;
-      --card-bg: var(--gray-1);
-
-      /* Footer Variables */
-      --footer-bg: #1a1a1a;
-      --footer-border: #333;
-      --footer-text: #888;
-      --footer-link: #aaa;
-      --icon-fill: #ffffff;
-    }
-  body { margin: 0; padding: 0 0 60px 0; display: flex; flex-direction: column; min-height: 100vh; font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); }
-  #swagger-ui { flex: 1; }
-
-  /* Footer Styles */
-
-    /* Footer Styles */
-    #footer {
-      padding: 10px;
-      text-align: center;
-      background: var(--footer-bg);
-      border-top: 1px solid var(--footer-border);
-      font-size: 12px;
-      color: var(--footer-text);
-      font-family: sans-serif;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      z-index: 100;
-    }
-    #footer a {
-      color: var(--footer-link);
-      text-decoration: none;
-    }
-    #footer a:hover {
-      text-decoration: underline;
-    }
-    #footer svg {
-        fill: var(--icon-fill);
-    }
-
-
-
-
-    /* Dark Mode for Swagger UI */
+    #swagger-ui { flex: 1; padding-bottom: 60px; }
     [data-theme="dark"] #swagger-ui {
-        filter: invert(88%) hue-rotate(180deg);
+      filter: invert(88%) hue-rotate(180deg);
     }
   </style>
 </head>
