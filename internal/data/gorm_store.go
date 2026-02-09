@@ -408,6 +408,14 @@ func (s *GormStore) DeleteLinkPreview(ctx context.Context, url string) error {
 	return s.db.WithContext(ctx).Delete(&LinkPreview{}, "url = ?", url).Error
 }
 
+func (s *GormStore) DeleteAllLinkPreviews(ctx context.Context) (int, error) {
+	result := s.db.WithContext(ctx).Where("1 = 1").Delete(&LinkPreview{})
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return int(result.RowsAffected), nil
+}
+
 func (s *GormStore) GetLinksByPopularity(ctx context.Context, limit int, offset int) ([]IRCLink, error) {
 	var links []IRCLink
 	err := s.db.WithContext(ctx).

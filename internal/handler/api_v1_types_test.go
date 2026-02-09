@@ -551,15 +551,15 @@ func TestAPISearchResponse_JSONMarshal(t *testing.T) {
 	}
 }
 
-func TestAPICacheResponse_JSONMarshal(t *testing.T) {
-	resp := APICacheResponse{
-		Cleared: true,
+func TestAPICacheClearResponse_JSONMarshal(t *testing.T) {
+	resp := APICacheClearResponse{
+		Cleared: "all",
 		Count:   42,
 	}
 
 	data, err := json.Marshal(resp)
 	if err != nil {
-		t.Fatalf("Failed to marshal APICacheResponse: %v", err)
+		t.Fatalf("Failed to marshal APICacheClearResponse: %v", err)
 	}
 
 	jsonStr := string(data)
@@ -570,6 +570,25 @@ func TestAPICacheResponse_JSONMarshal(t *testing.T) {
 	}
 	if !containsJSON(jsonStr, `"count":`) {
 		t.Errorf("Expected 'count' field, got: %s", jsonStr)
+	}
+}
+
+func TestAPICacheClearResponse_OmitEmptyCount(t *testing.T) {
+	resp := APICacheClearResponse{
+		Cleared: "https://example.com/article",
+		// Count is 0, should be omitted
+	}
+
+	data, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatalf("Failed to marshal APICacheClearResponse: %v", err)
+	}
+
+	jsonStr := string(data)
+
+	// count should be omitted when zero (for specific URL clearing)
+	if containsJSON(jsonStr, `"count":`) {
+		t.Errorf("Expected 'count' to be omitted when zero, got: %s", jsonStr)
 	}
 }
 
