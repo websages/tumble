@@ -121,6 +121,18 @@ func (s *GormStore) SearchIRCLinks(ctx context.Context, query string) ([]IRCLink
 	return links, err
 }
 
+func (s *GormStore) SearchQuotes(ctx context.Context, query string) ([]Quote, error) {
+	var quotes []Quote
+	// Simple LIKE search for cross-db compatibility
+	term := "%" + query + "%"
+	err := s.db.WithContext(ctx).
+		Where("quote LIKE ? OR author LIKE ?", term, term).
+		Order("timestamp DESC").
+		Limit(50).
+		Find(&quotes).Error
+	return quotes, err
+}
+
 func (s *GormStore) GetTopIRCLinks(ctx context.Context, startDays int, endDays int, limit int) ([]IRCLink, error) {
 	var links []IRCLink
 	now := time.Now()
@@ -394,6 +406,14 @@ func (s *GormStore) InsertLinkPreview(ctx context.Context, url string, data []by
 
 func (s *GormStore) DeleteLinkPreview(ctx context.Context, url string) error {
 	return s.db.WithContext(ctx).Delete(&LinkPreview{}, "url = ?", url).Error
+}
+
+func (s *GormStore) DeleteAllLinkPreviews(ctx context.Context) (int, error) {
+	result := s.db.WithContext(ctx).Where("1 = 1").Delete(&LinkPreview{})
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return int(result.RowsAffected), nil
 }
 
 func (s *GormStore) GetLinksByPopularity(ctx context.Context, limit int, offset int) ([]IRCLink, error) {
