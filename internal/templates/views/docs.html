@@ -19,24 +19,59 @@
     :root {
       --bg-color: #ffffff;
       --text-color: #333333;
-    /* Footer Variables from screen.css */
-    --footer-bg: #f5f5f5;
-    --footer-border: #eee;
-    --footer-text: #666;
-    --footer-link: #444;
-    --icon-fill: #000000;
-  }
-  [data-theme="dark"] {
-    --bg-color: #0d1117;
-    --text-color: #c9d1d9;
 
-    /* Footer Variables from screen.css */
-    --footer-bg: #1a1a1a;
-    --footer-border: #333;
-    --footer-text: #888;
-    --footer-link: #aaa;
-    --icon-fill: #ffffff;
-  }
+      /* Gray scale for header */
+      --gray-0: #ffffff;
+      --gray-1: #f6f8fa;
+      --gray-2: #eaeef2;
+      --gray-3: #d0d7de;
+      --gray-4: #8c959f;
+      --gray-5: #57606a;
+      --gray-6: #24292f;
+
+      /* Header variables */
+      --bg-canvas: var(--gray-0);
+      --bg-surface: var(--gray-1);
+      --border-default: var(--gray-3);
+      --text-primary: var(--gray-6);
+      --accent-primary: #10b981;
+      --card-bg: var(--gray-0);
+
+      /* Footer Variables */
+      --footer-bg: #f5f5f5;
+      --footer-border: #eee;
+      --footer-text: #666;
+      --footer-link: #444;
+      --icon-fill: #000000;
+    }
+    [data-theme="dark"] {
+      --bg-color: #0d1117;
+      --text-color: #c9d1d9;
+
+      /* Gray scale for header */
+      --gray-0: #0d1117;
+      --gray-1: #161b22;
+      --gray-2: #21262d;
+      --gray-3: #30363d;
+      --gray-4: #484f58;
+      --gray-5: #8b949e;
+      --gray-6: #c9d1d9;
+
+      /* Header variables */
+      --bg-canvas: var(--gray-0);
+      --bg-surface: var(--gray-1);
+      --border-default: var(--gray-3);
+      --text-primary: var(--gray-6);
+      --accent-primary: #34d399;
+      --card-bg: var(--gray-1);
+
+      /* Footer Variables */
+      --footer-bg: #1a1a1a;
+      --footer-border: #333;
+      --footer-text: #888;
+      --footer-link: #aaa;
+      --icon-fill: #ffffff;
+    }
   body { margin: 0; padding: 0 0 60px 0; display: flex; flex-direction: column; min-height: 100vh; font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); }
   #swagger-ui { flex: 1; }
 
