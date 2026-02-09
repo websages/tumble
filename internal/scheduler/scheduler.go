@@ -53,8 +53,8 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	s.cron.Start()
 	slog.Info("Scheduler started", "nextRun", s.cron.Entries()[0].Next)
 
-	// Check if we need to fetch today's cat on startup
-	go s.checkStartupCat(ctx)
+	// Check if we need to fetch today's kitten on startup
+	go s.checkStartupKitten(ctx)
 
 	return nil
 }
@@ -67,8 +67,25 @@ func (s *Scheduler) Stop() {
 	slog.Info("Scheduler stopped")
 }
 
-// checkStartupCat checks if today's cat needs to be fetched on startup.
-func (s *Scheduler) checkStartupCat(ctx context.Context) {
+// checkStartupKitten checks if today's kitten needs to be fetched on startup.
+// Only fetches if it's past 10 AM Central and no kitten exists for today.
+func (s *Scheduler) checkStartupKitten(ctx context.Context) {
+	// Check if it's past 10 AM Central Time
+	loc, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		slog.Warn("Failed to load America/Chicago timezone for startup check", "error", err)
+		return
+	}
+
+	now := time.Now().In(loc)
+	tenAM := time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, loc)
+
+	if now.Before(tenAM) {
+		slog.Info("Before 10 AM Central, skipping startup kitten check",
+			"currentTime", now.Format("15:04:05 MST"))
+		return
+	}
+
 	existing, err := s.store.GetTodayImageByLink(ctx, catAASUser)
 	if err != nil {
 		slog.Warn("Failed to check for existing daily cat on startup", "error", err)
@@ -76,7 +93,7 @@ func (s *Scheduler) checkStartupCat(ctx context.Context) {
 	}
 
 	if existing == nil {
-		slog.Info("No daily kitten for today, fetching now")
+		slog.Info("No daily kitten for today and past 10 AM, fetching now")
 		s.fetchDailyCatWithRetry(ctx)
 	} else {
 		slog.Info("Daily kitten already exists", "imageID", existing.ID)
