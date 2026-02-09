@@ -449,7 +449,7 @@
     }
   },
   "paths": {
-    "/r/{id}": {
+    "/go/{id}": {
       "get": {
         "summary": "Redirect to Link URL",
         "description": "Redirects to the URL associated with the given link ID. This is the public shortlink endpoint.",
@@ -1489,7 +1489,7 @@
     "/link/{id}": {
       "get": {
         "summary": "Redirect to a Link (Deprecated)",
-        "description": "DEPRECATED: Use GET /r/{id} instead. Redirects to the URL associated with the given ID.",
+        "description": "DEPRECATED: Use GET /go/{id} instead. Redirects to the URL associated with the given ID.",
         "deprecated": true,
         "tags": ["Deprecated"],
         "parameters": [

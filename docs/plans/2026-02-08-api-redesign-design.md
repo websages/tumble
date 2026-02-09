@@ -58,7 +58,7 @@ The redirect shortlink remains outside the API namespace:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/r/{id}` | Redirect to link URL |
+| GET | `/go/{id}` | Redirect to link URL |
 
 ## Content Negotiation
 
