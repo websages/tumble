@@ -53,21 +53,21 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 	}{
 		{
 			name:             "valid ID redirects with 302",
-			path:             "/r/123",
+			path:             "/go/123",
 			linkURL:          "https://example.com/article",
 			expectedStatus:   http.StatusFound,
 			expectedLocation: "https://example.com/article",
 		},
 		{
 			name:             "valid ID with http scheme redirects",
-			path:             "/r/456",
+			path:             "/go/456",
 			linkURL:          "http://example.com/page",
 			expectedStatus:   http.StatusFound,
 			expectedLocation: "http://example.com/page",
 		},
 		{
 			name:           "invalid ID returns 400",
-			path:           "/r/abc",
+			path:           "/go/abc",
 			expectedStatus: http.StatusBadRequest,
 			checkBody: func(t *testing.T, body string) {
 				if body != "Invalid ID\n" {
@@ -77,7 +77,7 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 		},
 		{
 			name:           "empty ID returns 400",
-			path:           "/r/",
+			path:           "/go/",
 			expectedStatus: http.StatusBadRequest,
 			checkBody: func(t *testing.T, body string) {
 				if body != "Invalid ID\n" {
@@ -87,7 +87,7 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 		},
 		{
 			name:           "negative ID returns 400",
-			path:           "/r/-5",
+			path:           "/go/-5",
 			expectedStatus: http.StatusBadRequest,
 			checkBody: func(t *testing.T, body string) {
 				if body != "Invalid ID\n" {
@@ -97,13 +97,13 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 		},
 		{
 			name:           "non-existent link returns 404",
-			path:           "/r/999",
+			path:           "/go/999",
 			linkURLErr:     errors.New("link not found"),
 			expectedStatus: http.StatusNotFound,
 		},
 		{
 			name: "store returns not found error returns 404",
-			path: "/r/888",
+			path: "/go/888",
 			linkURLFn: func(id int) (string, error) {
 				return "", errors.New("record not found")
 			},
@@ -111,7 +111,7 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 		},
 		{
 			name:           "javascript scheme is blocked",
-			path:           "/r/123",
+			path:           "/go/123",
 			linkURL:        "javascript:alert(1)",
 			expectedStatus: http.StatusBadRequest,
 			checkBody: func(t *testing.T, body string) {
@@ -122,7 +122,7 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 		},
 		{
 			name:           "data scheme is blocked",
-			path:           "/r/123",
+			path:           "/go/123",
 			linkURL:        "data:text/html,<script>alert(1)</script>",
 			expectedStatus: http.StatusBadRequest,
 			checkBody: func(t *testing.T, body string) {
@@ -133,7 +133,7 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 		},
 		{
 			name:           "file scheme is blocked",
-			path:           "/r/123",
+			path:           "/go/123",
 			linkURL:        "file:///etc/passwd",
 			expectedStatus: http.StatusBadRequest,
 			checkBody: func(t *testing.T, body string) {
@@ -191,7 +191,7 @@ func TestAPIv1_RedirectHandler_ClickTracking(t *testing.T) {
 	}{
 		{
 			name:            "valid signature increments clicks",
-			path:            "/r/123",
+			path:            "/go/123",
 			clickSigningKey: "testsecret",
 			linkURL:         "https://example.com",
 			expectIncrement: true,
@@ -199,7 +199,7 @@ func TestAPIv1_RedirectHandler_ClickTracking(t *testing.T) {
 		},
 		{
 			name:            "invalid signature does not increment",
-			path:            "/r/123",
+			path:            "/go/123",
 			sigQueryParam:   "invalidsig",
 			clickSigningKey: "testsecret",
 			linkURL:         "https://example.com",
@@ -208,7 +208,7 @@ func TestAPIv1_RedirectHandler_ClickTracking(t *testing.T) {
 		},
 		{
 			name:            "missing signature does not increment",
-			path:            "/r/123",
+			path:            "/go/123",
 			sigQueryParam:   "",
 			clickSigningKey: "testsecret",
 			linkURL:         "https://example.com",
@@ -217,7 +217,7 @@ func TestAPIv1_RedirectHandler_ClickTracking(t *testing.T) {
 		},
 		{
 			name:            "no signing key configured does not increment",
-			path:            "/r/123",
+			path:            "/go/123",
 			clickSigningKey: "",
 			linkURL:         "https://example.com",
 			expectIncrement: false,
@@ -283,7 +283,7 @@ func TestAPIv1_RedirectHandler_MethodNotAllowed(t *testing.T) {
 
 	for _, method := range methods {
 		t.Run(method, func(t *testing.T) {
-			req := httptest.NewRequest(method, "/r/123", nil)
+			req := httptest.NewRequest(method, "/go/123", nil)
 			w := httptest.NewRecorder()
 
 			handler.APIv1RedirectHandler(w, req)
@@ -304,7 +304,7 @@ func TestAPIv1_RedirectHandler_HeadMethod(t *testing.T) {
 		Config: &config.Config{},
 	}
 
-	req := httptest.NewRequest(http.MethodHead, "/r/123", nil)
+	req := httptest.NewRequest(http.MethodHead, "/go/123", nil)
 	w := httptest.NewRecorder()
 
 	handler.APIv1RedirectHandler(w, req)

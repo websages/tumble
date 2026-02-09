@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// APIv1RedirectHandler handles GET /r/{id} - the public shortlink redirect.
+// APIv1RedirectHandler handles GET /go/{id} - the public shortlink redirect.
 // This redirects users to the actual URL associated with a link ID.
 // If a valid click signature is provided via the sig query parameter,
 // the click count is incremented asynchronously.
@@ -21,9 +21,9 @@ func (h *Handler) APIv1RedirectHandler(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	// Parse ID from path: /r/{id}
+	// Parse ID from path: /go/{id}
 	path := r.URL.Path
-	idStr := strings.TrimPrefix(path, "/r/")
+	idStr := strings.TrimPrefix(path, "/go/")
 
 	// Check if we got a valid ID string
 	if idStr == "" || idStr == path {

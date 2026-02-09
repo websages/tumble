@@ -1410,7 +1410,7 @@ Clear all cache or specific URL.
 
 ## Phase 8: Redirect Shortlink
 
-### Task 8.1: Implement GET /r/{id}
+### Task 8.1: Implement GET /go/{id}
 
 **Files:**
 - Create: `internal/handler/redirect.go`

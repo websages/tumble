@@ -357,7 +357,7 @@ func main() {
 	mux.HandleFunc("/api/v1/kittens/", h.APIv1KittensDailyHandler)
 
 	// Public redirect shortlink
-	mux.HandleFunc("/r/", h.APIv1RedirectHandler)
+	mux.HandleFunc("/go/", h.APIv1RedirectHandler)
 
 	// Start
 	addr := ":" + cfg.Port
