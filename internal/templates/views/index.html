@@ -227,6 +227,23 @@
                     return;
                 }
 
+                // Update link header: show OG title prominently with URL below
+                if (title) {
+                    var linkEl = item.querySelector('.link-header .link');
+                    if (linkEl) {
+                        var linkAnchor = linkEl.querySelector('a:not(.missing-link)');
+                        if (linkAnchor) {
+                            linkAnchor.textContent = title;
+                            if (!linkEl.querySelector('.link-url') && title !== url) {
+                                var urlSpan = document.createElement('span');
+                                urlSpan.className = 'link-url';
+                                urlSpan.textContent = url;
+                                linkEl.appendChild(urlSpan);
+                            }
+                        }
+                    }
+                }
+
                 if (!previewDiv) return;
 
                 // Only show preview if we have at least an image, title, or description

@@ -461,6 +461,17 @@ body {
   display: block;
 }
 
+.link-url {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: var(--space-1);
+}
+
 .link-header .author {
   display: block;
   text-align: right;
