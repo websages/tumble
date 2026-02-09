@@ -345,6 +345,20 @@ func main() {
 	mux.HandleFunc("/api/docs", h.DocsHandler)
 	mux.HandleFunc("/api/openapi.json", h.OpenAPISpecHandler)
 
+	// API v1 Routes
+	mux.HandleFunc("/api/v1/links", h.APIv1LinksHandler)
+	mux.HandleFunc("/api/v1/links/", h.APIv1LinksHandler)
+	mux.HandleFunc("/api/v1/quotes", h.APIv1QuotesHandler)
+	mux.HandleFunc("/api/v1/quotes/", h.APIv1QuotesHandler)
+	mux.HandleFunc("/api/v1/stats", h.APIv1StatsHandler)
+	mux.HandleFunc("/api/v1/users/", h.APIv1UsersHandler)
+	mux.HandleFunc("/api/v1/search", h.APIv1SearchHandler)
+	mux.HandleFunc("/api/v1/cache", h.APIv1CacheHandler)
+	mux.HandleFunc("/api/v1/kittens/", h.APIv1KittensDailyHandler)
+
+	// Public redirect shortlink
+	mux.HandleFunc("/r/", h.APIv1RedirectHandler)
+
 	// Start
 	addr := ":" + cfg.Port
 	if cfg.Port == "" {
