@@ -1001,32 +1001,261 @@ body {
 
 /* Material Symbols Sizing */
 
+/* Mobile Elements - hidden on desktop */
+.mobile-hamburger,
+.mobile-site-name,
+.mobile-drawer,
+.mobile-drawer-backdrop {
+  display: none;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   #page {
-    padding: var(--space-3) var(--space-3) 80px var(--space-3);
+    padding: var(--space-3) var(--space-3) 40px var(--space-3);
     max-width: 100%;
   }
 
   #masthead {
-    font-size: 48px;
-    line-height: 1.1;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: var(--space-4);
+    display: none;
   }
 
   #sidebar {
     display: none;
   }
 
-  /* Date Widget on Mobile */
+  #footer {
+    display: none;
+  }
+
+  /* Header: hide desktop nav, show hamburger + site name */
+  .nav-left,
+  .nav-right {
+    display: none !important;
+  }
+
+  .mobile-site-name {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .mobile-hamburger {
+    display: flex;
+  }
+
+  .nav-header {
+    justify-content: space-between;
+  }
+
+  /* Drawer backdrop */
+  .mobile-drawer-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .drawer-open .mobile-drawer-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Drawer panel */
+  .mobile-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    background: var(--card-bg);
+    z-index: 2000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .drawer-open .mobile-drawer {
+    transform: translateX(0);
+  }
+
+  .drawer-open body {
+    overflow: hidden;
+  }
+
+  /* Drawer header */
+  .mobile-drawer-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  /* Drawer search */
+  .mobile-drawer-search {
+    padding: var(--space-3) var(--space-4);
+    margin: 0;
+  }
+
+  .mobile-drawer-search input[type="text"] {
+    width: 100%;
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    font-size: var(--font-size-lg);
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+    box-sizing: border-box;
+  }
+
+  .mobile-drawer-search input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+  }
+
+  /* Drawer nav links */
+  .mobile-drawer-nav {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .mobile-drawer-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 var(--space-4);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    transition: background-color 0.15s ease;
+  }
+
+  .mobile-drawer-nav a:hover,
+  .mobile-drawer-nav a:active {
+    background: var(--bg-surface);
+    color: var(--accent-primary);
+  }
+
+  /* Drawer sections */
+  .mobile-drawer-section {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .mobile-drawer-section-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-2);
+  }
+
+  .mobile-drawer-hot .sm {
+    font-size: var(--font-size-sm);
+    text-align: left;
+    padding-bottom: var(--space-2);
+  }
+
+  .mobile-drawer-hot .link a {
+    font-size: var(--font-size-sm);
+    font-weight: normal;
+    color: var(--accent-primary);
+  }
+
+  /* Drawer toggle buttons */
+  .mobile-drawer-toggles {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .mobile-drawer-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 48px;
+    padding: 0 var(--space-2);
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background-color 0.15s ease;
+    width: 100%;
+    text-align: left;
+  }
+
+  .mobile-drawer-toggle-btn:hover,
+  .mobile-drawer-toggle-btn:active {
+    background: var(--bg-surface);
+  }
+
+  .mobile-drawer-toggle-btn .material-symbols-rounded {
+    font-size: 22px;
+  }
+
+  /* Drawer footer links */
+  .mobile-drawer-footer {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    margin-top: auto;
+  }
+
+  .mobile-drawer-footer a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+  }
+
+  .mobile-drawer-footer a:hover {
+    color: var(--accent-primary);
+  }
+
+  /* Date Widget - inline banners on mobile */
   .date-widget {
     margin-left: 0;
+    margin-top: 0;
     float: none;
-    margin-bottom: var(--space-3);
-    width: 60px;
-    height: 60px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: auto;
+    padding: var(--space-2) 0;
+    margin-bottom: 0;
+    border: none;
+    box-shadow: none;
+    background: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border-default);
+    gap: var(--space-1);
+  }
+
+  .date-widget:hover {
+    transform: none;
+    box-shadow: none;
   }
 
   /* Disable sticky behavior on mobile */
@@ -1034,16 +1263,63 @@ body {
     position: relative !important;
     top: auto !important;
     left: auto !important;
-    margin-top: 30px !important;
+    margin-top: 0 !important;
   }
 
   .date-number {
-    font-size: 24px;
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    line-height: 1;
+    order: 2;
+    margin-bottom: 0;
   }
 
-  .date-day,
+  .date-meta {
+    display: contents;
+  }
+
+  .date-day {
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    text-transform: none;
+    color: var(--text-secondary);
+    line-height: 1;
+    letter-spacing: normal;
+    order: 0;
+  }
+
   .date-month {
-    font-size: 9px;
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    text-transform: none;
+    color: var(--text-secondary);
+    line-height: 1;
+    letter-spacing: normal;
+    order: 1;
+  }
+
+  .date-year {
+    font-size: 13px;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary);
+    opacity: 0.7;
+    order: 3;
+    margin-top: 0;
+  }
+
+  /* Content optimizations */
+  .item img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .link a {
+    font-size: 18px;
+  }
+
+  .broken-link {
+    max-width: 200px;
   }
 
   .quote-card {
@@ -1057,6 +1333,10 @@ body {
   }
 
   .youtube-embed-wrapper {
+    max-width: 100%;
+  }
+
+  .link-card-wrapper {
     max-width: 100%;
   }
 }
