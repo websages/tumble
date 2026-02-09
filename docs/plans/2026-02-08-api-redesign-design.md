@@ -15,6 +15,19 @@ and establishes a clean, versioned API surface.
 - Proper HTTP status code usage
 - Consistent error handling
 
+## Authentication Model
+
+This API uses a **Trusted Intermediary** pattern. A single API key is issued
+to a service (such as an IRC bot or backend application) that posts on behalf
+of users. The `user` field in request bodies identifies which user the
+intermediary is acting for.
+
+This design assumes the intermediary is trusted to correctly identify users.
+If the API is later opened to direct end-user access (mobile apps, browser
+extensions), a per-user authentication scheme should be implemented where
+the user identity is derived from the auth token rather than passed in the
+request body.
+
 ## URL Structure
 
 All API endpoints use the `/api/v1/` prefix with pluralized resource names.
@@ -31,9 +44,11 @@ All API endpoints use the `/api/v1/` prefix with pluralized resource names.
 | POST | `/api/v1/quotes` | Create a new quote |
 | GET | `/api/v1/quotes/{id}` | Get quote by ID |
 | DELETE | `/api/v1/quotes/{id}` | Delete quote (auth required) |
-| GET | `/api/v1/stats` | User statistics |
+| GET | `/api/v1/stats` | Site-wide stats and leaderboard |
+| GET | `/api/v1/users/{user}/stats` | Per-user statistics |
 | GET | `/api/v1/search` | Search links and quotes |
 | DELETE | `/api/v1/cache` | Clear preview cache |
+| GET | `/api/v1/kittens/daily` | Get current daily kitten |
 | PUT | `/api/v1/kittens/daily` | Ensure daily kitten exists |
 | DELETE | `/api/v1/kittens/daily` | Remove daily kitten |
 
@@ -181,9 +196,18 @@ Collections are wrapped in an object with metadata:
 | 422 | Validation error (valid JSON but invalid data) |
 | 500 | Internal server error |
 
-Note: Duplicate links return 201 with `is_duplicate: true` in the response
-body. The status code indicates the request succeeded; the body provides
-context about duplicates.
+### Duplicate Link Handling
+
+When a URL is submitted that already exists, a **new record is always created**.
+This allows tracking who submitted what and when, even for duplicates. The
+response uses 201 Created (not 409 Conflict) because a new resource was created.
+
+The response includes:
+- `is_duplicate: true` - flags that this URL was previously submitted
+- `previous_submissions` - array of prior submissions with user, date, and ID
+
+This enables clients to display contextual messages like "Bob already posted
+this 3 months ago" while still recording the new submission.
 
 ## Error Responses
 
@@ -242,6 +266,12 @@ X-API-Key: your-secret-key
 - `DELETE /api/v1/cache`
 - `PUT /api/v1/kittens/daily`
 - `DELETE /api/v1/kittens/daily`
+
+### Public Endpoints
+
+All other endpoints are public, including:
+- All GET operations (reading links, quotes, stats, search, daily kitten)
+- POST operations for creating links and quotes (user specified in body)
 
 ### OpenAPI Security Scheme
 
@@ -349,16 +379,84 @@ GET /api/v1/search?q=keyword&type=links,quotes&limit=50&offset=0
 Query parameters:
 - `q` (required, min 4 characters)
 - `type` (optional, comma-separated: `links`, `quotes`, default: both)
-- `limit` (default: 50)
-- `offset` (default: 0)
+- `limit` (default: 50, applies per type)
+- `offset` (default: 0, applies per type)
+
+Response uses separate arrays for each content type:
+
+```json
+{
+  "links": [
+    {"id": 42, "url": "...", "title": "...", "user": "alice", "created_at": "..."}
+  ],
+  "quotes": [
+    {"id": 5, "quote": "...", "author": "...", "poster": "bob", "created_at": "..."}
+  ],
+  "meta": {
+    "total_links": 12,
+    "total_quotes": 3,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+If `type` parameter limits to one type, the other array will be empty.
 
 ### Statistics
+
+#### Site-Wide Stats and Leaderboard
 
 ```http
 GET /api/v1/stats?limit=50&offset=0
 ```
 
-Returns user statistics with link and quote counts.
+Returns site-wide totals and a leaderboard of users by activity.
+
+Query parameters:
+- `limit` (default: 50, max: 1000) - limits leaderboard entries
+- `offset` (default: 0)
+
+Response:
+
+```json
+{
+  "site": {
+    "total_links": 15000,
+    "total_quotes": 3200,
+    "total_users": 47
+  },
+  "leaderboard": [
+    {"user": "alice", "link_count": 500, "quote_count": 120},
+    {"user": "bob", "link_count": 450, "quote_count": 85}
+  ],
+  "meta": {
+    "total": 47,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+#### Per-User Stats
+
+```http
+GET /api/v1/users/alice/stats
+```
+
+Returns statistics for a specific user.
+
+Response:
+
+```json
+{
+  "user": "alice",
+  "link_count": 500,
+  "quote_count": 120
+}
+```
+
+Returns 404 if user has no submissions.
 
 ### Cache
 
@@ -393,6 +491,24 @@ Response:
 
 ### Daily Kitten
 
+#### Get Daily Kitten
+
+```http
+GET /api/v1/kittens/daily
+```
+
+Returns today's kitten without triggering a fetch.
+
+Response:
+```json
+{
+  "url": "https://cataas.com/cat/abc123",
+  "date": "2026-02-08"
+}
+```
+
+Returns 404 if no kitten exists for today.
+
 #### Ensure Daily Kitten Exists
 
 ```http
@@ -423,6 +539,8 @@ X-API-Key: your-secret-key
 
 Use this to remove an undesirable kitten, then PUT to fetch a new one.
 
+Returns 204 on success, 404 if no kitten exists.
+
 ## Migration Notes
 
 ### Deprecated Endpoints
@@ -442,6 +560,7 @@ The following endpoints will be removed:
 | `DELETE /quote/{id}` | `DELETE /api/v1/quotes/{id}` |
 | `GET /stats` | `GET /api/v1/stats` (HTML removed) |
 | `GET /stats.json` | `GET /api/v1/stats` |
+| N/A | `GET /api/v1/users/{user}/stats` (new) |
 | `GET /search` | `GET /api/v1/search` |
 | `GET /ogpreview` | Removed or moved to `/api/v1/preview` |
 | `GET /api/caching/invalidate` | `DELETE /api/v1/cache` |
