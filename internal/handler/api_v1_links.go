@@ -113,9 +113,35 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 }
 
 // apiV1GetLink handles GET /api/v1/links/{id}
-// Stub for now - to be implemented in Task 2.2
+// Returns a single link by ID, supports JSON (default) and plain text responses.
 func (h *Handler) apiV1GetLink(w http.ResponseWriter, r *http.Request, id int) {
-	writeAPIError(w, http.StatusNotImplemented, "not_implemented", "Not yet implemented")
+	ctx := r.Context()
+
+	link, err := h.Store.GetIRCLinkByID(ctx, id)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch link")
+		return
+	}
+	if link == nil {
+		writeAPIError(w, http.StatusNotFound, "not_found", "Link not found")
+		return
+	}
+
+	// Check content negotiation for plain text
+	if wantsPlainText(r) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte(link.Title + " - " + link.URL))
+		return
+	}
+
+	writeJSON(w, http.StatusOK, APILinkResponse{
+		ID:        link.ID,
+		URL:       link.URL,
+		Title:     link.Title,
+		User:      link.User,
+		Clicks:    link.Clicks,
+		CreatedAt: link.Timestamp,
+	})
 }
 
 // apiV1DeleteLink handles DELETE /api/v1/links/{id}
