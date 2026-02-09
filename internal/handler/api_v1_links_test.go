@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,10 +18,14 @@ import (
 // methods we need for testing.
 type mockAPIStore struct {
 	data.Store
-	links      []data.IRCLink
-	linkByID   *data.IRCLink
-	linkByIDFn func(id int) (*data.IRCLink, error)
-	err        error
+	links            []data.IRCLink
+	linkByID         *data.IRCLink
+	linkByIDFn       func(id int) (*data.IRCLink, error)
+	linksByURL       []data.IRCLink
+	linksByURLFn     func(url string) ([]data.IRCLink, error)
+	insertedLinkID   int
+	insertLinkFn     func(user, title, url, contentType string) (int, error)
+	err              error
 }
 
 func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]data.IRCLink, error) {
@@ -38,6 +43,26 @@ func (m *mockAPIStore) GetIRCLinkByID(ctx context.Context, id int) (*data.IRCLin
 		return nil, m.err
 	}
 	return m.linkByID, nil
+}
+
+func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string) ([]data.IRCLink, error) {
+	if m.linksByURLFn != nil {
+		return m.linksByURLFn(url)
+	}
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.linksByURL, nil
+}
+
+func (m *mockAPIStore) InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error) {
+	if m.insertLinkFn != nil {
+		return m.insertLinkFn(user, title, url, contentType)
+	}
+	if m.err != nil {
+		return 0, m.err
+	}
+	return m.insertedLinkID, nil
 }
 
 func TestAPIv1_ListLinks(t *testing.T) {
@@ -528,5 +553,286 @@ func TestAPIv1_GetLink(t *testing.T) {
 				tt.checkBody(t, w.Body.Bytes())
 			}
 		})
+	}
+}
+
+func TestAPIv1_CreateLink(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		body           string
+		linksByURL     []data.IRCLink
+		insertedID     int
+		storeErr       error
+		acceptHeader   string
+		expectedStatus int
+		expectedType   string
+		checkBody      func(t *testing.T, body []byte)
+	}{
+		{
+			name:           "valid link returns 201",
+			body:           `{"url":"https://example.com/article","user":"testuser"}`,
+			linksByURL:     []data.IRCLink{},
+			insertedID:     42,
+			expectedStatus: http.StatusCreated,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APILinkCreateResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.ID != 42 {
+					t.Errorf("expected ID 42, got %d", resp.ID)
+				}
+				if resp.URL != "https://example.com/article" {
+					t.Errorf("expected URL https://example.com/article, got %s", resp.URL)
+				}
+				if resp.User != "testuser" {
+					t.Errorf("expected user testuser, got %s", resp.User)
+				}
+				if resp.IsDuplicate {
+					t.Errorf("expected is_duplicate false, got true")
+				}
+				if len(resp.PreviousSubmissions) != 0 {
+					t.Errorf("expected no previous submissions, got %d", len(resp.PreviousSubmissions))
+				}
+			},
+		},
+		{
+			name:           "missing url returns 422",
+			body:           `{"user":"testuser"}`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp ValidationErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "validation_error" {
+					t.Errorf("expected code validation_error, got %s", resp.Error.Code)
+				}
+				if resp.Error.Details["url"] == "" {
+					t.Errorf("expected url validation error")
+				}
+			},
+		},
+		{
+			name:           "missing user returns 422",
+			body:           `{"url":"https://example.com"}`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp ValidationErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "validation_error" {
+					t.Errorf("expected code validation_error, got %s", resp.Error.Code)
+				}
+				if resp.Error.Details["user"] == "" {
+					t.Errorf("expected user validation error")
+				}
+			},
+		},
+		{
+			name:           "invalid url scheme returns 422",
+			body:           `{"url":"javascript:alert(1)","user":"testuser"}`,
+			expectedStatus: http.StatusUnprocessableEntity,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp ValidationErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "validation_error" {
+					t.Errorf("expected code validation_error, got %s", resp.Error.Code)
+				}
+				if resp.Error.Details["url"] == "" {
+					t.Errorf("expected url validation error")
+				}
+			},
+		},
+		{
+			name: "duplicate link returns 201 with is_duplicate true",
+			body: `{"url":"https://example.com/article","user":"newuser"}`,
+			linksByURL: []data.IRCLink{
+				{
+					ID:        10,
+					Timestamp: now.Add(-24 * time.Hour),
+					User:      "olduser",
+					Title:     "Old Title",
+					URL:       "https://example.com/article",
+				},
+			},
+			insertedID:     42,
+			expectedStatus: http.StatusCreated,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APILinkCreateResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.ID != 42 {
+					t.Errorf("expected ID 42, got %d", resp.ID)
+				}
+				if !resp.IsDuplicate {
+					t.Errorf("expected is_duplicate true, got false")
+				}
+				if len(resp.PreviousSubmissions) != 1 {
+					t.Fatalf("expected 1 previous submission, got %d", len(resp.PreviousSubmissions))
+				}
+				prev := resp.PreviousSubmissions[0]
+				if prev.ID != 10 {
+					t.Errorf("expected previous ID 10, got %d", prev.ID)
+				}
+				if prev.User != "olduser" {
+					t.Errorf("expected previous user olduser, got %s", prev.User)
+				}
+				if prev.Title != "Old Title" {
+					t.Errorf("expected previous title Old Title, got %s", prev.Title)
+				}
+			},
+		},
+		{
+			name:           "invalid JSON returns 400",
+			body:           `{invalid json}`,
+			expectedStatus: http.StatusBadRequest,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APIErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "invalid_request" {
+					t.Errorf("expected code invalid_request, got %s", resp.Error.Code)
+				}
+			},
+		},
+		{
+			name:           "plain text response for Accept: text/plain",
+			body:           `{"url":"https://example.com/article","user":"testuser"}`,
+			linksByURL:     []data.IRCLink{},
+			insertedID:     42,
+			acceptHeader:   "text/plain",
+			expectedStatus: http.StatusCreated,
+			expectedType:   "text/plain",
+			checkBody: func(t *testing.T, body []byte) {
+				expected := "Created link 42: https://example.com/article"
+				if string(body) != expected {
+					t.Errorf("expected %q, got %q", expected, string(body))
+				}
+			},
+		},
+		{
+			name:           "plain text response for duplicate",
+			body:           `{"url":"https://example.com/article","user":"testuser"}`,
+			linksByURL: []data.IRCLink{
+				{
+					ID:        10,
+					Timestamp: now.Add(-24 * time.Hour),
+					User:      "olduser",
+					Title:     "Old Title",
+					URL:       "https://example.com/article",
+				},
+			},
+			insertedID:     42,
+			acceptHeader:   "text/plain",
+			expectedStatus: http.StatusCreated,
+			expectedType:   "text/plain",
+			checkBody: func(t *testing.T, body []byte) {
+				expected := "Created link 42: https://example.com/article (duplicate of link 10 by olduser)"
+				if string(body) != expected {
+					t.Errorf("expected %q, got %q", expected, string(body))
+				}
+			},
+		},
+		{
+			name:           "http url is valid",
+			body:           `{"url":"http://example.com/article","user":"testuser"}`,
+			linksByURL:     []data.IRCLink{},
+			insertedID:     43,
+			expectedStatus: http.StatusCreated,
+			expectedType:   "application/json",
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APILinkCreateResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.ID != 43 {
+					t.Errorf("expected ID 43, got %d", resp.ID)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := &mockAPIStore{
+				linksByURL:     tt.linksByURL,
+				insertedLinkID: tt.insertedID,
+				err:            tt.storeErr,
+			}
+			handler := &Handler{
+				Store:  store,
+				Config: &config.Config{},
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(tt.body))
+			req.RemoteAddr = "127.0.0.1:12345" // Localhost for auth bypass
+			req.Header.Set("Content-Type", "application/json")
+			if tt.acceptHeader != "" {
+				req.Header.Set("Accept", tt.acceptHeader)
+			}
+			w := httptest.NewRecorder()
+
+			handler.APIv1LinksHandler(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d. Body: %s", tt.expectedStatus, w.Code, w.Body.String())
+			}
+
+			contentType := w.Header().Get("Content-Type")
+			if contentType != tt.expectedType {
+				t.Errorf("expected Content-Type %s, got %s", tt.expectedType, contentType)
+			}
+
+			if tt.checkBody != nil {
+				tt.checkBody(t, w.Body.Bytes())
+			}
+		})
+	}
+}
+
+func TestAPIv1_CreateLink_StoreError(t *testing.T) {
+	store := &mockAPIStore{
+		linksByURL: []data.IRCLink{},
+		insertLinkFn: func(user, title, url, contentType string) (int, error) {
+			return 0, context.DeadlineExceeded
+		},
+	}
+	handler := &Handler{
+		Store:  store,
+		Config: &config.Config{},
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(`{"url":"https://example.com","user":"testuser"}`))
+	req.RemoteAddr = "127.0.0.1:12345"
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	handler.APIv1LinksHandler(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("expected status %d, got %d", http.StatusInternalServerError, w.Code)
+	}
+
+	var resp APIErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if resp.Error.Code != "internal_error" {
+		t.Errorf("expected code internal_error, got %s", resp.Error.Code)
 	}
 }
