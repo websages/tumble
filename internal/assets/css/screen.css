@@ -1461,11 +1461,35 @@ html.fonts-loaded .material-symbols-rounded {
 }
 
 /* Compact Mode Styles */
-.compact-mode .og-preview,
 .compact-mode .og-card .og-image,
 .compact-mode .og-preview-card .og-preview-image,
-.compact-mode .youtube-embed-wrapper {
+.compact-mode .youtube-embed-wrapper,
+.compact-mode .og-description,
+.compact-mode .kitten-image,
+.compact-mode .embed-media,
+.compact-mode .imgur-media-link,
+.compact-mode .imgur-gallery-card,
+.compact-mode .flickr-media,
+.compact-mode .direct-image-wrapper {
   display: none !important;
+}
+
+/* Compact placeholders - shown only in compact mode */
+.compact-placeholder {
+  display: none;
+}
+
+.compact-mode .compact-placeholder {
+  display: inline !important;
+}
+
+/* In compact mode, show OG site info and content even for Reddit embeds */
+.compact-mode .link-card-wrapper .og-site-info {
+  display: flex !important;
+}
+
+.compact-mode .link-card-wrapper .og-content {
+  display: block !important;
 }
 
 /* Navigation Links */

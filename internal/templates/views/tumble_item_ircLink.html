@@ -4,7 +4,7 @@
                 <span class="link">
                     {{if eq .EmbedType "twitter"}}
                         {{/* Twitter embed */}}
-                        <blockquote class="twitter-tweet"><a href="{{.EmbedURL}}" target="_blank">{{.Title}}</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+                        <span class="embed-media"><blockquote class="twitter-tweet"><a href="{{.EmbedURL}}" target="_blank">{{.Title}}</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></span><span class="compact-placeholder">𝕏 <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
                     {{else if eq .EmbedType "imgur_gallery"}}
                         {{/* Imgur gallery card */}}
                         {{if .IsBroken}}
@@ -23,7 +23,7 @@
                                         <span class="gallery-card-subtitle">{{.Title}}</span>
                                     </span>
                                 </a>
-                            </span>
+                            </span><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
                         {{end}}
                     {{else if eq .EmbedType "imgur_single"}}
                         {{/* Imgur single image/video */}}
@@ -41,20 +41,24 @@
                                     <span class="missing-link">{{.URL}}</span>
                                 </span>
                             {{end}}
-                        </a>
+                        </a><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
                     {{else if eq .EmbedType "flickr"}}
                         {{/* Flickr image */}}
+                        <span class="flickr-media">
                         {{if .PhotoPageURL}}
                             <a href="{{.PhotoPageURL}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
                         {{else}}
                             <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
                         {{end}}
+                        </span><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
                     {{else if eq .EmbedType "image"}}
                         {{/* Direct image link */}}
+                        <span class="direct-image-wrapper">
                         <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">
                             <img src="{{.URL}}" class="direct-image"
                                 onerror="this.parentNode.innerHTML='<span class=\'http-error-badge\'>404</span> <span class=\'missing-link\'>{{.URL}}</span>'; this.parentNode.classList.add('missing-link');" />
                         </a>
+                        </span><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
                     {{else}}
                         {{/* Generic link */}}
                         <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{if .DisplayTitle}}{{.DisplayTitle}}{{else}}{{.Title}}{{end}}</a>
