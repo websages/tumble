@@ -83,6 +83,7 @@ type Store interface {
 	GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]Quote, error)
 
 	SearchIRCLinks(ctx context.Context, query string) ([]IRCLink, error)
+	SearchQuotes(ctx context.Context, query string) ([]Quote, error)
 	GetTopIRCLinks(ctx context.Context, startDays int, endDays int, limit int) ([]IRCLink, error)
 	GetIRCLinkByID(ctx context.Context, id int) (*IRCLink, error)
 	GetIRCLinkURL(ctx context.Context, id int) (string, error)
