@@ -24,7 +24,7 @@ type integrationMockStore struct {
 	insertedLinkID int
 
 	// Quotes
-	quotes   []data.Quote
+	quotes    []data.Quote
 	quoteByID *data.Quote
 
 	// Stats

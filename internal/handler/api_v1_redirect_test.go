@@ -181,13 +181,13 @@ func TestAPIv1_RedirectHandler(t *testing.T) {
 
 func TestAPIv1_RedirectHandler_ClickTracking(t *testing.T) {
 	tests := []struct {
-		name               string
-		path               string
-		sigQueryParam      string
-		clickSigningKey    string
-		linkURL            string
-		expectIncrement    bool
-		expectedStatus     int
+		name            string
+		path            string
+		sigQueryParam   string
+		clickSigningKey string
+		linkURL         string
+		expectIncrement bool
+		expectedStatus  int
 	}{
 		{
 			name:            "valid signature increments clicks",

@@ -14,11 +14,11 @@ import (
 // mockStatsStore is a mock implementation of data.Store for testing stats API handlers.
 type mockStatsStore struct {
 	data.Store
-	userStats       []data.UserStat
-	userStatsFn     func(sortBy string, limit int, offset int) ([]data.UserStat, error)
-	links           []data.IRCLink
-	quotes          []data.Quote
-	err             error
+	userStats   []data.UserStat
+	userStatsFn func(sortBy string, limit int, offset int) ([]data.UserStat, error)
+	links       []data.IRCLink
+	quotes      []data.Quote
+	err         error
 }
 
 func (m *mockStatsStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]data.UserStat, error) {

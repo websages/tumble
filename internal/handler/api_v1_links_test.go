@@ -18,15 +18,15 @@ import (
 // methods we need for testing.
 type mockAPIStore struct {
 	data.Store
-	links            []data.IRCLink
-	linkByID         *data.IRCLink
-	linkByIDFn       func(id int) (*data.IRCLink, error)
-	linksByURL       []data.IRCLink
-	linksByURLFn     func(url string) ([]data.IRCLink, error)
-	insertedLinkID   int
-	insertLinkFn     func(user, title, url, contentType string) (int, error)
-	deleteLinkFn     func(id int) error
-	err              error
+	links          []data.IRCLink
+	linkByID       *data.IRCLink
+	linkByIDFn     func(id int) (*data.IRCLink, error)
+	linksByURL     []data.IRCLink
+	linksByURLFn   func(url string) ([]data.IRCLink, error)
+	insertedLinkID int
+	insertLinkFn   func(user, title, url, contentType string) (int, error)
+	deleteLinkFn   func(id int) error
+	err            error
 }
 
 func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]data.IRCLink, error) {
@@ -89,10 +89,10 @@ func TestAPIv1_ListLinks(t *testing.T) {
 		checkBody      func(t *testing.T, body []byte)
 	}{
 		{
-			name:   "returns empty list",
-			method: http.MethodGet,
-			path:   "/api/v1/links",
-			links:  []data.IRCLink{},
+			name:           "returns empty list",
+			method:         http.MethodGet,
+			path:           "/api/v1/links",
+			links:          []data.IRCLink{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APILinksResponse
@@ -221,10 +221,10 @@ func TestAPIv1_ListLinks(t *testing.T) {
 			},
 		},
 		{
-			name:   "limit capped at 1000",
-			method: http.MethodGet,
-			path:   "/api/v1/links?limit=5000",
-			links:  []data.IRCLink{},
+			name:           "limit capped at 1000",
+			method:         http.MethodGet,
+			path:           "/api/v1/links?limit=5000",
+			links:          []data.IRCLink{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APILinksResponse
@@ -237,10 +237,10 @@ func TestAPIv1_ListLinks(t *testing.T) {
 			},
 		},
 		{
-			name:   "invalid limit uses default",
-			method: http.MethodGet,
-			path:   "/api/v1/links?limit=abc",
-			links:  []data.IRCLink{},
+			name:           "invalid limit uses default",
+			method:         http.MethodGet,
+			path:           "/api/v1/links?limit=abc",
+			links:          []data.IRCLink{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APILinksResponse
@@ -736,8 +736,8 @@ func TestAPIv1_CreateLink(t *testing.T) {
 			},
 		},
 		{
-			name:           "plain text response for duplicate",
-			body:           `{"url":"https://example.com/article","user":"testuser"}`,
+			name: "plain text response for duplicate",
+			body: `{"url":"https://example.com/article","user":"testuser"}`,
 			linksByURL: []data.IRCLink{
 				{
 					ID:        10,

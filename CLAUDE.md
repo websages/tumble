@@ -21,6 +21,7 @@ This project uses a Makefile for all build and run operations. Always use these 
 
 ## Code Quality
 
+- **Run `go fmt`** on all Go code before committing
 - **No trailing whitespace** - validate with `git diff --check` before committing
 - **No Docker usage** without explicitly discussing it first
 - **Keep changes minimal** - avoid over-engineering or adding unnecessary features
