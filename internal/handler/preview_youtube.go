@@ -24,11 +24,15 @@ func (h *Handler) GetYouTubePreview(targetURL string) (map[string]string, error)
 		return nil, fmt.Errorf("status 404")
 	}
 
-	// Make check more permissible using Contains
-	if strings.Contains(title, " - YouTube") || title == "YouTube" {
-		// Special handling for caller to know it's a 404
+	// Detect YouTube "soft 404": unavailable videos return a generic title
+	// like "YouTube" without the normal "Video Title - YouTube" format.
+	if title == "YouTube" {
 		return nil, fmt.Errorf("status 404")
 	}
+
+	// Strip the standard " - YouTube" suffix from the title
+	title = strings.TrimSuffix(title, " - YouTube")
+	meta["title"] = title
 
 	meta["type"] = "video"
 
