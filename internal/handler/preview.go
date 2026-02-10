@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	previewCacheTTL = 10 * 24 * time.Hour  // Normal previews expire after 10 days
-	errorCacheTTL   = 180 * 24 * time.Hour // Error/404 previews expire after 180 days
+	previewCacheTTL     = 10 * 24 * time.Hour // Normal previews: 10 days
+	errorCacheTTLRecent = 24 * time.Hour      // Error for links < 10 days old: 24h
+	errorCacheTTLOld    = 60 * 24 * time.Hour // Error for links > 10 days old: 60 days
+	linkAgeCutoff       = 10 * 24 * time.Hour // Boundary between "recent" and "old"
 )
 
 // OEmbed Providers Configuration
@@ -60,11 +62,15 @@ type OEmbedResponse struct {
 }
 
 // isPreviewExpired checks whether a cached link preview has exceeded its TTL.
-// Error previews get a longer TTL since errors are unlikely to change quickly.
-func isPreviewExpired(cached *data.LinkPreview) bool {
-	ttl := previewCacheTTL
-	if strings.Contains(string(cached.Data), `"error":`) {
-		ttl = errorCacheTTL
+// Error previews use a tiered TTL based on link age: recent links get a short
+// TTL (24h) so errors are retried quickly, while old links get a long TTL (60d).
+func isPreviewExpired(cached *data.LinkPreview, linkTimestamp time.Time) bool {
+	if !strings.Contains(string(cached.Data), `"error":`) {
+		return time.Since(cached.UpdatedAt) > previewCacheTTL
+	}
+	ttl := errorCacheTTLOld
+	if !linkTimestamp.IsZero() && time.Since(linkTimestamp) < linkAgeCutoff {
+		ttl = errorCacheTTLRecent
 	}
 	return time.Since(cached.UpdatedAt) > ttl
 }
@@ -86,7 +92,15 @@ func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request
 		return false
 	}
 
-	if isPreviewExpired(cached) {
+	// For error entries, look up the link's timestamp to determine TTL tier
+	var linkTimestamp time.Time
+	if strings.Contains(string(cached.Data), `"error":`) {
+		if links, err := h.Store.GetIRCLinksByURL(r.Context(), urlParam); err == nil && len(links) > 0 {
+			linkTimestamp = links[len(links)-1].Timestamp // oldest link (results ordered DESC)
+		}
+	}
+
+	if isPreviewExpired(cached, linkTimestamp) {
 		h.Store.DeleteLinkPreview(r.Context(), urlParam)
 		return false
 	}

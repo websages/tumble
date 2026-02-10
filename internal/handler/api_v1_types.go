@@ -115,6 +115,13 @@ type APICacheClearResponse struct {
 	Count   int    `json:"count,omitempty"`
 }
 
+// APICacheRefreshResponse represents the response from cache refresh operations.
+type APICacheRefreshResponse struct {
+	URL     string            `json:"url"`
+	Preview map[string]string `json:"preview"`
+	Cached  bool              `json:"cached"`
+}
+
 // APIKittenResponse represents the response from kitten operations.
 type APIKittenResponse struct {
 	URL     string `json:"url"`

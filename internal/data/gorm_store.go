@@ -113,13 +113,25 @@ func (s *GormStore) SearchIRCLinks(ctx context.Context, query string) ([]IRCLink
 	var links []IRCLink
 	// Simple LIKE search for cross-db compatibility
 	term := "%" + query + "%"
-	// Exclude links with cached error previews within the 180-day TTL.
+	// Exclude links with cached error previews using tiered TTLs:
+	// - Recent links (< 10 days old): error cache expires after 24h
+	// - Old links (>= 10 days old): error cache expires after 60 days
 	// CAST(data AS TEXT) is required because glebarez/sqlite stores []byte
 	// as BLOB, and SQLite's LIKE doesn't match text patterns against BLOBs.
-	// The error LIKE pattern is inlined to avoid glebarez double-quote escaping.
-	errorCutoff := time.Now().Add(-180 * 24 * time.Hour)
+	recentCutoff := time.Now().Add(-24 * time.Hour)
+	oldCutoff := time.Now().Add(-60 * 24 * time.Hour)
+	linkAgeCutoff := time.Now().Add(-10 * 24 * time.Hour)
 	err := s.db.WithContext(ctx).
-		Where(`(title LIKE ? OR url LIKE ? OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?)) AND url NOT IN (SELECT url FROM link_previews WHERE CAST(data AS TEXT) LIKE '%"error":%' AND updated_at > ?)`, term, term, term, errorCutoff).
+		Where(`(title LIKE ? OR url LIKE ? OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?))
+AND url NOT IN (
+  SELECT lp.url FROM link_previews lp
+  WHERE CAST(lp.data AS TEXT) LIKE '%"error":%'
+  AND (
+    (EXISTS (SELECT 1 FROM ircLink il WHERE il.url = lp.url AND il.timestamp > ?) AND lp.updated_at > ?)
+    OR
+    (NOT EXISTS (SELECT 1 FROM ircLink il WHERE il.url = lp.url AND il.timestamp > ?) AND lp.updated_at > ?)
+  )
+)`, term, term, term, linkAgeCutoff, recentCutoff, linkAgeCutoff, oldCutoff).
 		Order("clicks DESC").
 		Limit(50).
 		Find(&links).Error
