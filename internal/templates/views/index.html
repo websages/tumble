@@ -97,6 +97,52 @@
     <!-- Open Graph Preview Loader -->
     <script type="text/javascript">
       (function () {
+        // Provider-specific rendering configuration
+        // To change behavior for a provider, edit its row here instead of
+        // adding if-checks inside renderPreview().
+        var providerConfig = {
+          "Reddit":   {
+            showTitle: true,
+            showDescription: true,
+            autoExpand: true,
+            defaultIcon: "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png"
+          },
+          "Spotify":  { showTitle: false, showDescription: false, autoExpand: true },
+          "GIPHY":    { showTitle: false, showDescription: false },
+          "Flickr":   { clickableImage: true, forceAspect: "photo" },
+          "_default": {
+            showTitle: true,
+            showDescription: true,
+            autoExpand: false,
+            clickableImage: false
+          }
+        };
+
+        // Resolve provider config with defaults for missing fields
+        function getProviderConfig(provider) {
+          var cfg = providerConfig[provider] || {};
+          var defaults = providerConfig["_default"];
+          var resolved = {};
+          for (var key in defaults) {
+            resolved[key] = cfg[key] !== undefined ? cfg[key] : defaults[key];
+          }
+          // Copy provider-specific keys not in defaults (e.g. defaultIcon)
+          for (var key in cfg) {
+            if (resolved[key] === undefined) resolved[key] = cfg[key];
+          }
+          return resolved;
+        }
+
+        // URL-based transform: Imgur animated content
+        // Imgur's OG metadata returns .jpg even for animated GIFs;
+        // swap to .mp4 (Imgur's preferred animated format).
+        function transformImgurAnimated(url, imageUrl) {
+          if (url.match(/imgur\.com/) && imageUrl && imageUrl.match(/i\.imgur\.com.*\.jpg/)) {
+            return { url: imageUrl.replace(/\.jpg.*$/, '.mp4'), isAnimated: true };
+          }
+          return { url: imageUrl, isAnimated: false };
+        }
+
         function loadOGPreview(item) {
           var url = item.getAttribute("data-url");
           var contentType = item.getAttribute("data-content-type");
@@ -207,19 +253,13 @@
                 var title = data.title || data.twitter_title || null;
                 var description = data.description || data.twitter_description || null;
 
-                // SPECIAL HANDLING: Imgur Gallery Card
+                // SPECIAL HANDLING: Imgur Gallery Card (different rendering mode)
                 if (imgurCard) {
                     if (imageUrl) {
-                        // Find the placeholder container
-                        // .gallery-image-container
                         var imgContainer = imgurCard.querySelector(".gallery-image-container");
                         if (imgContainer) {
-                            // Replace specific placeholder or just set innerHTML
-                            // We want to replace the whole container contents (camera icon) with the image
-                            // and ensure styles are good.
                             var imgHtml = '<img src="' + escapeHtml(imageUrl) + '" style="width: 100%; height: auto; display: block; object-fit: cover;" />';
                             imgContainer.innerHTML = imgHtml;
-                            // Remove min-height/centering styles from container if needed, or keeping them is fine if image covers it.
                             imgContainer.style.minHeight = "auto";
                             imgContainer.style.lineHeight = "normal";
                             imgContainer.style.backgroundColor = "transparent";
@@ -227,6 +267,10 @@
                     }
                     return;
                 }
+
+                // Resolve provider config
+                var provider = data.provider_name || "Link";
+                var cfg = getProviderConfig(provider);
 
                 // Update link header: show OG title prominently with URL below
                 if (title) {
@@ -256,10 +300,7 @@
                 var previewHTML = '<div class="og-card">';
 
                 // Site Info (Icon + Name)
-                var provider = data.provider_name || "Link";
-                var iconUrl = data.icon || "/favicon.ico";
-                if (provider === "Reddit" && !data.icon)
-                  iconUrl = "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png";
+                var iconUrl = data.icon || cfg.defaultIcon || "/favicon.ico";
 
                 previewHTML +=
                   '<div class="og-site-info"><img src="' +
@@ -270,19 +311,12 @@
 
                 // Image
                 if (imageUrl) {
-                  // Special handling for Imgur animated content
-                  // Imgur's OG metadata returns .jpg even for animated GIFs
-                  // Replace with .mp4 (video) or .gif if it's an i.imgur.com URL
-                  var isImgurAnimated = false;
-                  if (url.match(/imgur\.com/) && imageUrl.match(/i\.imgur\.com.*\.jpg/)) {
-                    // Try .mp4 first (Imgur's preferred animated format)
-                    imageUrl = imageUrl.replace(/\.jpg.*$/, '.mp4');
-                    isImgurAnimated = true;
-                  }
+                  // URL-based transform: Imgur animated content
+                  var imgurResult = transformImgurAnimated(url, imageUrl);
+                  imageUrl = imgurResult.url;
 
                   var imageContent;
-                  if (isImgurAnimated) {
-                    // Render as video tag for Imgur animated content
+                  if (imgurResult.isAnimated) {
                     imageContent = '<video autoplay loop muted playsinline style="width: 100%; height: auto; display: block;"><source src="' + escapeHtml(imageUrl) + '" type="video/mp4" /></video>';
                   } else {
                     imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
@@ -300,21 +334,17 @@
                       embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
                   }
 
-                  // Determine aspect ratio based on content type
+                  // Determine aspect ratio
                   var aspectAttr = '';
                   if (data.type === "video" || data.type === "rich") {
                     aspectAttr = ' data-aspect="video"';
-                  } else if (data.type === "photo" || provider === 'Flickr') {
+                  } else if (data.type === "photo" || cfg.forceAspect === "photo") {
                     aspectAttr = ' data-aspect="photo"';
                   }
 
                   var innerContent = imageContent;
-                  // If we have an IRCLink ID, the image is not a video/rich embed (so no click-to-play),
-                  // and we want it clickable (e.g. Flickr), wrap in anchor.
-                  // We restrict this to Flickr specifically per user request, or generally?
-                  // User "The thumbnail image still isn't clickable... for links from Flickr".
-                  // Let's do it if ircId exists and not video.
-                  if (ircId && !data.embed_html && (data.type === 'photo' ||  provider === 'Flickr')) {
+                  // Wrap image in clickable anchor if configured (e.g. Flickr)
+                  if (ircId && !data.embed_html && (data.type === 'photo' || cfg.clickableImage)) {
                        var imgLinkHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
                        innerContent = '<a href="' + imgLinkHref + '" target="_blank">' + imageContent + '</a>';
                   }
@@ -331,10 +361,9 @@
                   previewHTML += '<div class="og-image is-video"' + embedHtmlAttr + ' data-aspect="video"></div>';
                 }
 
-                // Text Content - skip for GIPHY (title is redundant with the gif)
+                // Text Content
                 previewHTML += '<div class="og-content">';
-                if (title && provider !== "GIPHY" && provider !== "Spotify") {
-                  // Route through IRC link handler for click tracking if ircId is available
+                if (title && cfg.showTitle) {
                   var titleHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
                   previewHTML +=
                     '<div class="og-title"><a href="' +
@@ -343,7 +372,7 @@
                     escapeHtml(title) +
                     "</a></div>";
                 }
-                if (description && provider !== "GIPHY" && provider !== "Spotify") {
+                if (description && cfg.showDescription) {
                   if (description.length > 300) {
                     description = description.substring(0, 300) + "...";
                   }
@@ -357,13 +386,10 @@
 
                 previewDiv.innerHTML = previewHTML;
 
-                // Auto-expand Reddit and Spotify embeds to provide "richer view out of the box"
-                // The custom card acts as a placeholder or fallback, but we trigger the embed swap immediately.
-                if ((provider === "Reddit" || provider === "Spotify") && data.embed_html) {
+                // Auto-expand embeds for providers that want it
+                if (cfg.autoExpand && data.embed_html) {
                     var imgDiv = previewDiv.querySelector('.og-image.is-video');
                     if (imgDiv) {
-                       // Small delay to ensure render? No, synchronous is fine for DOM,
-                       // but we need to ensure the scripts run. replaceWithVideo handles that.
                        window.replaceWithVideo(imgDiv);
                     }
                 }
