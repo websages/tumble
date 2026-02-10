@@ -34,6 +34,12 @@ func (h *Handler) GetYouTubePreview(targetURL string) (map[string]string, error)
 	title = strings.TrimSuffix(title, " - YouTube")
 	meta["title"] = title
 
+	// If scrape yielded no real title or image, fall through to OEmbed
+	// which is more reliable for YouTube
+	if title == "" || meta["image"] == "" {
+		return nil, fmt.Errorf("incomplete scrape, falling back to oembed")
+	}
+
 	meta["type"] = "video"
 
 	return meta, nil

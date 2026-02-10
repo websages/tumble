@@ -134,13 +134,13 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.Contains(urlParam, "reddit.com") {
 		meta, err := h.GetRedditPreview(urlParam)
 		if err == nil && len(meta) > 0 {
-			json.NewEncoder(w).Encode(meta)
+			h.cacheAndRespond(w, r, urlParam, meta)
 			return
 		}
 	} else if strings.Contains(urlParam, "twitter.com") || strings.Contains(urlParam, "x.com") {
 		meta, err := h.GetTwitterPreview(urlParam)
 		if err == nil {
-			json.NewEncoder(w).Encode(meta)
+			h.cacheAndRespond(w, r, urlParam, meta)
 			return
 		}
 		// If OEmbed returned ANY error (404, 403, etc.), we trust it. Do not fall back to scrape.
@@ -159,14 +159,14 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	} else if strings.Contains(urlParam, "flickr.com") {
 		meta, err := h.GetFlickrPreview(urlParam)
 		if err == nil {
-			json.NewEncoder(w).Encode(meta)
+			h.cacheAndRespond(w, r, urlParam, meta)
 			return
 		}
 		// If not a single photo, fall through to normal OEmbed
 	} else if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
 		meta, err := h.GetYouTubePreview(urlParam)
 		if err == nil {
-			json.NewEncoder(w).Encode(meta)
+			h.cacheAndRespond(w, r, urlParam, meta)
 			return
 		}
 		// If we detected a soft 404, stop here and return 404 so UI can render "missing" badge
