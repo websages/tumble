@@ -113,8 +113,13 @@ func (s *GormStore) SearchIRCLinks(ctx context.Context, query string) ([]IRCLink
 	var links []IRCLink
 	// Simple LIKE search for cross-db compatibility
 	term := "%" + query + "%"
+	// Exclude links with cached error previews within the 180-day TTL.
+	// CAST(data AS TEXT) is required because glebarez/sqlite stores []byte
+	// as BLOB, and SQLite's LIKE doesn't match text patterns against BLOBs.
+	// The error LIKE pattern is inlined to avoid glebarez double-quote escaping.
+	errorCutoff := time.Now().Add(-180 * 24 * time.Hour)
 	err := s.db.WithContext(ctx).
-		Where("title LIKE ? OR url LIKE ?", term, term).
+		Where(`(title LIKE ? OR url LIKE ? OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?)) AND url NOT IN (SELECT url FROM link_previews WHERE CAST(data AS TEXT) LIKE '%"error":%' AND updated_at > ?)`, term, term, term, errorCutoff).
 		Order("clicks DESC").
 		Limit(50).
 		Find(&links).Error
@@ -126,7 +131,7 @@ func (s *GormStore) SearchQuotes(ctx context.Context, query string) ([]Quote, er
 	// Simple LIKE search for cross-db compatibility
 	term := "%" + query + "%"
 	err := s.db.WithContext(ctx).
-		Where("quote LIKE ? OR author LIKE ?", term, term).
+		Where("quote LIKE ? OR author LIKE ? OR quoteID IN (SELECT resource_id FROM tags WHERE resource_type = 'quote' AND tag LIKE ?)", term, term, term).
 		Order("timestamp DESC").
 		Limit(50).
 		Find(&quotes).Error

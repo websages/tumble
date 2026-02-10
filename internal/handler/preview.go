@@ -7,8 +7,15 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
+	"tumble/internal/data"
+)
+
+const (
+	previewCacheTTL = 10 * 24 * time.Hour  // Normal previews expire after 10 days
+	errorCacheTTL   = 180 * 24 * time.Hour // Error/404 previews expire after 180 days
 )
 
 // OEmbed Providers Configuration
@@ -52,6 +59,16 @@ type OEmbedResponse struct {
 	URL         string `json:"url"`         // Required for type=photo
 }
 
+// isPreviewExpired checks whether a cached link preview has exceeded its TTL.
+// Error previews get a longer TTL since errors are unlikely to change quickly.
+func isPreviewExpired(cached *data.LinkPreview) bool {
+	ttl := previewCacheTTL
+	if strings.Contains(string(cached.Data), `"error":`) {
+		ttl = errorCacheTTL
+	}
+	return time.Since(cached.UpdatedAt) > ttl
+}
+
 // TryServeCachedOGPreview checks the cache and serves the response if found.
 // Returns true if served from cache, false if cache miss (caller should proceed).
 func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request) bool {
@@ -66,6 +83,11 @@ func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request
 
 	cached, err := h.Store.GetLinkPreview(r.Context(), urlParam)
 	if err != nil || cached == nil {
+		return false
+	}
+
+	if isPreviewExpired(cached) {
+		h.Store.DeleteLinkPreview(r.Context(), urlParam)
 		return false
 	}
 
@@ -113,6 +135,7 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			if n, _ := fmt.Sscanf(err.Error(), "oembed status %d", &code); n != 1 {
 				code = 404
 			}
+			h.cacheErrorPreview(r, urlParam, "Tweet Unavailable", code)
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"error":  "Tweet Unavailable",
 				"status": code,
@@ -134,6 +157,7 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// If we detected a soft 404, stop here and return 404 so UI can render "missing" badge
 		if err.Error() == "status 404" {
+			h.cacheErrorPreview(r, urlParam, "Video Unavailable", 404)
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"error":  "Video Unavailable",
 				"status": 404,
@@ -150,6 +174,18 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 2. Fallback to generic scraping
 	h.fetchOGScrape(w, r, urlParam)
+}
+
+func (h *Handler) cacheErrorPreview(r *http.Request, urlParam string, errorMsg string, status int) {
+	// Always cache errors regardless of caching config, since error entries
+	// are used to exclude dead links from search results.
+	meta := map[string]string{
+		"error":  errorMsg,
+		"status": fmt.Sprintf("%d", status),
+	}
+	if data, err := json.Marshal(meta); err == nil {
+		h.Store.InsertLinkPreview(r.Context(), urlParam, data)
+	}
 }
 
 func (h *Handler) cacheAndRespond(w http.ResponseWriter, r *http.Request, urlParam string, meta map[string]string) {
@@ -268,15 +304,14 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam
 		w.Header().Set("Content-Type", "application/json")
 		// If it's a 4xx/5xx error from the helper, we might want to pass that through
 		if strings.Contains(err.Error(), "status") {
+			code := 400
+			if n, _ := fmt.Sscanf(err.Error(), "status %d", &code); n != 1 {
+				code = 400
+			}
+			h.cacheErrorPreview(r, urlParam, "HTTP Error", code)
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"error": "HTTP Error",
-				"status": func() int {
-					var code int
-					if n, _ := fmt.Sscanf(err.Error(), "status %d", &code); n == 1 {
-						return code
-					}
-					return 400
-				}(),
+				"error":  "HTTP Error",
+				"status": code,
 			})
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch metadata"})
