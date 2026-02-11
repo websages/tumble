@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"tumble/internal/archive"
 	"tumble/internal/config"
 	"tumble/internal/data"
 	"tumble/internal/service"
@@ -21,18 +22,20 @@ import (
 )
 
 type Handler struct {
-	Store    data.Store
-	Service  *service.ContentService
-	Renderer *templates.Renderer
-	Config   *config.Config
+	Store         data.Store
+	Service       *service.ContentService
+	Renderer      *templates.Renderer
+	Config        *config.Config
+	ArchiveClient *archive.Client
 }
 
 func NewHandler(cfg *config.Config, store data.Store, svc *service.ContentService, renderer *templates.Renderer) *Handler {
 	return &Handler{
-		Config:   cfg,
-		Store:    store,
-		Service:  svc,
-		Renderer: renderer,
+		Config:        cfg,
+		Store:         store,
+		Service:       svc,
+		Renderer:      renderer,
+		ArchiveClient: archive.NewClient(5),
 	}
 }
 

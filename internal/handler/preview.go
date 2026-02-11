@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -110,6 +111,13 @@ func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request
 		return false
 	}
 
+	if _, isError := meta["error"]; isError {
+		archiveData := h.attachArchiveData(r.Context(), urlParam)
+		for k, v := range archiveData {
+			meta[k] = v
+		}
+	}
+
 	// Cache hit - serve response
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "public, max-age=86400")
@@ -150,10 +158,15 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 				code = 404
 			}
 			h.cacheErrorPreview(r, urlParam, "Tweet Unavailable", code)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			archiveData := h.attachArchiveData(r.Context(), urlParam)
+			resp := map[string]interface{}{
 				"error":  "Tweet Unavailable",
 				"status": code,
-			})
+			}
+			for k, v := range archiveData {
+				resp[k] = v
+			}
+			json.NewEncoder(w).Encode(resp)
 			return
 		}
 	} else if strings.Contains(urlParam, "flickr.com") {
@@ -172,10 +185,15 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 		// If we detected a soft 404, stop here and return 404 so UI can render "missing" badge
 		if err.Error() == "status 404" {
 			h.cacheErrorPreview(r, urlParam, "Video Unavailable", 404)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			archiveData := h.attachArchiveData(r.Context(), urlParam)
+			resp := map[string]interface{}{
 				"error":  "Video Unavailable",
 				"status": 404,
-			})
+			}
+			for k, v := range archiveData {
+				resp[k] = v
+			}
+			json.NewEncoder(w).Encode(resp)
 			return
 		}
 	}
@@ -200,6 +218,62 @@ func (h *Handler) cacheErrorPreview(r *http.Request, urlParam string, errorMsg s
 	if data, err := json.Marshal(meta); err == nil {
 		h.Store.InsertLinkPreview(r.Context(), urlParam, data)
 	}
+}
+
+const archiveNotFoundRecheckAge = 30 * 24 * time.Hour
+
+// attachArchiveData checks for an archive.org snapshot of a dead link URL.
+// If a fresh lookup exists, it returns the archive data to include in the
+// response. If no lookup exists (or it's stale), it performs a lazy check.
+func (h *Handler) attachArchiveData(ctx context.Context, urlParam string) map[string]string {
+	lookup, err := h.Store.GetArchiveLookup(ctx, urlParam)
+	if err != nil {
+		return nil
+	}
+
+	needsCheck := lookup == nil ||
+		(lookup.Status == "error" && time.Since(lookup.CheckedAt) > 24*time.Hour) ||
+		(lookup.Status == "not_found" && time.Since(lookup.CheckedAt) > archiveNotFoundRecheckAge)
+
+	if needsCheck && h.ArchiveClient != nil {
+		result, err := h.ArchiveClient.Check(ctx, urlParam)
+		if err != nil {
+			h.Store.UpsertArchiveLookup(ctx, &data.ArchiveLookup{
+				URL:       urlParam,
+				Status:    "error",
+				CheckedAt: time.Now(),
+			})
+			return nil
+		}
+
+		newLookup := &data.ArchiveLookup{
+			URL:       urlParam,
+			CheckedAt: time.Now(),
+		}
+		if result.Found {
+			newLookup.Status = "found"
+			newLookup.ArchiveURL = &result.ArchiveURL
+			if !result.SnapshotAt.IsZero() {
+				newLookup.SnapshotAt = &result.SnapshotAt
+			}
+		} else {
+			newLookup.Status = "not_found"
+		}
+		h.Store.UpsertArchiveLookup(ctx, newLookup)
+		lookup = newLookup
+	}
+
+	if lookup != nil && lookup.Status == "found" && lookup.ArchiveURL != nil {
+		result := map[string]string{
+			"archive_url": *lookup.ArchiveURL,
+		}
+		if lookup.SnapshotAt != nil {
+			result["archive_snapshot_at"] = lookup.SnapshotAt.Format(time.RFC3339)
+		}
+		return result
+	}
+
+	return nil
 }
 
 func (h *Handler) cacheAndRespond(w http.ResponseWriter, r *http.Request, urlParam string, meta map[string]string) {
@@ -323,10 +397,15 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam
 				code = 400
 			}
 			h.cacheErrorPreview(r, urlParam, "HTTP Error", code)
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			archiveData := h.attachArchiveData(r.Context(), urlParam)
+			resp := map[string]interface{}{
 				"error":  "HTTP Error",
 				"status": code,
-			})
+			}
+			for k, v := range archiveData {
+				resp[k] = v
+			}
+			json.NewEncoder(w).Encode(resp)
 		} else {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch metadata"})
 		}
