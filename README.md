@@ -388,6 +388,24 @@ Or set via environment variable: `TUMBLE_CLICK_SIGNING_KEY=your-secret`
 
 **Note:** If no `click_signing_key` is configured, links work normally without signatures. This feature is optional and doesn't affect basic functionality.
 
+#### Dead Link Detection and Archive.org Integration
+
+With ~20 years of links, many URLs have gone dead over time. Tumble
+automatically detects dead links and checks the [Wayback Machine](https://archive.org)
+for archived snapshots.
+
+- **Detection**: Links returning 4xx/5xx errors are flagged with an HTTP
+  status badge and excluded from search results.
+- **Archive.org lookups**: A background job checks dead links against the
+  Wayback Machine Availability API on startup and daily. Newly detected
+  dead links are also checked on-demand.
+- **UI**: When an archived snapshot exists, a "View on Archive.org" link
+  appears next to the error badge with the snapshot date, giving users
+  access to the original content. Works in both the default theme and
+  Scott Mode.
+- **Rate limiting**: Archive.org requests are limited to 5 req/s to stay
+  well within API limits.
+
 #### Caching
 
 Link previews are cached in the database to reduce external requests.
