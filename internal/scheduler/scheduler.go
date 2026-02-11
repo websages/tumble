@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
+	"tumble/internal/archive"
 	"tumble/internal/data"
 )
 
@@ -17,11 +18,12 @@ const (
 
 // Scheduler manages scheduled tasks for the application.
 type Scheduler struct {
-	cron       *cron.Cron
-	store      data.Store
-	retryCount int
-	retryMu    sync.Mutex
-	stopRetry  chan struct{}
+	cron          *cron.Cron
+	store         data.Store
+	archiveClient *archive.Client
+	retryCount    int
+	retryMu       sync.Mutex
+	stopRetry     chan struct{}
 }
 
 // New creates a new Scheduler with the given store.
@@ -34,9 +36,10 @@ func New(store data.Store) *Scheduler {
 	}
 
 	return &Scheduler{
-		cron:      cron.New(cron.WithLocation(loc)),
-		store:     store,
-		stopRetry: make(chan struct{}),
+		cron:          cron.New(cron.WithLocation(loc)),
+		store:         store,
+		archiveClient: archive.NewClient(5),
+		stopRetry:     make(chan struct{}),
 	}
 }
 
@@ -50,11 +53,22 @@ func (s *Scheduler) Start(ctx context.Context) error {
 		return err
 	}
 
+	// Schedule archive batch at 3 AM Central
+	_, err = s.cron.AddFunc("0 3 * * *", func() {
+		runArchiveBatch(ctx, s.store, s.archiveClient)
+	})
+	if err != nil {
+		return err
+	}
+
 	s.cron.Start()
 	slog.Info("Scheduler started", "nextRun", s.cron.Entries()[0].Next)
 
 	// Check if we need to fetch today's kitten on startup
 	go s.checkStartupKitten(ctx)
+
+	// Run archive batch on startup (in background)
+	go runArchiveBatch(ctx, s.store, s.archiveClient)
 
 	return nil
 }
