@@ -26,7 +26,7 @@ func (s *GormStore) Close() error {
 }
 
 func (s *GormStore) Bootstrap(ctx context.Context) error {
-	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{})
+	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{})
 }
 
 func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int) ([]IRCLink, error) {
@@ -487,4 +487,44 @@ func (s *GormStore) GetLinksByPopularity(ctx context.Context, limit int, offset 
 		Offset(offset).
 		Find(&links).Error
 	return links, err
+}
+
+func (s *GormStore) GetArchiveLookup(ctx context.Context, url string) (*ArchiveLookup, error) {
+	var lookup ArchiveLookup
+	err := s.db.WithContext(ctx).Where("url = ?", url).First(&lookup).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &lookup, nil
+}
+
+func (s *GormStore) UpsertArchiveLookup(ctx context.Context, lookup *ArchiveLookup) error {
+	return s.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "url"}},
+		DoUpdates: clause.AssignmentColumns([]string{"archive_url", "snapshot_at", "status", "checked_at"}),
+	}).Create(lookup).Error
+}
+
+func (s *GormStore) GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, error) {
+	var urls []string
+	// Find URLs with cached errors in link_previews that have no row in archive_lookups
+	err := s.db.WithContext(ctx).Raw(`
+		SELECT DISTINCT lp.url FROM link_previews lp
+		WHERE CAST(lp.data AS TEXT) LIKE '%"error":%'
+		AND lp.url NOT IN (SELECT al.url FROM archive_lookups al)
+	`).Scan(&urls).Error
+	return urls, err
+}
+
+func (s *GormStore) GetStaleArchiveLookups(ctx context.Context, recheckAfter time.Duration) ([]string, error) {
+	var urls []string
+	cutoff := time.Now().Add(-recheckAfter)
+	err := s.db.WithContext(ctx).
+		Model(&ArchiveLookup{}).
+		Where("status IN (?, ?) AND checked_at < ?", "not_found", "error", cutoff).
+		Pluck("url", &urls).Error
+	return urls, err
 }

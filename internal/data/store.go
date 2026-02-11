@@ -91,6 +91,18 @@ func (LinkPreview) TableName() string {
 	return "link_previews"
 }
 
+type ArchiveLookup struct {
+	URL        string     `json:"url" gorm:"column:url;primaryKey"`
+	ArchiveURL *string    `json:"archive_url" gorm:"column:archive_url"`
+	SnapshotAt *time.Time `json:"snapshot_at" gorm:"column:snapshot_at"`
+	Status     string     `json:"status" gorm:"column:status;index"`
+	CheckedAt  time.Time  `json:"checked_at" gorm:"column:checked_at"`
+}
+
+func (ArchiveLookup) TableName() string {
+	return "archive_lookups"
+}
+
 type Store interface {
 	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]IRCLink, error)
 	GetRecentImages(ctx context.Context, days int, offsetDays int) ([]Image, error)
@@ -122,6 +134,12 @@ type Store interface {
 	InsertLinkPreview(ctx context.Context, url string, data []byte) error
 	DeleteLinkPreview(ctx context.Context, url string) error
 	DeleteAllLinkPreviews(ctx context.Context) (int, error)
+
+	// Archive lookups
+	GetArchiveLookup(ctx context.Context, url string) (*ArchiveLookup, error)
+	UpsertArchiveLookup(ctx context.Context, lookup *ArchiveLookup) error
+	GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, error)
+	GetStaleArchiveLookups(ctx context.Context, recheckAfter time.Duration) ([]string, error)
 
 	// Tag operations
 	CreateTag(ctx context.Context, tag Tag) (*Tag, error)
