@@ -1,0 +1,49 @@
+#!/bin/bash
+set -e
+
+# Configuration
+BINARY="./bin/tumble"
+CONFIG="conf/config-test.yaml"
+DB_PATH="tumble-test.sqlite"
+PORT="8080"
+BASE_URL="http://localhost:$PORT"
+
+echo "Setting up $DB_PATH..."
+rm -f "$DB_PATH"
+
+# Start server
+# Start server
+echo "Starting server (logging to tumble-test.log)..."
+$BINARY "$CONFIG" > tumble-test.log 2>&1 &
+PID=$!
+echo "Server PID: $PID"
+
+# Ensure cleanup
+trap "echo 'Stopping server...'; kill $PID 2>/dev/null || true" EXIT
+
+# Wait for server to be ready
+echo "Waiting for server to be ready on port $PORT..."
+for i in {1..30}; do
+    if curl -s "http://localhost:$PORT" >/dev/null; then
+        echo "Server is up!"
+        break
+    fi
+    sleep 1
+done
+
+# Run fixtures (so tests have data)
+echo "Running fixtures..."
+export DB_PATH="$DB_PATH"
+export API_BASE_URL="$BASE_URL"
+./tests/load_fixtures.sh
+
+# Run API Tests
+
+echo "Running API Tests..."
+./tests/api_test.sh
+
+echo "Running Preview Tests..."
+./tests/preview_test.sh "$BASE_URL"
+
+
+echo "Integration tests passed successfully."

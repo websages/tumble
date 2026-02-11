@@ -1,0 +1,442 @@
+{{define "header"}}
+<style>
+    /* Header Navigation Styles */
+    .nav-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 0 var(--space-5, 20px);
+        height: 56px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-default, #d0d7de);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-sans, sans-serif);
+        box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    }
+
+    [data-theme="dark"] .nav-header {
+        background: rgba(13, 17, 23, 0.8);
+    }
+
+    /* Compensate for fixed header */
+    body {
+        padding-top: 57px;
+    }
+
+    .nav-left {
+        display: flex;
+        gap: var(--space-2, 8px);
+        align-items: center;
+    }
+
+    .nav-right {
+        display: flex;
+        gap: var(--space-3, 12px);
+        align-items: center;
+    }
+
+    .nav-header a {
+        text-decoration: none;
+        color: var(--text-primary, #24292f);
+        font-weight: var(--font-weight-medium, 500);
+        font-size: var(--font-size-md, 14px);
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border-radius: var(--radius-md, 6px);
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-header a:hover,
+    .nav-header a:focus {
+        background: var(--bg-surface, #f6f8fa);
+        color: var(--accent-primary, #0969da);
+    }
+
+    .nav-header a:focus-visible {
+        outline: 2px solid var(--accent-primary, #0969da);
+        outline-offset: 2px;
+    }
+
+    /* Search Input */
+    .nav-header input[type="text"] {
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border-radius: var(--radius-md, 6px);
+        border: 1px solid var(--border-default, #d0d7de);
+        font-size: var(--font-size-sm, 13px);
+        width: 200px;
+        background: var(--bg-canvas, #ffffff);
+        color: var(--text-primary, #24292f);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .nav-header input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent-primary, #0969da);
+        box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+    }
+
+    [data-theme="dark"] .nav-header input[type="text"]:focus {
+        box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+    }
+
+    /* Icon Buttons */
+    .nav-icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-primary, #24292f);
+        padding: var(--space-2, 8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-md, 6px);
+        width: 36px;
+        height: 36px;
+        transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .nav-icon-btn:hover {
+        background: var(--bg-surface, #f6f8fa);
+    }
+
+    .nav-icon-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-icon-btn:focus-visible {
+        outline: 2px solid var(--accent-primary, #0969da);
+        outline-offset: 2px;
+    }
+
+    /* Dropdown Styles */
+    .dropdown {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .dropdown-trigger {
+        cursor: pointer;
+        font-weight: var(--font-weight-medium, 500);
+        color: var(--text-primary, #24292f);
+        font-size: var(--font-size-md, 14px);
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border-radius: var(--radius-md, 6px);
+        transition: background-color 0.15s ease;
+    }
+
+    .dropdown-trigger:hover {
+        background: var(--bg-surface, #f6f8fa);
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        margin-top: 4px;
+        right: 0;
+        background-color: var(--card-bg, #ffffff);
+        min-width: 300px;
+        max-height: 500px;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg, 0 4px 16px rgba(0, 0, 0, 0.12));
+        z-index: 100;
+        border: 1px solid var(--border-default, #d0d7de);
+        border-radius: var(--radius-lg, 8px);
+        padding: var(--space-3, 12px);
+        text-align: left;
+    }
+
+    /* Bridge the gap between trigger and dropdown */
+    .dropdown-content::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: transparent;
+    }
+
+    /* Show on hover */
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    /* Custom scrollbar */
+    .dropdown-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .dropdown-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .dropdown-content::-webkit-scrollbar-thumb {
+        background: var(--gray-4, #8c959f);
+        border-radius: 4px;
+    }
+
+    /* Dropdown items */
+    .dropdown-content .sm {
+        margin-bottom: var(--space-2, 8px);
+        font-size: var(--font-size-sm, 13px);
+        padding: var(--space-2, 8px) var(--space-3, 12px);
+        border-radius: var(--radius-md, 6px);
+        transition: background-color 0.15s ease;
+    }
+
+    .dropdown-content .sm:hover {
+        background: var(--bg-surface, #f6f8fa);
+    }
+
+    .dropdown-content .link a {
+        font-weight: normal;
+        color: var(--accent-primary, #0969da);
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .material-symbols-rounded {
+      font-family: 'Material Symbols Rounded';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;  /* Standard size */
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+</style>
+
+<div class="nav-header">
+    <div class="nav-left">
+        <a href="/" onclick="event.preventDefault(); window.location = window.location.origin + '/';">home</a>
+        <a href="/buttons/">buttons</a>
+        <a href="/index.xml">feed</a>
+        <a href="/stats">stats</a>
+        <a href="/api/docs">api docs</a>
+    </div>
+
+    <a href="/" class="mobile-site-name" onclick="event.preventDefault(); window.location = window.location.origin + '/';">tumblefish.</a>
+
+    <div class="nav-right">
+        <!-- Hot Shit Dropdown -->
+        <div class="dropdown">
+            <span class="dropdown-trigger">Hot Shit &#9662;</span>
+            <div class="dropdown-content">
+                {{if .Hot}}
+                    {{.Hot}}
+                {{else}}
+                    <div style="padding:5px; color: var(--nav-text-color);">Nothing hot right now.</div>
+                {{end}}
+            </div>
+        </div>
+
+        <form action="/search" method="get" style="margin: 0;">
+            <input type="text" name="search" placeholder="search..." />
+        </form>
+
+        <button id="scott-mode-toggle" class="nav-icon-btn" aria-label="Toggle Scott Mode" title="Scott Mode">
+            <span class="material-symbols-rounded">history</span>
+        </button>
+
+        <button id="compact-toggle" class="nav-icon-btn" aria-label="Toggle Compact Mode" title="Toggle Compact Mode">
+            <span class="material-symbols-rounded" id="compact-icon">view_headline</span>
+        </button>
+
+        <button id="theme-toggle" class="nav-icon-btn" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+            <span class="material-symbols-rounded">contrast</span>
+        </button>
+    </div>
+
+    <button class="mobile-hamburger nav-icon-btn" aria-label="Open menu">
+        <span class="material-symbols-rounded">menu</span>
+    </button>
+</div>
+
+<!-- Mobile Drawer -->
+<div class="mobile-drawer-backdrop"></div>
+<div class="mobile-drawer">
+    <div class="mobile-drawer-header">
+        <button class="mobile-drawer-close nav-icon-btn" aria-label="Close menu">
+            <span class="material-symbols-rounded">close</span>
+        </button>
+    </div>
+    <form action="/search" method="get" class="mobile-drawer-search">
+        <input type="text" name="search" placeholder="search..." />
+    </form>
+    <nav class="mobile-drawer-nav">
+        <a href="/" onclick="event.preventDefault(); window.location = window.location.origin + '/';">home</a>
+        <a href="/buttons/">buttons</a>
+        <a href="/index.xml">feed</a>
+        <a href="/stats">stats</a>
+        <a href="/api/docs">api docs</a>
+    </nav>
+    <div class="mobile-drawer-section">
+        <div class="mobile-drawer-section-title">Hot Shit</div>
+        <div class="mobile-drawer-hot">
+            {{if .Hot}}
+                {{.Hot}}
+            {{else}}
+                <div class="sm">Nothing hot right now.</div>
+            {{end}}
+        </div>
+    </div>
+    <div class="mobile-drawer-toggles">
+        <button class="mobile-drawer-toggle-btn" id="mobile-theme-toggle">
+            <span class="material-symbols-rounded">contrast</span>
+            Dark Mode
+        </button>
+        <button class="mobile-drawer-toggle-btn" id="mobile-compact-toggle">
+            <span class="material-symbols-rounded">view_headline</span>
+            Compact Mode
+        </button>
+        <button class="mobile-drawer-toggle-btn" id="mobile-scott-toggle">
+            <span class="material-symbols-rounded">history</span>
+            Scott Mode
+        </button>
+    </div>
+    <div class="mobile-drawer-footer">
+        <a href="/stats">Stats</a>
+        <a href="/api/docs">API Docs</a>
+        <a href="https://github.com/stahnma/tumble">GitHub</a>
+    </div>
+</div>
+
+<!-- Theme & Compact Toggle Logic (Event Listeners) -->
+<script>
+  (function () {
+    // Theme Toggle
+    var themeToggle = document.getElementById("theme-toggle");
+    var html = document.documentElement;
+
+    if (themeToggle) {
+        themeToggle.addEventListener("click", function () {
+            if (html.getAttribute("data-theme") === "dark") {
+                html.removeAttribute("data-theme");
+                localStorage.setItem("theme", "light");
+            } else {
+                html.setAttribute("data-theme", "dark");
+                localStorage.setItem("theme", "dark");
+            }
+        });
+    }
+
+    // Compact Mode Toggle
+    var compactToggle = document.getElementById("compact-toggle");
+    var compactIcon = document.getElementById("compact-icon");
+
+    function updateCompactIcon(isCompact) {
+        // While in compact mode (list view), show 'view_module' (card/expanded view) as the action to switch TO.
+        // Or vice versa. Let's stick to: Icon represents the CURRENT state or the ACTION?
+        // Usually buttons show the ACTION.
+        // If Compact -> Show "Expand" (view_module or view_stream)
+        // If Expanded -> Show "Compact" (view_headline or view_list)
+        if (isCompact) {
+            compactIcon.textContent = "view_agenda"; // Action: switch to expanded
+        } else {
+            compactIcon.textContent = "view_headline"; // Action: switch to compac
+        }
+    }
+
+    // Init Icon
+    var isCompact = html.classList.contains("compact-mode") || localStorage.getItem("compact") === "true";
+    if (isCompact) {
+        html.classList.add("compact-mode");
+        updateCompactIcon(true);
+    } else {
+        updateCompactIcon(false);
+    }
+
+    if (compactToggle) {
+        compactToggle.addEventListener("click", function () {
+            var wasCompact = html.classList.contains("compact-mode");
+            if (wasCompact) {
+                html.classList.remove("compact-mode");
+                localStorage.setItem("compact", "false");
+                updateCompactIcon(false);
+            } else {
+                html.classList.add("compact-mode");
+                localStorage.setItem("compact", "true");
+                updateCompactIcon(true);
+            }
+        });
+    }
+
+    // Scott Mode Toggle (Enter)
+    var scottToggle = document.getElementById("scott-mode-toggle");
+    if (scottToggle) {
+      scottToggle.addEventListener("click", function () {
+        var html = document.documentElement;
+        html.setAttribute("data-scott-mode", "true");
+        html.removeAttribute("data-theme"); // Force light
+        localStorage.setItem("scottMode", "true");
+      });
+    }
+
+    // Mobile Drawer
+    var hamburger = document.querySelector(".mobile-hamburger");
+    var backdrop = document.querySelector(".mobile-drawer-backdrop");
+    var drawerClose = document.querySelector(".mobile-drawer-close");
+    var htmlEl = document.documentElement;
+
+    function openDrawer() {
+      htmlEl.classList.add("drawer-open");
+    }
+    function closeDrawer() {
+      htmlEl.classList.remove("drawer-open");
+    }
+
+    if (hamburger) hamburger.addEventListener("click", openDrawer);
+    if (backdrop) backdrop.addEventListener("click", closeDrawer);
+    if (drawerClose) drawerClose.addEventListener("click", closeDrawer);
+
+    // Swipe-right to close drawer
+    var drawer = document.querySelector(".mobile-drawer");
+    if (drawer) {
+      var touchStartX = 0;
+      drawer.addEventListener("touchstart", function (e) {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+      drawer.addEventListener("touchend", function (e) {
+        var dx = e.changedTouches[0].clientX - touchStartX;
+        if (dx > 60) closeDrawer();
+      }, { passive: true });
+    }
+
+    // Mobile drawer toggle buttons
+    var mobileTheme = document.getElementById("mobile-theme-toggle");
+    if (mobileTheme) {
+      mobileTheme.addEventListener("click", function () {
+        if (themeToggle) themeToggle.click();
+      });
+    }
+
+    var mobileCompact = document.getElementById("mobile-compact-toggle");
+    if (mobileCompact) {
+      mobileCompact.addEventListener("click", function () {
+        if (compactToggle) compactToggle.click();
+      });
+    }
+
+    var mobileScott = document.getElementById("mobile-scott-toggle");
+    if (mobileScott) {
+      mobileScott.addEventListener("click", function () {
+        if (scottToggle) scottToggle.click();
+        closeDrawer();
+      });
+    }
+  })();
+</script>
+{{end}}

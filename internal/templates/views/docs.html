@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tumble API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+  <link rel="stylesheet" href="/css/screen.css" media="screen" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script>
+    (function () {
+      var savedTheme = localStorage.getItem("theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+
+      // Font loading detection
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() {
+          document.documentElement.classList.add("fonts-loaded");
+        });
+      } else {
+        // Fallback: show icons after short delay
+        setTimeout(function() {
+          document.documentElement.classList.add("fonts-loaded");
+        }, 100);
+      }
+    })();
+  </script>
+  <style>
+    #swagger-ui { flex: 1; padding-bottom: 60px; }
+    [data-theme="dark"] #swagger-ui {
+      filter: invert(88%) hue-rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+
+{{template "header" .}}
+
+<div id="swagger-ui"></div>
+
+{{template "footer" .}}
+
+<script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+<script>
+  window.onload = () => {
+    window.ui = SwaggerUIBundle({
+      url: '/api/openapi.json',
+      dom_id: '#swagger-ui',
+    });
+  };
+
+
+</script>
+</body>
+</html>

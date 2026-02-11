@@ -1,0 +1,7 @@
+        <item>
+            <title>{{xmlEscape .Title}}</title>
+            <link>{{.URL}}</link>
+            <guid isPermaLink="false">tumble-image-{{.ID}}</guid>
+            <description><![CDATA[<img src="{{.MediaURL}}" alt="{{.Title}}" />]]></description>
+            <pubDate>{{.FormattedDate}}</pubDate>
+        </item>

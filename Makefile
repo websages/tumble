@@ -1,87 +1,74 @@
-
 PKGNAME=tumble
-TMP_PATTERN:=$(shell mktemp -d -u -p . -t rpmbuild-XXXXXXX)
-TMPDIR=$(shell pwd)/$(TMP_PATTERN)
-TAR_TMP_DIR:=$(shell mktemp -d -u -t tarball-XXXXXXX)
+VERSION=$(shell git describe --tags --always | sed -e 's/-/\./g')
+BINARY_NAME=tumble
+BUILD_DIR=bin
 
-DATADIR=$(DESTDIR)/srv/www/$(PKGNAME)
-CONFDIR=$(DESTDIR)/etc/
-CRON_DIR=$(CONFDIR)/cron.hourly
-SPEC_FILE=$(PKGNAME).spec
+.PHONY: all build clean test deps docs kill restart reset-db load-fixtures build-linux help fmt
 
-RPMBUILD := $(shell if test -f /usr/bin/rpmbuild ; then echo /usr/bin/rpmbuild ; else echo "x" ; fi)
-RPM_DEFINES = --define "_specdir $(TMPDIR)/SPECS" --define "_rpmdir $(TMPDIR)/RPMS" --define "_sourcedir $(TMPDIR)/SOURCES" --define "_srcrpmdir $(TMPDIR)/SRPMS" --define "_builddir $(TMPDIR)/BUILD"
-MAKE_DIRS= $(TMPDIR)/SPECS $(TMPDIR)/SOURCES $(TMPDIR)/BUILD $(TMPDIR)/SRPMS $(TMPDIR)/RPMS
-VERSION=$(shell git describe | sed -e 's/-/\./g')
-TARBALL=$(PKGNAME)-$(VERSION).tar.gz
+all: build ## Build the binary (default)
 
-DEBIAN :=$(shell test -f "/etc/debian_version" && echo 'debian' || echo 'x')
+deps: ## Download dependencies
+	go mod download
 
-ifeq ($(DEBIAN), debian)
-APACHE_DIR=$(CONFDIR)apache2/sites-available/
-else
-APACHE_DIR=$(CONFDIR)httpd/conf.d
-endif
+fmt: ## Run go fmt and cleanup whitespace
+	go fmt ./...
+	find internal/templates -type f \( -name "*.html" -o -name "*.xml" \) -exec sed -i '' 's/[[:blank:]]*$$//' {} +
+	find tests -type f -name "*.sh" -exec sed -i '' 's/[[:blank:]]*$$//' {} +
+	git diff --check
 
+GIT_COMMIT=$(shell git rev-parse --short HEAD)
+LDFLAGS=-ldflags "-X tumble/internal/version.CommitHash=$(GIT_COMMIT)"
 
-build:
-	#go build -o scripts/twit-link scripts/twit-link.go
+build: ## Build the binary
+	mkdir -p $(BUILD_DIR)
+	CGO_ENABLED=0 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/tumble
 
+build-linux: ## Build the binary for Linux amd64
+	mkdir -p $(BUILD_DIR)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/tumble
 
-install:
-	mkdir -p $(DATADIR) $(APACHE_DIR) $(CONFDIR)/$(PKGNAME)
-	install -p -m644 htdocs/config.yaml $(CONFDIR)/$(PKGNAME)
-	cp -pr htdocs $(DATADIR)
-	mkdir -p $(DESTDIR)/usr/local/bin
-	#go build -o scripts/twit-link scripts/twit-link.go
-	#cp -pr scripts/twit-link $(DESTDIR)/usr/local/bin
-
-tarball: clean
-	mkdir -p $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
-	cd ..; cp -pr $(PKGNAME)/* $(TAR_TMP_DIR)/$(PKGNAME)-$(VERSION)
-	cd $(TAR_TMP_DIR); tar pczf $(TARBALL)  $(PKGNAME)-$(VERSION)
-	mv $(TAR_TMP_DIR)/$(TARBALL) .
-	rm -rf $(TAR_TMP_DIR)
-
-uninstall:
-	rm -rf $(DATADIR)
-	rm -rf $(APACHE_DIR)/$(PKGNAME).conf
-
-clean:
-	rm -f $(TARBALL)  *.rpm
-	rm -f scripts/twit-link twit-link
-	rm -rf debian/changelog debian/$(PKGNAME)* debian/tmp debian/files
-	rm -rf BUILD SRPMS RPMS SPECS SOURCES
-	rm -rf ./rpmbuild-* ./tarball-* ./$(PKGNAME)*gz
+clean: ## Clean build directory
+	rm -rf $(BUILD_DIR) tumble-test.log tumble-test.sqlite*
 
 
-srpm: tarball
-	@mkdir -p $(MAKE_DIRS)
-	cp -f $(TARBALL) $(TMPDIR)/SOURCES
-	cp -f $(SPEC_FILE) $(TMPDIR)/SPECS
-	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/SPECS/$(SPEC_FILE)
-	@wait
-	$(RPMBUILD) $(RPM_DEFINES) -bs $(TMPDIR)/SPECS/$(SPEC_FILE)
-	@mv -f $(TMPDIR)/SRPMS/* .
-	@rm -rf $(TMPDIR)
+test: ## Run unit tests
+	go test -v ./...
 
-deb:
-	sed -e 's/==VERSION==/$(VERSION)/g' debian/changelog.in > debian/changelog
-	@wait
-	dpkg-buildpackage
+test-api: build ## Run API tests
+	./tests/run_integration_tests.sh
 
-rpm: clean tarball
-	@mkdir -p $(MAKE_DIRS)
-	cp -f $(TARBALL) $(TMPDIR)/SOURCES
-	cp -f $(SPEC_FILE) $(TMPDIR)/SPECS
-	sed -i 's/==VERSION==/$(VERSION)/g' $(TMPDIR)/SPECS/$(SPEC_FILE)
-	@wait
-	$(RPMBUILD) $(RPM_DEFINES) -ba $(TMPDIR)/SPECS/$(SPEC_FILE)
-	@mv -f $(TMPDIR)/RPMS/noarch/* .
-	@rm -rf $(TMPDIR)
+docs: ## Generate API docs
+	@echo "Generating API docs..."
+	# Placeholder for Swagger/OpenAPI generation
+	# e.g. swag init -g cmd/tumble/main.go --output docs/api
 
-tempdir:
-	echo $(TMPDIR)
+kill: ## Kill the running process
+	-pkill -f $(BUILD_DIR)/$(BINARY_NAME)
 
-test:
-	prove -l t/*.t
+restart: kill build ## Restart the application locally
+	$(BUILD_DIR)/$(BINARY_NAME) conf/config.yaml &
+
+reset-db: ## Remove sqlite database
+	rm -f tumble.sqlite
+
+backup: ## Backup the current database
+	cp tumble.sqlite tumble.sqlite.bak
+	@echo "Database backed up to tumble.sqlite.bak"
+
+restore: ## Restore the database from backup
+	cp tumble.sqlite.bak tumble.sqlite
+	@echo "Database restored from tumble.sqlite.bak"
+
+load-fixtures: ## Load test fixtures
+	./tests/load_fixtures.sh
+
+run-test: kill build ## Run the application with the test database
+	$(BUILD_DIR)/$(BINARY_NAME) conf/config-test.yaml
+
+
+
+test-db: kill build ## Create a fresh test database with fixtures
+	./tests/setup_test_db.sh
+
+help: ## Show this help message
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

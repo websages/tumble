@@ -1,2 +1,7 @@
-debian/changelog
-scripts/twit-link
+tumble.sqlite
+tumble-test.sqlite*
+bin/*
+*.log
+.claude
+./tumble
+.worktrees/

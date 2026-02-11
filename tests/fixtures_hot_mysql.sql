@@ -1,0 +1,41 @@
+-- Insert items from 8 days ago (Hot Links window is 6-12 days)
+INSERT INTO ircLink (user, title, url, clicks, content_type, timestamp) VALUES
+('history_buff', 'Ancient Link 1', 'http://old.example.com/1', 10, 'text', DATE_SUB(NOW(), INTERVAL 8 DAY)),
+('history_buff', 'Ancient Link 2', 'http://old.example.com/2', 5, 'text', DATE_SUB(NOW(), INTERVAL 8 DAY)),
+('history_buff', 'Ancient Link 3', 'http://old.example.com/3', 20, 'text', DATE_SUB(NOW(), INTERVAL 9 DAY));
+
+-- Tags for links and quotes loaded by load_fixtures.sh
+INSERT INTO tags (tag, resource_type, resource_id, created_by, created_at) VALUES
+('video', 'link', 1, 'video_fan', NOW()),
+('youtube', 'link', 1, 'video_fan', NOW()),
+('music', 'link', 1, 'tagger', NOW()),
+('photo', 'link', 2, 'pic_poster', NOW()),
+('avatar', 'link', 2, 'tagger', NOW()),
+('social', 'link', 3, 'social_butterfly', NOW()),
+('mastodon', 'link', 3, 'social_butterfly', NOW()),
+('fediverse', 'link', 3, 'tagger', NOW()),
+('tools', 'link', 4, 'web_surfer', NOW()),
+('reddit', 'link', 5, 'gamer_girl', NOW()),
+('gaming', 'link', 5, 'gamer_girl', NOW()),
+('valheim', 'link', 5, 'tagger', NOW()),
+('funny', 'link', 6, 'meme_lord', NOW()),
+('meme', 'link', 6, 'meme_lord', NOW()),
+('twitter', 'link', 7, 'tweet_master', NOW()),
+('wiki', 'link', 8, 'knowledge_seeker', NOW()),
+('golang', 'link', 8, 'tagger', NOW()),
+('programming', 'link', 8, 'knowledge_seeker', NOW()),
+('broken', 'link', 9, '404_finder', NOW()),
+('video', 'link', 12, 'astley_fan', NOW()),
+('rickroll', 'link', 12, 'tagger', NOW()),
+('classic', 'link', 12, 'astley_fan', NOW()),
+('funny', 'link', 5, 'tagger', NOW()),
+('funny', 'link', 12, 'tagger', NOW()),
+('classic', 'link', 8, 'tagger', NOW()),
+('classic', 'quote', 3, 'tagger', NOW()),
+('social', 'link', 7, 'tagger', NOW()),
+('social', 'quote', 3, 'tagger', NOW()),
+('linux', 'quote', 1, 'tagger', NOW()),
+('programming', 'quote', 1, 'tagger', NOW()),
+('wisdom', 'quote', 2, 'tagger', NOW()),
+('programming', 'quote', 2, 'knowledge_seeker', NOW()),
+('disney', 'quote', 3, 'tagger', NOW());

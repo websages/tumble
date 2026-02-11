@@ -1,0 +1,14 @@
+driver: mysql
+database: tumble
+username: tumble
+host: 127.0.0.1:13306
+baseurl: http://localhost:8080
+mode: dev
+# Secret key for signing click-tracking URLs (generate a random 32+ char string for production)
+click_signing_key: "dev-signing-key-change-in-production"
+logging:
+  level: debug
+  output: tumble.log
+
+caching:
+  enabled: true

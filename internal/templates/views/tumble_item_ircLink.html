@@ -1,0 +1,71 @@
+    <div class="item" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}" data-click-sig="{{.ClickSig}}">
+        <div class="link-card-wrapper">
+            <div class="link-header">
+                <span class="link">
+                    {{if eq .EmbedType "twitter"}}
+                        {{/* Twitter embed */}}
+                        <span class="embed-media"><blockquote class="twitter-tweet"><a href="{{.EmbedURL}}" target="_blank">{{.Title}}</a></blockquote><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></span><span class="compact-placeholder">𝕏 <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
+                    {{else if eq .EmbedType "imgur_gallery"}}
+                        {{/* Imgur gallery card */}}
+                        {{if .IsBroken}}
+                            <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank"><span class="http-error-badge">404</span> <span class="missing-link">{{.URL}}</span></a>
+                        {{else}}
+                            <span class="imgur-gallery-card">
+                                <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">
+                                    <span class="gallery-image-container">
+                                        <img src="{{.ThumbnailURL}}"
+                                            onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='block';}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                        <span class="gallery-image-placeholder">📸</span>
+                                    </span>
+                                    <span class="gallery-card-content">
+                                        <span class="gallery-card-title">Imgur Gallery</span>
+                                        <span class="gallery-card-subtitle">{{.Title}}</span>
+                                    </span>
+                                </a>
+                            </span><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
+                        {{end}}
+                    {{else if eq .EmbedType "imgur_single"}}
+                        {{/* Imgur single image/video */}}
+                        <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank" class="imgur-media-link">
+                            {{if .IsAnimated}}
+                                <video autoplay loop muted playsinline class="imgur-video">
+                                    <source src="{{.MediaURL}}" type="video/mp4" />
+                                </video>
+                            {{else}}
+                                <img src="{{.MediaURL}}" class="imgur-image"
+                                    onload="if(this.naturalWidth===161 && this.naturalHeight===81){this.style.display='none'; this.nextElementSibling.style.display='inline';}"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" />
+                                <span class="imgur-error-fallback">
+                                    <span class="http-error-badge">404</span>
+                                    <span class="missing-link">{{.URL}}</span>
+                                </span>
+                            {{end}}
+                        </a><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
+                    {{else if eq .EmbedType "flickr"}}
+                        {{/* Flickr image */}}
+                        <span class="flickr-media">
+                        {{if .PhotoPageURL}}
+                            <a href="{{.PhotoPageURL}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
+                        {{else}}
+                            <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank"><img src="{{.MediaURL}}" alt="{{.Title}}" class="flickr-image" /></a>
+                        {{end}}
+                        </span><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
+                    {{else if eq .EmbedType "image"}}
+                        {{/* Direct image link */}}
+                        <span class="direct-image-wrapper">
+                        <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">
+                            <img src="{{.URL}}" class="direct-image"
+                                onerror="this.parentNode.innerHTML='<span class=\'http-error-badge\'>404</span> <span class=\'missing-link\'>{{.URL}}</span>'; this.parentNode.classList.add('missing-link');" />
+                        </a>
+                        </span><span class="compact-placeholder"><a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{.URL}}</a></span>
+                    {{else}}
+                        {{/* Generic link */}}
+                        <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{if .DisplayTitle}}{{.DisplayTitle}}{{else}}{{.Title}}{{end}}</a>
+                    {{end}}
+                </span>
+                <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a></span>
+            </div>
+            {{if not .SuppressOG}}<div class="og-preview" id="og-preview-{{.ID}}"></div>{{end}}
+        </div>
+    </div>

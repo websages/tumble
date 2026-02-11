@@ -1,0 +1,125 @@
+#!/bin/bash
+# API Integration Tests for Tumble Go rewrite
+
+BASE_URL="http://localhost:8080"
+FAIL=0
+
+echo "Starting Tests against $BASE_URL..."
+
+# Helper to check if a page returns 200
+check_200() {
+    url=$1
+    echo -n "Checking $url... "
+    status=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$url")
+    if [ "$status" == "200" ]; then
+        echo "OK"
+    else
+        echo "FAIL (Status: $status)"
+        FAIL=1
+    fi
+}
+
+# Helper to check content type
+check_content_type() {
+    url=$1
+    expected=$2
+    echo -n "Checking Content-Type for $url (expecting $expected)... "
+    ct=$(curl -s -I "$BASE_URL$url" | grep -i "Content-Type" | awk '{print $2}' | tr -d '\r')
+    if [[ "$ct" == *"$expected"* ]]; then
+        echo "OK"
+    else
+        echo "FAIL (Got: $ct)"
+        FAIL=1
+    fi
+}
+
+# 1. Main Index (HTML)
+check_200 "/"
+check_content_type "/" "text/html"
+
+# 2. Main Index (RSS/XML)
+check_200 "/index.xml?dtype=rss"
+check_content_type "/index.xml?dtype=rss" "text/xml"
+
+# Optional: XML Validation if xmllint is presen
+if command -v xmllint &> /dev/null; then
+    echo -n "Validating RSS XML structure... "
+    curl -s "$BASE_URL/index.xml?dtype=rss" > rss_temp.xml
+    if xmllint --noout rss_temp.xml 2>/dev/null; then
+        echo "OK"
+        rm rss_temp.xml
+    else
+        echo "FAIL (XML Validation errors)"
+        xmllint --noout rss_temp.xml
+        rm rss_temp.xml
+        FAIL=1
+    fi
+else
+    echo "Skipping XML validation (xmllint not found)"
+fi
+
+# 3. Search (HTML)
+check_200 "/search?search=test"      # New
+check_200 "/search.cgi?search=test"  # Legacy
+
+# 4. IRCLink Redirect (Setup needed for real test, checking 404/400 for bad ID)
+echo -n "Checking /irclink/?id=999999 (Expect 404/Redirect)... "
+status=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/irclink/?id=999999")
+if [ "$status" == "404" ] || [ "$status" == "302" ]; then
+    echo "OK (Status: $status)"
+else
+    echo "FAIL (Status: $status)"
+    FAIL=1
+fi
+
+# 5. v0 Endpoints
+check_200 "/v0/"
+check_200 "/v0/search.cgi?search=test"
+
+# 6. OGPreview Routes
+check_200 "/ogpreview.cgi?url=https://example.com" # Legacy
+# YouTube 404 Check (New Route)
+echo -n "Checking YouTube value for missing video (Expect 200 OK + status: 404) on /ogpreview... "
+resp=$(curl -s "$BASE_URL/ogpreview?url=https://www.youtube.com/watch?v=video_gone")
+# Check if response contains '"status": 404' (or 'status":404' depending on spacing)
+if [[ "$resp" == *'"status":404'* ]] || [[ "$resp" == *'"status": 404'* ]]; then
+   echo "OK"
+else
+   echo "FAIL (Got: $resp)"
+   FAIL=1
+fi
+
+# 7. Delete Link Test (Create -> Delete -> Verify)
+echo -n "Testing DELETE /irclink/ flow... "
+# Create a link first
+CREATE_OUT=$(curl -s "$BASE_URL/irclink/?user=testdel&url=http://delete-test.com&source=irc")
+# Check if we got an ID (numeric)
+if [[ "$CREATE_OUT" =~ ^[0-9]+$ ]]; then
+    DEL_ID=$CREATE_OUT
+    # Delete it (using admin secret from test config)
+    DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "X-Admin-Secret: test-admin-secret" "$BASE_URL/irclink/?id=$DEL_ID")
+    if [ "$DEL_STATUS" == "200" ]; then
+        # Verify it's gone
+        GONE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/irclink/?id=$DEL_ID")
+        if [ "$GONE_STATUS" == "404" ]; then
+            echo "OK"
+        else
+            echo "FAIL (Expected 404 after delete, got $GONE_STATUS)"
+            FAIL=1
+        fi
+    else
+        echo "FAIL (Delete request failed with $DEL_STATUS)"
+        FAIL=1
+    fi
+else
+    echo "FAIL (Could not create test link: $CREATE_OUT)"
+    FAIL=1
+fi
+
+if [ $FAIL -eq 0 ]; then
+    echo "All tests passed!"
+    exit 0
+else
+    echo "Tests failed!"
+    exit 1
+fi

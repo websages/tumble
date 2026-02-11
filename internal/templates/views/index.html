@@ -1,0 +1,969 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+  <head>
+    <title>tumblefish.{{.PageTitle}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" id="favicon" href="/favicon.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="/css/screen.css"
+      media="screen"
+    />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" as="style" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" />
+    {{if .CanonicalURL}}<link rel="canonical" href="{{.CanonicalURL}}" />{{end}}
+    {{if .DevMode}}
+    <script>
+      // Dev mode: Convert favicon to grayscale
+      (function() {
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var data = imageData.data;
+          for (var i = 0; i < data.length; i += 4) {
+            var avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+            data[i] = avg;
+            data[i + 1] = avg;
+            data[i + 2] = avg;
+          }
+          ctx.putImageData(imageData, 0, 0);
+          var link = document.getElementById('favicon');
+          link.href = canvas.toDataURL('image/png');
+        };
+        img.src = '/favicon.ico';
+      })();
+    </script>
+    {{end}}
+
+    <!-- Theme Init -->
+    <script>
+      (function () {
+        var savedTheme = localStorage.getItem("theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+
+        // Compact Mode Init
+        var isCompact = localStorage.getItem("compact") === "true";
+        if (isCompact) {
+            document.documentElement.classList.add("compact-mode");
+        }
+
+        // Scott Mode Init
+        var isScottMode = localStorage.getItem("scottMode") === "true";
+        if (isScottMode) {
+          document.documentElement.setAttribute("data-scott-mode", "true");
+          document.documentElement.removeAttribute("data-theme"); // Force light
+        }
+
+        // Font loading detection
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(function() {
+            document.documentElement.classList.add("fonts-loaded");
+          });
+        } else {
+          // Fallback: show icons after short delay
+          setTimeout(function() {
+            document.documentElement.classList.add("fonts-loaded");
+          }, 100);
+        }
+      })();
+    </script>
+
+    <!-- Twitter Cards -->
+    <script>
+      !(function (d, s, id) {
+        var js,
+          fjs = d.getElementsByTagName(s)[0],
+          p = /^http:/.test(d.location) ? "http" : "https";
+        if (!d.getElementById(id)) {
+          js = d.createElement(s);
+          js.id = id;
+          js.src = p + "://platform.twitter.com/widgets.js";
+          fjs.parentNode.insertBefore(js, fjs);
+        }
+      })(document, "script", "twitter-wjs");
+    </script>
+
+    <!-- Open Graph Preview Loader -->
+    <script type="text/javascript">
+      (function () {
+        // Provider-specific rendering configuration
+        // To change behavior for a provider, edit its row here instead of
+        // adding if-checks inside renderPreview().
+        var providerConfig = {
+          "Reddit":   {
+            showTitle: true,
+            showDescription: true,
+            autoExpand: true,
+            defaultIcon: "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png"
+          },
+          "Spotify":  { showTitle: false, showDescription: false, autoExpand: true },
+          "GIPHY":    { showTitle: false, showDescription: false },
+          "Flickr":   { clickableImage: true, forceAspect: "photo" },
+          "_default": {
+            showTitle: true,
+            showDescription: true,
+            autoExpand: false,
+            clickableImage: false
+          }
+        };
+
+        // Resolve provider config with defaults for missing fields
+        function getProviderConfig(provider) {
+          var cfg = providerConfig[provider] || {};
+          var defaults = providerConfig["_default"];
+          var resolved = {};
+          for (var key in defaults) {
+            resolved[key] = cfg[key] !== undefined ? cfg[key] : defaults[key];
+          }
+          // Copy provider-specific keys not in defaults (e.g. defaultIcon)
+          for (var key in cfg) {
+            if (resolved[key] === undefined) resolved[key] = cfg[key];
+          }
+          return resolved;
+        }
+
+        // URL-based transform: Imgur animated content
+        // Imgur's OG metadata returns .jpg even for animated GIFs;
+        // swap to .mp4 (Imgur's preferred animated format).
+        function transformImgurAnimated(url, imageUrl) {
+          if (url.match(/imgur\.com/) && imageUrl && imageUrl.match(/i\.imgur\.com.*\.jpg/)) {
+            return { url: imageUrl.replace(/\.jpg.*$/, '.mp4'), isAnimated: true };
+          }
+          return { url: imageUrl, isAnimated: false };
+        }
+
+        function loadOGPreview(item) {
+          var url = item.getAttribute("data-url");
+          var contentType = item.getAttribute("data-content-type");
+          var ircId = item.getAttribute("data-irc-link-id");
+          var clickSig = item.getAttribute("data-click-sig");
+          var previewDiv = item.querySelector(".og-preview");
+          var imgurCard = item.querySelector(".imgur-gallery-card");
+
+          // Only load preview for non-image content (text/html)
+          // Exception: Imgur Gallery Cards need to fetch the cover image even if "image" is in content type
+          if (!url || (contentType && contentType.match(/image/) && !imgurCard)) {
+            return;
+          }
+
+          // If no preview div AND no imgur card, nothing to do
+          if (!previewDiv && !imgurCard) {
+            return;
+          }
+
+          // Ensure URL has protocol
+          if (!url.match(/^https?:\/\//)) {
+            url = "http://" + url;
+          }
+
+          // Create preview endpoint URL
+          var previewUrl = "/ogpreview?url=" + encodeURIComponent(url);
+
+          // Load preview asynchronously
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", previewUrl, true);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                try {
+                  var data = JSON.parse(xhr.responseText);
+                  handlePreviewData(data, ircId);
+                } catch (e) {
+                  // Silently fail or remove
+                  previewDiv.remove();
+                }
+              } else {
+                previewDiv.remove();
+              }
+            }
+          };
+          xhr.send();
+
+          // Helper to build signed link URL
+          function buildLinkUrl(id, sig) {
+              if (id && sig) {
+                  return '/link/' + id + '?sig=' + sig;
+              } else if (id) {
+                  return '/link/' + id;
+              }
+              return null;
+          }
+
+          function handlePreviewData(data, ircId) {
+              // Skip preview card for inline-rendered content (e.g., Flickr single photos)
+              if (data.render_inline === "true") {
+                  if (previewDiv) previewDiv.remove();
+                  return;
+              }
+
+             // Handle Errors
+             if (data.error || (data.status && data.status >= 400)) {
+                var status = data.status || 404;
+                var linkSpan = item.querySelector(".link");
+                if (linkSpan && !imgurCard) {
+                     var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
+                     var linkHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
+                     var archiveSuffix = '';
+                     if (data.archive_url) {
+                         var dateLabel = '';
+                         if (data.archive_snapshot_at) {
+                             var d = new Date(data.archive_snapshot_at);
+                             var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                             dateLabel = ' (' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ')';
+                         }
+                         archiveSuffix = ' <span class="archive-sep">&middot;</span> <a href="' + escapeHtml(data.archive_url) + '" class="archive-link" target="_blank">View on Archive.org' + dateLabel + '</a>';
+                     }
+                     linkSpan.innerHTML = '<a href="' + linkHref + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>' + archiveSuffix;
+                }
+                if (previewDiv) previewDiv.remove();
+                return;
+             }
+
+             // Client-side OEmbed Fallback (TikTok)
+             // If missing embed_html but is TikTok, fetch from TikTok's OEmbed endpoint directly.
+             if (!data.embed_html && url.match(/tiktok\.com/)) {
+                  var oembedUrl = 'https://www.tiktok.com/oembed?url=' + encodeURIComponent(url) + '&format=json';
+                  fetch(oembedUrl)
+                      .then(function(response) {
+                          if (response.ok) return response.json();
+                          throw new Error('Client-side OEmbed failed');
+                      })
+                      .then(function(oembedData) {
+                          if (oembedData.html) data.embed_html = oembedData.html;
+                          if (oembedData.thumbnail_url) data.image = oembedData.thumbnail_url;
+                          if (oembedData.title) data.title = oembedData.title;
+                          if (oembedData.provider_name) data.provider_name = oembedData.provider_name;
+                          data.type = "video";
+                          renderPreview(data, ircId);
+                      })
+                      .catch(function(e) {
+                          console.log("Fallback failed", e);
+                          renderPreview(data, ircId);
+                      });
+                  return;
+             }
+
+             renderPreview(data, ircId);
+          }
+
+          function renderPreview(data, ircId) {
+                // Use Open Graph image, Twitter image, or nothing
+                var imageUrl = data.image || data.twitter_image || null;
+                var title = data.title || data.twitter_title || null;
+                var description = data.description || data.twitter_description || null;
+
+                // SPECIAL HANDLING: Imgur Gallery Card (different rendering mode)
+                if (imgurCard) {
+                    if (imageUrl) {
+                        var imgContainer = imgurCard.querySelector(".gallery-image-container");
+                        if (imgContainer) {
+                            var imgHtml = '<img src="' + escapeHtml(imageUrl) + '" style="width: 100%; height: auto; display: block; object-fit: cover;" />';
+                            imgContainer.innerHTML = imgHtml;
+                            imgContainer.style.minHeight = "auto";
+                            imgContainer.style.lineHeight = "normal";
+                            imgContainer.style.backgroundColor = "transparent";
+                        }
+                    }
+                    return;
+                }
+
+                // Resolve provider config
+                var provider = data.provider_name || "Link";
+                var cfg = getProviderConfig(provider);
+
+                // Update link header: show OG title prominently with URL below
+                if (title) {
+                    var linkEl = item.querySelector('.link-header .link');
+                    if (linkEl) {
+                        var linkAnchor = linkEl.querySelector('a:not(.missing-link)');
+                        if (linkAnchor) {
+                            linkAnchor.textContent = title;
+                            if (!linkEl.querySelector('.link-url') && title !== url) {
+                                var urlSpan = document.createElement('span');
+                                urlSpan.className = 'link-url';
+                                urlSpan.textContent = url;
+                                linkEl.appendChild(urlSpan);
+                            }
+                        }
+                    }
+                }
+
+                if (!previewDiv) return;
+
+                // Only show preview if we have at least an image, title, or description
+                if (!imageUrl && !title && !description && !data.embed_html) {
+                  return;
+                }
+
+                // Build preview HTML
+                var previewHTML = '<div class="og-card">';
+
+                // Site Info (Icon + Name)
+                var iconUrl = data.icon || cfg.defaultIcon || "/favicon.ico";
+
+                previewHTML +=
+                  '<div class="og-site-info"><img src="' +
+                  escapeHtml(iconUrl) +
+                  '" class="og-site-icon" /> ' +
+                  escapeHtml(provider) +
+                  "</div>";
+
+                // Image
+                if (imageUrl) {
+                  // URL-based transform: Imgur animated content
+                  var imgurResult = transformImgurAnimated(url, imageUrl);
+                  imageUrl = imgurResult.url;
+
+                  var imageContent;
+                  if (imgurResult.isAnimated) {
+                    imageContent = '<video autoplay loop muted playsinline style="width: 100%; height: auto; display: block;"><source src="' + escapeHtml(imageUrl) + '" type="video/mp4" /></video>';
+                  } else {
+                    imageContent = '<img src="' + escapeHtml(imageUrl) + '" alt="" />';
+                  }
+                  var onClickAttr = '';
+
+                  // If it's a video, add the play button overlay
+                  if (data.type === "video" || data.type === "rich") {
+                    imageContent += '<div class="og-play-button"></div>';
+                    onClickAttr = 'onclick="replaceWithVideo(this)"';
+                  }
+
+                  var embedHtmlAttr = '';
+                  if (data.embed_html) {
+                      embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
+                  }
+
+                  // Determine aspect ratio
+                  var aspectAttr = '';
+                  if (data.type === "video" || data.type === "rich") {
+                    aspectAttr = ' data-aspect="video"';
+                  } else if (data.type === "photo" || cfg.forceAspect === "photo") {
+                    aspectAttr = ' data-aspect="photo"';
+                  }
+
+                  var innerContent = imageContent;
+                  // Wrap image in clickable anchor if configured (e.g. Flickr)
+                  if (ircId && !data.embed_html && (data.type === 'photo' || cfg.clickableImage)) {
+                       var imgLinkHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
+                       innerContent = '<a href="' + imgLinkHref + '" target="_blank">' + imageContent + '</a>';
+                  }
+
+                  previewHTML +=
+                    '<div class="og-image ' +
+                    (data.type === "video" || data.type === "rich" ? "is-video" : "") +
+                    '" ' + onClickAttr + embedHtmlAttr + aspectAttr + '>' +
+                    innerContent +
+                    "</div>";
+                } else if (!imageUrl && data.embed_html && (data.type === "video" || data.type === "rich")) {
+                  // Embed exists but no thumbnail image — create container for auto-expand
+                  var embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
+                  previewHTML += '<div class="og-image is-video"' + embedHtmlAttr + ' data-aspect="video"></div>';
+                }
+
+                // Text Content
+                previewHTML += '<div class="og-content">';
+                if (title && cfg.showTitle) {
+                  var titleHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
+                  previewHTML +=
+                    '<div class="og-title"><a href="' +
+                    titleHref +
+                    '" target="_blank">' +
+                    escapeHtml(title) +
+                    "</a></div>";
+                }
+                if (description && cfg.showDescription) {
+                  if (description.length > 300) {
+                    description = description.substring(0, 300) + "...";
+                  }
+                  previewHTML +=
+                    '<div class="og-description">' +
+                    escapeHtml(description) +
+                    "</div>";
+                }
+                previewHTML += "</div>"; // end og-content
+                previewHTML += "</div>"; // end og-card
+
+                previewDiv.innerHTML = previewHTML;
+
+                // Auto-expand embeds for providers that want it
+                if (cfg.autoExpand && data.embed_html) {
+                    var imgDiv = previewDiv.querySelector('.og-image.is-video');
+                    if (imgDiv) {
+                       window.replaceWithVideo(imgDiv);
+                    }
+                }
+          }
+        }
+
+        function escapeHtml(text) {
+          var div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
+        // Global handler for video replacement
+        window.replaceWithVideo = function(container) {
+            // Check for pre-fetched embed HTML
+            var embedHtmlEncoded = container.getAttribute('data-embed-html');
+            if (embedHtmlEncoded) {
+                var embedHtml = decodeURIComponent(embedHtmlEncoded);
+
+                // Security: Use sandboxed iframe to isolate external embed content
+                // This prevents embedded content from accessing the parent page
+                var iframe = document.createElement('iframe');
+                iframe.sandbox = 'allow-scripts allow-same-origin allow-popups allow-presentation';
+                iframe.style.width = '100%';
+                iframe.style.border = 'none';
+                iframe.style.display = 'block';
+
+                // Determine appropriate height based on embed type
+                var isReddit = embedHtml.indexOf('reddit') !== -1;
+                var isSpotify = embedHtml.indexOf('spotify') !== -1;
+                var isTikTok = embedHtml.indexOf('tiktok') !== -1;
+
+                // Auto-resize script for embeds that need dynamic height
+                var autoResizeScript = '';
+                if (isReddit) {
+                    autoResizeScript = '<script>' +
+                        'function sendHeight() {' +
+                        '  var h = document.body.scrollHeight;' +
+                        '  if (h > 0) parent.postMessage({type:"resize",height:h}, "*");' +
+                        '}' +
+                        'new MutationObserver(sendHeight).observe(document.body, {childList:true,subtree:true,attributes:true});' +
+                        'window.addEventListener("load", function() { setTimeout(sendHeight, 500); });' +
+                        'sendHeight();' +
+                        '<\/script>';
+                }
+
+                // Wrap embed HTML in a minimal HTML document with responsive styling
+                var iframeContent = '<!DOCTYPE html>' +
+                    '<html><head>' +
+                    '<meta charset="utf-8">' +
+                    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+                    '<style>' +
+                    'body { margin: 0; padding: 0; display: flex; justify-content: center; overflow: hidden; }' +
+                    'body > * { max-width: 100%; }' +
+                    '</style>' +
+                    '</head><body>' + embedHtml + autoResizeScript + '</body></html>';
+
+                iframe.srcdoc = iframeContent;
+
+                if (isSpotify) {
+                    iframe.style.height = '152px';
+                    container.setAttribute('data-embed-type', 'spotify');
+                } else if (isReddit) {
+                    // Start with reasonable height, will auto-resize
+                    iframe.style.height = '300px';
+                    container.setAttribute('data-embed-type', 'reddit');
+                    // Listen for resize messages from this iframe
+                    var resizeHandler = function(e) {
+                        if (e.data && e.data.type === 'resize' && e.source === iframe.contentWindow) {
+                            iframe.style.height = e.data.height + 'px';
+                        }
+                    };
+                    window.addEventListener('message', resizeHandler);
+                } else if (isTikTok) {
+                    iframe.style.height = '740px';
+                    container.setAttribute('data-embed-type', 'tiktok');
+                } else {
+                    // Default for video embeds (16:9 aspect approximation)
+                    iframe.style.height = '400px';
+                }
+
+                // Clear container and insert sandboxed iframe
+                container.innerHTML = '';
+                container.appendChild(iframe);
+                container.onclick = null;
+                container.classList.remove('is-video');
+                container.style.cursor = 'default';
+                return;
+            }
+
+            // Find URL from parent item
+            var item = container.closest('.item');
+            if (!item) return;
+            var url = item.getAttribute('data-url');
+            if (!url) return;
+
+            var videoID = '';
+            var match = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (match) {
+                videoID = match[1];
+            } else {
+                 // Try query param scan too
+                 var match2 = url.match(/v=([a-zA-Z0-9_-]{11})/);
+                 if (match2) videoID = match2[1];
+            }
+
+            if (videoID) {
+                var iframe = '<div class="youtube-embed-wrapper"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/' + videoID + '?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"></iframe></div>';
+                container.innerHTML = iframe;
+                container.onclick = null; // Remove handler
+                container.classList.remove('is-video');
+                container.style.cursor = 'default';
+            }
+        };
+
+        // Load all previews when DOM is ready
+        function initOGPreviews() {
+          var items = document.querySelectorAll(".item[data-url]");
+          for (var i = 0; i < items.length; i++) {
+            loadOGPreview(items[i]);
+          }
+        }
+
+        // Run when DOM is ready
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initOGPreviews);
+        } else {
+          initOGPreviews();
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+{{template "header" .}}
+    <div id="page">
+      <div id="masthead">
+        <a href="/" onclick="event.preventDefault(); window.location = window.location.origin + '/';">tumblefish.</a>
+      </div>
+
+      <div id="sidebar">
+        <div class="item">
+          <div class="header">search it up</div>
+          <form action="/search" id="search-form" method="get">
+            <input type="text" name="search" value="" size="15" />
+          </form>
+        </div>
+        <div class="item">
+          <div class="header">hot shit</div>
+          {{if .Hot}}
+            {{.Hot}}
+          {{else}}
+            <div class="sm">Nothing hot right now.</div>
+          {{end}}
+        </div>
+        <div class="item">
+          <div class="header">also</div>
+          <div class="sm"><div class="link"><a href="/buttons/">buttons</a></div></div>
+          <div class="sm"><div class="link"><a href="/index.xml">feed</a></div></div>
+        </div>
+      </div>
+
+      <div id="content">
+        {{if .Poster}}
+        <div class="item" style="font-size: 14px; margin-bottom: 20px;">
+            Filter:
+            <a href="/?poster={{.Poster}}" style="{{if eq .FilterType ""}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">All</a> |
+            <a href="/?poster={{.Poster}}&type=links" style="{{if eq .FilterType "links"}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">Links</a> |
+            <a href="/?poster={{.Poster}}&type=quotes" style="{{if eq .FilterType "quotes"}}font-weight: bold; color: var(--text-main);{{else}}color: var(--link-color);{{end}}">Quotes</a>
+        </div>
+        {{end}}
+        {{if .IsFallbackContent}}
+        <div class="item" style="border: 1px solid var(--og-border); padding: 15px; margin-bottom: 20px; background-color: var(--footer-bg); border-radius: 4px; text-align: center;">
+            <div style="font-weight: bold; margin-bottom: 5px; font-size: 18px;">It's been a bit quiet lately...</div>
+            <div style="font-size: 14px;">Here is some content from the archives. Why not <a href="/buttons/" style="font-weight: bold; color: var(--link-color);">share something new</a>?</div>
+        </div>
+        {{end}}
+        {{if or .NavP .NavN}}
+        <div id="navigation-top" style="margin-bottom: 24px;">{{.NavP}} {{.NavN}}</div>
+        {{end}}
+        {{.Container}}
+      </div>
+
+      <div id="navigation">{{.NavP}} {{.NavN}}</div>
+    </div>
+
+    <!-- Scott Mode Exit Button -->
+    <button class="scott-mode-exit" id="scott-mode-exit" onclick="toggleScottMode()">
+      Exit Scott Mode
+    </button>
+
+    {{template "footer" .}}
+
+    <!-- Sticky Date Widget Script -->
+    <script>
+      (function() {
+        // Check if page has enough content to scroll
+        function hasScrollableContent() {
+          return document.documentElement.scrollHeight > window.innerHeight;
+        }
+
+        // Only initialize if there's scrollable content
+        if (!hasScrollableContent()) {
+          return;
+        }
+
+        var sections = document.querySelectorAll('.date-section');
+        var navigationBottom = document.querySelector('#navigation');
+
+        if (sections.length === 0) {
+          return;
+        }
+
+        // Store original top positions of all date widgets once at the start
+        sections.forEach(function(section, index) {
+          var dateWidget = section.querySelector('.date-widget');
+          if (dateWidget) {
+            var rect = dateWidget.getBoundingClientRect();
+            dateWidget.setAttribute('data-original-top', rect.top + window.pageYOffset);
+          }
+        });
+
+        // Calculate the left position based on the content area
+        function calculateStickyLeft(section) {
+          // Get the section's left edge and apply the same offset as the CSS margin-left
+          var sectionRect = section.getBoundingClientRect();
+          return sectionRect.left - 130; // matches margin-left: -130px in CSS
+        }
+
+        function updateStickyDates() {
+          // Skip sticky behavior in Scott Mode (check dynamically)
+          if (document.documentElement.getAttribute('data-scott-mode') === 'true') {
+            // Remove any sticky classes when in Scott Mode
+            sections.forEach(function(section) {
+              var dateWidget = section.querySelector('.date-widget');
+              if (dateWidget) {
+                dateWidget.classList.remove('sticky', 'at-bottom');
+                dateWidget.style.left = '';
+              }
+            });
+            return;
+          }
+
+          var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          var viewportHeight = window.innerHeight;
+
+          // Get navigation bottom position
+          var navBottomTop = navigationBottom ? navigationBottom.getBoundingClientRect().top + scrollTop : Infinity;
+
+          sections.forEach(function(section, index) {
+            var dateWidget = section.querySelector('.date-widget');
+            if (!dateWidget) return;
+
+            var sectionRect = section.getBoundingClientRect();
+            var sectionTop = sectionRect.top + scrollTop;
+            var sectionBottom = sectionRect.bottom + scrollTop;
+
+            // Get stored original top position
+            var originalDateTop = parseInt(dateWidget.getAttribute('data-original-top'));
+
+            // Calculate left position dynamically based on current section position
+            var stickyLeft = calculateStickyLeft(section);
+
+            // Get next section if exists
+            var nextSection = sections[index + 1];
+            var nextSectionTop = nextSection ?
+              nextSection.getBoundingClientRect().top + scrollTop : Infinity;
+
+            // Calculate date widget height
+            var dateHeight = dateWidget.offsetHeight;
+
+            // Sticky top position (below the 56px fixed header + 20px spacing)
+            var stickyTop = 76;
+
+            // Determine if date should be sticky based on the date widget's original position
+            var shouldBeSticky = scrollTop + stickyTop >= originalDateTop &&
+                                 scrollTop < sectionBottom - dateHeight;
+
+            // Check if we should stop for next date (next date approaching)
+            var nextDateApproaching = nextSection &&
+              (scrollTop + stickyTop + dateHeight + 30) >= nextSectionTop;
+
+            // Check if we should stop for navigation (bottom pagination)
+            var navigationApproaching = navBottomTop !== Infinity &&
+              (scrollTop + stickyTop + dateHeight + 30) >= navBottomTop;
+
+            if (shouldBeSticky && !nextDateApproaching && !navigationApproaching) {
+              // Make sticky
+              dateWidget.classList.add('sticky');
+              dateWidget.classList.remove('at-bottom');
+              dateWidget.style.left = stickyLeft + 'px';
+            } else if (shouldBeSticky && (nextDateApproaching || navigationApproaching)) {
+              // Pin at bottom of section
+              dateWidget.classList.remove('sticky');
+              dateWidget.classList.add('at-bottom');
+              dateWidget.style.left = '';
+            } else {
+              // Static position
+              dateWidget.classList.remove('sticky', 'at-bottom');
+              dateWidget.style.left = '';
+            }
+          });
+        }
+
+        // Throttle scroll events for performance
+        var scrollTimeout;
+        function throttledUpdate() {
+          if (scrollTimeout) {
+            return;
+          }
+          scrollTimeout = setTimeout(function() {
+            updateStickyDates();
+            scrollTimeout = null;
+          }, 10);
+        }
+
+        // Listen for scroll
+        window.addEventListener('scroll', throttledUpdate);
+        window.addEventListener('resize', function() {
+          // Check if content is still scrollable after resize
+          if (!hasScrollableContent()) {
+            // Remove all sticky classes if no longer scrollable
+            sections.forEach(function(section) {
+              var dateWidget = section.querySelector('.date-widget');
+              if (dateWidget) {
+                dateWidget.classList.remove('sticky', 'at-bottom');
+                dateWidget.style.left = '';
+              }
+            });
+          } else {
+            updateStickyDates();
+          }
+        });
+
+        // Initial check
+        updateStickyDates();
+      })();
+    </script>
+
+    <!-- Scott Mode Toggle Function -->
+    <script>
+    function toggleScottMode() {
+      var html = document.documentElement;
+      var isEnabled = html.getAttribute("data-scott-mode") === "true";
+      if (isEnabled) {
+        html.removeAttribute("data-scott-mode");
+        localStorage.setItem("scottMode", "false");
+        // Restore theme preference
+        var savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+          html.setAttribute("data-theme", "dark");
+        }
+      } else {
+        html.setAttribute("data-scott-mode", "true");
+        html.removeAttribute("data-theme"); // Force light
+        localStorage.setItem("scottMode", "true");
+      }
+    }
+    </script>
+
+    <!-- Vim Keyboard Navigation -->
+    <script>
+    (function() {
+      var items = [];
+      var currentIndex = -1;
+      var hintTimeout = null;
+
+      // Create hint element
+      var hint = document.createElement('div');
+      hint.className = 'vim-hint';
+      hint.innerHTML = '<kbd>j</kbd>/<kbd>k</kbd> navigate <kbd>h</kbd>/<kbd>l</kbd> pages <kbd>o</kbd> open <kbd>/</kbd> search <kbd>0</kbd> home';
+      document.body.appendChild(hint);
+
+      function init() {
+        items = Array.from(document.querySelectorAll('#content .item[data-url], #content .item:has(.quote-card)'));
+      }
+
+      function showHint() {
+        hint.classList.add('visible');
+        if (hintTimeout) clearTimeout(hintTimeout);
+        hintTimeout = setTimeout(function() {
+          hint.classList.remove('visible');
+        }, 2000);
+      }
+
+      function selectItem(index) {
+        // Remove previous selection
+        if (currentIndex >= 0 && items[currentIndex]) {
+          items[currentIndex].classList.remove('vim-selected');
+        }
+
+        // Clamp index to valid range
+        if (index < 0) index = 0;
+        if (index >= items.length) index = items.length - 1;
+
+        currentIndex = index;
+
+        if (items[currentIndex]) {
+          items[currentIndex].classList.add('vim-selected');
+          // Scroll into view with offset for fixed header
+          var rect = items[currentIndex].getBoundingClientRect();
+          var headerHeight = 76; // 56px header + 20px spacing
+          if (rect.top < headerHeight) {
+            window.scrollBy(0, rect.top - headerHeight);
+          } else if (rect.bottom > window.innerHeight - 60) {
+            window.scrollBy(0, rect.bottom - window.innerHeight + 60);
+          }
+        }
+      }
+
+      function openSelectedItem() {
+        if (currentIndex < 0 || !items[currentIndex]) return;
+        var item = items[currentIndex];
+
+        // Try to find the main link
+        var link = item.querySelector('.link a') ||
+                   item.querySelector('.quote-link') ||
+                   item.querySelector('a[href]');
+
+        if (link && link.href) {
+          window.open(link.href, '_blank');
+        }
+      }
+
+      function navigatePage(direction) {
+        var nav = document.querySelector('#navigation');
+        if (!nav) return;
+
+        var links = nav.querySelectorAll('a.nav-link');
+        if (links.length === 0) return;
+
+        // h = previous (older), l = next (newer)
+        // NavP is "previous" (older content), NavN is "next" (newer content)
+        if (direction === 'prev') {
+          // Find link with chevron_left (previous/older)
+          for (var i = 0; i < links.length; i++) {
+            if (links[i].textContent.indexOf('chevron_left') !== -1 ||
+                links[i].querySelector('.material-symbols-rounded')?.textContent === 'chevron_left') {
+              links[i].click();
+              return;
+            }
+          }
+          // Fallback: first link is usually prev
+          if (links[0]) links[0].click();
+        } else {
+          // Find link with chevron_right (next/newer)
+          for (var i = 0; i < links.length; i++) {
+            if (links[i].textContent.indexOf('chevron_right') !== -1 ||
+                links[i].querySelector('.material-symbols-rounded')?.textContent === 'chevron_right') {
+              links[i].click();
+              return;
+            }
+          }
+          // Fallback: last link is usually next
+          if (links[links.length - 1]) links[links.length - 1].click();
+        }
+      }
+
+      function handleKeydown(e) {
+        // Ignore if typing in input/textarea
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          return;
+        }
+
+        // Ignore if modifier keys are pressed (except shift)
+        if (e.ctrlKey || e.altKey || e.metaKey) {
+          return;
+        }
+
+        var key = e.key.toLowerCase();
+
+        switch (key) {
+          case 'j':
+            e.preventDefault();
+            if (currentIndex === -1) {
+              selectItem(0);
+            } else {
+              selectItem(currentIndex + 1);
+            }
+            showHint();
+            break;
+
+          case 'k':
+            e.preventDefault();
+            if (currentIndex === -1) {
+              selectItem(items.length - 1);
+            } else {
+              selectItem(currentIndex - 1);
+            }
+            showHint();
+            break;
+
+          case 'h':
+            e.preventDefault();
+            navigatePage('prev');
+            break;
+
+          case 'l':
+            e.preventDefault();
+            navigatePage('next');
+            break;
+
+          case 'o':
+          case 'enter':
+            if (currentIndex >= 0) {
+              e.preventDefault();
+              openSelectedItem();
+            }
+            break;
+
+          case 'g':
+            // gg to go to top (first item)
+            if (e.shiftKey) {
+              // G = go to last item
+              e.preventDefault();
+              selectItem(items.length - 1);
+              showHint();
+            }
+            break;
+
+          case '/':
+            e.preventDefault();
+            var searchInput = document.querySelector('.nav-header input[name="search"]');
+            if (searchInput) {
+              searchInput.focus();
+              searchInput.select();
+            }
+            break;
+
+          case '0':
+            e.preventDefault();
+            window.location = window.location.origin + '/';
+            break;
+        }
+      }
+
+      // Handle gg (double g) for going to top
+      var lastGTime = 0;
+      document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key.toLowerCase() === 'g' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+          var now = Date.now();
+          if (now - lastGTime < 500) {
+            e.preventDefault();
+            selectItem(0);
+            window.scrollTo(0, 0);
+            showHint();
+            lastGTime = 0;
+          } else {
+            lastGTime = now;
+          }
+        }
+      });
+
+      // Initialize
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      document.addEventListener('keydown', handleKeydown);
+    })();
+    </script>
+
+  </body>
+</html>

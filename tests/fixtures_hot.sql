@@ -1,0 +1,41 @@
+-- Insert items from 8 days ago (Hot Links window is 6-12 days)
+INSERT INTO ircLink (user, title, url, clicks, content_type, timestamp) VALUES
+('history_buff', 'Ancient Link 1', 'http://old.example.com/1', 10, 'text', datetime('now', '-8 days')),
+('history_buff', 'Ancient Link 2', 'http://old.example.com/2', 5, 'text', datetime('now', '-8 days')),
+('history_buff', 'Ancient Link 3', 'http://old.example.com/3', 20, 'text', datetime('now', '-9 days'));
+
+-- Tags for links and quotes loaded by load_fixtures.sh
+INSERT INTO tags (tag, resource_type, resource_id, created_by, created_at) VALUES
+('video', 'link', 1, 'video_fan', datetime('now')),
+('youtube', 'link', 1, 'video_fan', datetime('now')),
+('music', 'link', 1, 'tagger', datetime('now')),
+('photo', 'link', 2, 'pic_poster', datetime('now')),
+('avatar', 'link', 2, 'tagger', datetime('now')),
+('social', 'link', 3, 'social_butterfly', datetime('now')),
+('mastodon', 'link', 3, 'social_butterfly', datetime('now')),
+('fediverse', 'link', 3, 'tagger', datetime('now')),
+('tools', 'link', 4, 'web_surfer', datetime('now')),
+('reddit', 'link', 5, 'gamer_girl', datetime('now')),
+('gaming', 'link', 5, 'gamer_girl', datetime('now')),
+('valheim', 'link', 5, 'tagger', datetime('now')),
+('funny', 'link', 6, 'meme_lord', datetime('now')),
+('meme', 'link', 6, 'meme_lord', datetime('now')),
+('twitter', 'link', 7, 'tweet_master', datetime('now')),
+('wiki', 'link', 8, 'knowledge_seeker', datetime('now')),
+('golang', 'link', 8, 'tagger', datetime('now')),
+('programming', 'link', 8, 'knowledge_seeker', datetime('now')),
+('broken', 'link', 9, '404_finder', datetime('now')),
+('video', 'link', 12, 'astley_fan', datetime('now')),
+('rickroll', 'link', 12, 'tagger', datetime('now')),
+('classic', 'link', 12, 'astley_fan', datetime('now')),
+('funny', 'link', 5, 'tagger', datetime('now')),
+('funny', 'link', 12, 'tagger', datetime('now')),
+('classic', 'link', 8, 'tagger', datetime('now')),
+('classic', 'quote', 3, 'tagger', datetime('now')),
+('social', 'link', 7, 'tagger', datetime('now')),
+('social', 'quote', 3, 'tagger', datetime('now')),
+('linux', 'quote', 1, 'tagger', datetime('now')),
+('programming', 'quote', 1, 'tagger', datetime('now')),
+('wisdom', 'quote', 2, 'tagger', datetime('now')),
+('programming', 'quote', 2, 'knowledge_seeker', datetime('now')),
+('disney', 'quote', 3, 'tagger', datetime('now'));

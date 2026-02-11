@@ -1,0 +1,7 @@
+        <item>
+            <title>{{xmlEscape .Title}}</title>
+            <link>{{linkURL .BaseURL .ID .ClickSig}}</link>
+            <guid isPermaLink="false">tumble-{{.ID}}</guid>
+            <description><![CDATA[{{.Title}}]]></description>
+            <pubDate>{{.FormattedDate}}</pubDate>
+        </item>

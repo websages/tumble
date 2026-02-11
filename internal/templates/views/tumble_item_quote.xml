@@ -1,0 +1,7 @@
+        <item>
+            <title>{{xmlEscape .Quote}}</title>
+            <link>{{.BaseURL}}/quote/{{.ID}}</link>
+            <guid isPermaLink="true">{{.BaseURL}}/quote/{{.ID}}</guid>
+            <description><![CDATA["{{.Quote}}" --{{.Author}}]]></description>
+            <pubDate>{{.FormattedDate}}</pubDate>
+        </item>

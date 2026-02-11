@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>tumblefish.stats</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+    {{if .CanonicalURL}}<link rel="canonical" href="{{.CanonicalURL}}" />{{end}}
+    <style>
+
+
+
+        table.stats {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.stats th, table.stats td {
+            text-align: left;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+            font-size: 18px;
+        }
+        [data-theme="dark"] table.stats td {
+            border-bottom: 1px solid #444;
+        }
+        table.stats th a {
+            color: inherit;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        table.stats th a:hover {
+            color: var(--link-color);
+            text-decoration: underline;
+        }
+        table.stats td a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+        table.stats td a:hover {
+            text-decoration: underline;
+        }
+        table.stats td.author a {
+            color: var(--author-color);
+        }
+        table.stats td.author a:hover {
+            color: var(--link-color);
+        }
+        .view-toggle {
+            margin-bottom: 15px;
+            font-size: 24px;
+            line-height: 20px;
+            letter-spacing: -1px;
+        }
+        .view-toggle a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+        .view-toggle a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <!-- Theme Init -->
+    <script>
+      (function () {
+        var savedTheme = localStorage.getItem("theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+</head>
+<body>
+{{template "header" .}}
+
+    <div id="page">
+
+
+
+
+        <div id="content">
+            <div class="item">
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    {{if eq .View "users"}}
+                    <strong>User Stats</strong> | <a href="?view=links">Link Popularity</a>
+                    {{else}}
+                    <a href="?view=users">User Stats</a> | <strong>Link Popularity</strong>
+                    {{end}}
+                </div>
+
+                {{if eq .View "links"}}
+                <!-- Link Popularity View -->
+                <div class="header">Link Popularity</div>
+                <table class="stats">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Title</th>
+                            <th>Posted By</th>
+                            <th>Clicks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Links}}
+                        <tr>
+                            <td>{{.Rank}}</td>
+                            <td><a href="/link/{{.ID}}">{{.Title}}</a></td>
+                            <td class="author"><a href="/?poster={{.User}}">{{.User}}</a></td>
+                            <td>{{.Clicks}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <!-- User Stats View -->
+                <div class="header">User Stats</div>
+                <table class="stats">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th><a href="?sort=user">User</a></th>
+                            <th><a href="?sort=links">Links Posted</a></th>
+                            <th><a href="?sort=quotes">Quotes Posted</a></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Stats}}
+                        <tr>
+                            <td>{{.Rank}}</td>
+                            <td class="author"><a href="/?poster={{.User}}">{{.User}}</a></td>
+                            <td>{{.LinkCount}}</td>
+                            <td>{{.QuoteCount}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{end}}
+            </div>
+
+            <div id="navigation" style="display: flex; justify-content: space-between; margin-top: 20px;">
+                {{if .PrevPage}}
+                    {{if eq .View "links"}}
+                    <a href="?page={{.PrevPage}}&view=links"><img src="/img/prev.png" border="0" alt="Previous" /></a>
+                    {{else}}
+                    <a href="?page={{.PrevPage}}&sort={{$.Sort}}"><img src="/img/prev.png" border="0" alt="Previous" /></a>
+                    {{end}}
+                {{else}}
+                <div></div>
+                {{end}}
+
+                {{if .HasNext}}
+                    {{if eq .View "links"}}
+                    <a href="?page={{.NextPage}}&view=links"><img src="/img/next.png" border="0" alt="Next" /></a>
+                    {{else}}
+                    <a href="?page={{.NextPage}}&sort={{$.Sort}}"><img src="/img/next.png" border="0" alt="Next" /></a>
+                    {{end}}
+                {{end}}
+            </div>
+        </div>
+
+    </div>
+    {{template "footer" .}}
+
+</body>
+</html>
