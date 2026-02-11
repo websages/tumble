@@ -177,8 +177,8 @@ func TestGetStaleArchiveLookups(t *testing.T) {
 		t.Fatalf("UpsertArchiveLookup (found-old) failed: %v", err)
 	}
 
-	// Call GetStaleArchiveLookups with 30-day recheck -> expect only staleURL
-	urls, err := store.GetStaleArchiveLookups(ctx, recheckAfter)
+	// Call GetStaleArchiveLookups for not_found with 30-day recheck -> expect only staleURL
+	urls, err := store.GetStaleArchiveLookups(ctx, "not_found", recheckAfter)
 	if err != nil {
 		t.Fatalf("GetStaleArchiveLookups failed: %v", err)
 	}

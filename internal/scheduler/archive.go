@@ -23,11 +23,11 @@ func runArchiveBatch(ctx context.Context, store data.Store, client *archive.Clie
 	}
 
 	// 2. Get stale not_found/error URLs needing recheck
-	staleNotFound, err := store.GetStaleArchiveLookups(ctx, archiveRecheckNotFound)
+	staleNotFound, err := store.GetStaleArchiveLookups(ctx, "not_found", archiveRecheckNotFound)
 	if err != nil {
 		slog.Error("Archive batch: failed to get stale not_found URLs", "error", err)
 	}
-	staleError, err := store.GetStaleArchiveLookups(ctx, archiveRecheckError)
+	staleError, err := store.GetStaleArchiveLookups(ctx, "error", archiveRecheckError)
 	if err != nil {
 		slog.Error("Archive batch: failed to get stale error URLs", "error", err)
 	}

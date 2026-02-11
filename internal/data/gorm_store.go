@@ -519,12 +519,12 @@ func (s *GormStore) GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, err
 	return urls, err
 }
 
-func (s *GormStore) GetStaleArchiveLookups(ctx context.Context, recheckAfter time.Duration) ([]string, error) {
+func (s *GormStore) GetStaleArchiveLookups(ctx context.Context, status string, recheckAfter time.Duration) ([]string, error) {
 	var urls []string
 	cutoff := time.Now().Add(-recheckAfter)
 	err := s.db.WithContext(ctx).
 		Model(&ArchiveLookup{}).
-		Where("status IN (?, ?) AND checked_at < ?", "not_found", "error", cutoff).
+		Where("status = ? AND checked_at < ?", status, cutoff).
 		Pluck("url", &urls).Error
 	return urls, err
 }

@@ -139,7 +139,7 @@ type Store interface {
 	GetArchiveLookup(ctx context.Context, url string) (*ArchiveLookup, error)
 	UpsertArchiveLookup(ctx context.Context, lookup *ArchiveLookup) error
 	GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, error)
-	GetStaleArchiveLookups(ctx context.Context, recheckAfter time.Duration) ([]string, error)
+	GetStaleArchiveLookups(ctx context.Context, status string, recheckAfter time.Duration) ([]string, error)
 
 	// Tag operations
 	CreateTag(ctx context.Context, tag Tag) (*Tag, error)
