@@ -1943,6 +1943,23 @@ html.fonts-loaded .material-symbols-rounded {
   text-decoration: none !important;
 }
 
+/* Archive links in Scott Mode - subtle but visible */
+[data-scott-mode="true"] .archive-sep {
+  display: none !important;
+}
+
+[data-scott-mode="true"] .archive-link {
+  display: block;
+  color: #999 !important;
+  font-size: 12px !important;
+  font-weight: normal !important;
+  margin-top: 2px;
+}
+
+[data-scott-mode="true"] .archive-link:hover {
+  color: #6c3 !important;
+}
+
 /* Twitter embeds - just let them render naturally */
 [data-scott-mode="true"] .twitter-tweet,
 [data-scott-mode="true"] blockquote[class*="twitter"] {
