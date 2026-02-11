@@ -214,7 +214,17 @@
                 if (linkSpan && !imgurCard) {
                      var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
                      var linkHref = buildLinkUrl(ircId, clickSig) || escapeHtml(url);
-                     linkSpan.innerHTML = '<a href="' + linkHref + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>';
+                     var archiveSuffix = '';
+                     if (data.archive_url) {
+                         var dateLabel = '';
+                         if (data.archive_snapshot_at) {
+                             var d = new Date(data.archive_snapshot_at);
+                             var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                             dateLabel = ' (' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ')';
+                         }
+                         archiveSuffix = ' <span class="archive-sep">&middot;</span> <a href="' + escapeHtml(data.archive_url) + '" class="archive-link" target="_blank">View on Archive.org' + dateLabel + '</a>';
+                     }
+                     linkSpan.innerHTML = '<a href="' + linkHref + '" class="missing-link" target="_blank">' + statusPrefix + escapeHtml(url) + '</a>' + archiveSuffix;
                 }
                 if (previewDiv) previewDiv.remove();
                 return;
