@@ -12,14 +12,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Setup Perl environment
-      uses: shogo82148/actions-setup-perl@v1
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
       with:
-        perl-version: '5.38'
-        
-    - name: Install Dependencies
-      run: cpanm JSON LWP::Simple Test::More
-      
+        go-version-file: go.mod
+
     - name: Run Tests
       run: make test
