@@ -3,7 +3,7 @@ VERSION=$(shell git describe --tags --always | sed -e 's/-/\./g')
 BINARY_NAME=tumble
 BUILD_DIR=bin
 
-.PHONY: all build clean test deps docs kill restart reset-db load-fixtures build-linux help fmt
+.PHONY: all build clean test test-mysql deps docs kill restart reset-db load-fixtures build-linux help fmt
 
 all: build ## Build the binary (default)
 
@@ -33,6 +33,9 @@ clean: ## Clean build directory
 
 test: ## Run unit tests
 	go test -v ./...
+
+test-mysql: ## Run MySQL-specific tests (requires MySQL)
+	go test -v -tags mysql ./internal/data/
 
 test-api: build ## Run API tests
 	./tests/run_integration_tests.sh
