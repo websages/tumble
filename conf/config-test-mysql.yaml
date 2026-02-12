@@ -1,10 +1,9 @@
 driver: mysql
 database: tumble_test
 username: tumble
-password: password
-host: localhost
-baseurl: http://localhost:8080
-port: "8080"
+host: 127.0.0.1:13306
+baseurl: http://localhost:8084
+port: "8084"
 logging:
   level: debug
   output: stdout

@@ -116,8 +116,13 @@ func (s *GormStore) SearchIRCLinks(ctx context.Context, query string) ([]IRCLink
 	// Exclude links with cached error previews using tiered TTLs:
 	// - Recent links (< 10 days old): error cache expires after 24h
 	// - Old links (>= 10 days old): error cache expires after 60 days
-	// CAST(data AS TEXT) is required because glebarez/sqlite stores []byte
-	// as BLOB, and SQLite's LIKE doesn't match text patterns against BLOBs.
+	// CAST is required because glebarez/sqlite stores []byte as BLOB,
+	// and SQLite's LIKE doesn't match text patterns against BLOBs.
+	// MySQL doesn't support CAST(... AS TEXT), so use CHAR instead.
+	castType := "TEXT"
+	if s.db.Dialector.Name() == "mysql" {
+		castType = "CHAR"
+	}
 	recentCutoff := time.Now().Add(-24 * time.Hour)
 	oldCutoff := time.Now().Add(-60 * 24 * time.Hour)
 	linkAgeCutoff := time.Now().Add(-10 * 24 * time.Hour)
@@ -125,7 +130,7 @@ func (s *GormStore) SearchIRCLinks(ctx context.Context, query string) ([]IRCLink
 		Where(`(title LIKE ? OR url LIKE ? OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?))
 AND url NOT IN (
   SELECT lp.url FROM link_previews lp
-  WHERE CAST(lp.data AS TEXT) LIKE '%"error":%'
+  WHERE CAST(lp.data AS `+castType+`) LIKE '%"error":%'
   AND (
     (EXISTS (SELECT 1 FROM ircLink il WHERE il.url = lp.url AND il.timestamp > ?) AND lp.updated_at > ?)
     OR
@@ -511,9 +516,13 @@ func (s *GormStore) UpsertArchiveLookup(ctx context.Context, lookup *ArchiveLook
 func (s *GormStore) GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, error) {
 	var urls []string
 	// Find URLs with cached errors in link_previews that have no row in archive_lookups
+	castType := "TEXT"
+	if s.db.Dialector.Name() == "mysql" {
+		castType = "CHAR"
+	}
 	err := s.db.WithContext(ctx).Raw(`
 		SELECT DISTINCT lp.url FROM link_previews lp
-		WHERE CAST(lp.data AS TEXT) LIKE '%"error":%'
+		WHERE CAST(lp.data AS `+castType+`) LIKE '%"error":%'
 		AND lp.url NOT IN (SELECT al.url FROM archive_lookups al)
 	`).Scan(&urls).Error
 	return urls, err
