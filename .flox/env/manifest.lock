@@ -278,6 +278,7 @@
       "outputs_to_install": [
         "out",
         "out",
+        "out",
         "out"
       ],
       "outputs": {
@@ -711,6 +712,7 @@
       "unfree": false,
       "version": "3.51.2",
       "outputs_to_install": [
+        "bin",
         "bin",
         "man"
       ],
