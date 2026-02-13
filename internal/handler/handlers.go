@@ -530,21 +530,6 @@ func (h *Handler) buildStatsCanonicalURL(view, sortBy string, page int) string {
 	return base
 }
 
-func (h *Handler) ButtonHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	data := map[string]interface{}{
-		"User":         user,
-		"BaseURL":      h.Config.BaseURL,
-		"Hot":          h.getHotHTML(r.Context()),
-		"GitCommit":    version.CommitHash,
-		"GitCommitURL": fmt.Sprintf("https://github.com/websages/tumble/commit/%s", version.CommitHash),
-	}
-
-	if err := h.Renderer.Render(w, "tumble_buttons.html", data); err != nil {
-		slog.Error("Error rendering buttons", "error", err)
-	}
-}
-
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := sanitizeSearch(r.URL.Query().Get("search"))

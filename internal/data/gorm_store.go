@@ -522,7 +522,7 @@ func (s *GormStore) GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, err
 	}
 	err := s.db.WithContext(ctx).Raw(`
 		SELECT DISTINCT lp.url FROM link_previews lp
-		WHERE CAST(lp.data AS `+castType+`) LIKE '%"error":%'
+		WHERE CAST(lp.data AS ` + castType + `) LIKE '%"error":%'
 		AND lp.url NOT IN (SELECT al.url FROM archive_lookups al)
 	`).Scan(&urls).Error
 	return urls, err

@@ -168,7 +168,7 @@
           }
 
           // Create preview endpoint URL
-          var previewUrl = "/ogpreview?url=" + encodeURIComponent(url);
+          var previewUrl = "/api/v1/preview?url=" + encodeURIComponent(url);
 
           // Load preview asynchronously
           var xhr = new XMLHttpRequest();
@@ -557,7 +557,6 @@
         </div>
         <div class="item">
           <div class="header">also</div>
-          <div class="sm"><div class="link"><a href="/buttons/">buttons</a></div></div>
           <div class="sm"><div class="link"><a href="/index.xml">feed</a></div></div>
         </div>
       </div>
@@ -574,7 +573,7 @@
         {{if .IsFallbackContent}}
         <div class="item" style="border: 1px solid var(--og-border); padding: 15px; margin-bottom: 20px; background-color: var(--footer-bg); border-radius: 4px; text-align: center;">
             <div style="font-weight: bold; margin-bottom: 5px; font-size: 18px;">It's been a bit quiet lately...</div>
-            <div style="font-size: 14px;">Here is some content from the archives. Why not <a href="/buttons/" style="font-weight: bold; color: var(--link-color);">share something new</a>?</div>
+            <div style="font-size: 14px;">Here is some content from the archives.</div>
         </div>
         {{end}}
         {{if or .NavP .NavN}}

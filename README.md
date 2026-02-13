@@ -173,7 +173,7 @@ Submit links via `POST /link/`. Duplicate detection is automatic:
 - **IRC Source** (`source=irc`): Returns ID with duplicate marker if applicable
 - **HTML**: Shows duplicate notification with original poster and timestamp
 
-The legacy `/irclink/` endpoint is still supported but `/link/` is preferred.
+Use `POST /api/v1/links` for programmatic link submission.
 
 ### Link and Quote Deletion
 

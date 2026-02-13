@@ -32,14 +32,6 @@ var templateFuncs = template.FuncMap{
 		}
 		return fmt.Sprintf("%s/link/%d", baseURL, id)
 	},
-	// irclinkURL builds a click-tracking URL for IRC links (legacy, use linkURL instead)
-	// If a signature is provided, it's appended for verified click tracking
-	"irclinkURL": func(baseURL string, id int, sig string) string {
-		if sig != "" {
-			return fmt.Sprintf("%s/irclink/?%d&sig=%s", baseURL, id, sig)
-		}
-		return fmt.Sprintf("%s/irclink/?%d", baseURL, id)
-	},
 	// truncate shortens a string to max characters with ellipsis
 	"truncate": func(s string, max int) string {
 		if len(s) > max {
@@ -67,15 +59,6 @@ var textTemplateFuncs = texttemplate.FuncMap{
 			return fmt.Sprintf("%s/link/%d?sig=%s", baseURL, id, sig)
 		}
 		return fmt.Sprintf("%s/link/%d", baseURL, id)
-	},
-	// irclinkURL builds a click-tracking URL for IRC links (legacy, use linkURL instead)
-	// If a signature is provided, it's appended for verified click tracking
-	// Note: Uses &amp; for XML-safe output since text/template doesn't auto-escape
-	"irclinkURL": func(baseURL string, id int, sig string) string {
-		if sig != "" {
-			return fmt.Sprintf("%s/irclink/?%d&amp;sig=%s", baseURL, id, sig)
-		}
-		return fmt.Sprintf("%s/irclink/?%d", baseURL, id)
 	},
 	"truncate": func(s string, max int) string {
 		if len(s) > max {

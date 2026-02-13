@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script to add an IRC Link
+# Script to add a Link via v1 API
 # Usage: ./add_link.sh <user> <url>
 
 USER=$1
@@ -11,6 +11,6 @@ if [ -z "$USER" ] || [ -z "$URL" ]; then
     exit 1
 fi
 
-
-curl -s "$BASE_URL/irclink/?user=$USER&url=$URL&source=irc" >/dev/null
-
+curl -s -X POST "$BASE_URL/api/v1/links" \
+    -H "Content-Type: application/json" \
+    -d "{\"user\":\"$USER\",\"url\":\"$URL\"}"

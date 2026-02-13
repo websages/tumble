@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Tumble API",
-    "description": "API for the Tumble content application. The v1 API provides a RESTful, versioned interface with consistent request/response formats. Legacy endpoints are deprecated and will be removed in a future release.",
+    "description": "API for the Tumble content application. The v1 API provides a RESTful, versioned interface with consistent request/response formats.",
     "version": "2.0.0"
   },
   "servers": [
@@ -2024,17 +2024,16 @@
         }
       }
     },
-    "/api/caching/invalidate": {
+    "/api/v1/preview": {
       "get": {
-        "summary": "Invalidate Link Preview Cache (Deprecated)",
-        "description": "DEPRECATED: Use DELETE /api/v1/cache instead. Removes a URL from the server-side link preview cache.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
+        "summary": "Get OpenGraph Preview",
+        "description": "Fetches OpenGraph metadata for a URL. Returns cached data if available, otherwise fetches fresh metadata. Supports special handling for YouTube, Reddit, Twitter, Flickr, and OEmbed providers.",
+        "tags": ["Preview"],
         "parameters": [
           {
             "name": "url",
             "in": "query",
-            "description": "The URL to invalidate",
+            "description": "The URL to fetch OpenGraph metadata for",
             "required": true,
             "schema": {
               "type": "string"
@@ -2043,422 +2042,56 @@
         ],
         "responses": {
           "200": {
-            "description": "Cache Invalidated",
+            "description": "OpenGraph metadata for the URL",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string" },
-                    "message": { "type": "string" }
+                    "title": {
+                      "type": "string",
+                      "description": "Page title"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Page description"
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "Preview image URL"
+                    },
+                    "icon": {
+                      "type": "string",
+                      "description": "Site favicon URL"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Content type (e.g. video, rich)"
+                    },
+                    "html": {
+                      "type": "string",
+                      "description": "Embed HTML for video/rich content"
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "HTTP status code from fetching the URL"
+                    }
                   }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Missing URL"
-          }
-        }
-      }
-    },
-    "/api/kitten/fetch": {
-      "post": {
-        "summary": "Force Fetch Daily Kitten (Deprecated)",
-        "description": "DEPRECATED: Use PUT /api/v1/kittens/daily instead. Forces a new daily kitten to be fetched from cataas.com.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "responses": {
-          "200": {
-            "description": "Kitten fetched successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "ok" },
-                    "url": { "type": "string", "example": "https://cataas.com/cat/abc123xyz" }
-                  }
-                }
-              }
-            }
-          },
-          "405": {
-            "description": "Method not allowed (use POST)"
-          },
-          "500": {
-            "description": "Failed to fetch kitten",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "error" },
-                    "error": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/link/": {
-      "post": {
-        "summary": "Submit a new Link (Deprecated)",
-        "description": "DEPRECATED: Use POST /api/v1/links instead. Submits a new link using query parameters.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "user",
-            "in": "query",
-            "description": "The username of the submitter",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "url",
-            "in": "query",
-            "description": "The URL to submit",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "source",
-            "in": "query",
-            "description": "Source of submission",
-            "schema": {
-              "type": "string",
-              "enum": ["irc", "api", "web"]
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Link created"
-          },
-          "208": {
-            "description": "Duplicate link created"
-          },
-          "500": {
-            "description": "Server Error"
-          }
-        }
-      }
-    },
-    "/link/{id}": {
-      "get": {
-        "summary": "Redirect to a Link (Deprecated)",
-        "description": "DEPRECATED: Use GET /go/{id} instead. Redirects to the URL associated with the given ID.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the link",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "302": {
-            "description": "Redirects to the target URL"
-          },
-          "404": {
-            "description": "Link not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a link (Deprecated)",
-        "description": "DEPRECATED: Use DELETE /api/v1/links/{id} instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the link",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Link deleted"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/link/{id}.json": {
-      "get": {
-        "summary": "Get Link Metadata (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/links/{id} instead. Returns link metadata as JSON.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the link",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Link metadata",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ircLinkID": { "type": "integer" },
-                    "timestamp": { "type": "string", "format": "date-time" },
-                    "user": { "type": "string" },
-                    "title": { "type": "string" },
-                    "url": { "type": "string" },
-                    "clicks": { "type": "integer" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Link not found"
-          }
-        }
-      }
-    },
-    "/quote/": {
-      "get": {
-        "summary": "Get a Random Quote (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/quotes instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "responses": {
-          "200": {
-            "description": "Random Quote"
-          }
-        }
-      },
-      "post": {
-        "summary": "Submit a Quote (Deprecated)",
-        "description": "DEPRECATED: Use POST /api/v1/quotes instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "quote": { "type": "string" },
-                  "author": { "type": "string" },
-                  "poster": { "type": "string" }
                 },
-                "required": ["quote"]
+                "example": {
+                  "title": "Example Article",
+                  "description": "An interesting article about something",
+                  "image": "https://example.com/image.jpg",
+                  "icon": "https://example.com/favicon.ico"
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Quote created"
           },
           "400": {
-            "description": "Missing inputs"
-          }
-        }
-      }
-    },
-    "/quote/{id}": {
-      "get": {
-        "summary": "Get Quote by ID (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/quotes/{id} instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the quote",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Quote found"
+            "description": "Missing url parameter"
           },
           "404": {
-            "description": "Quote not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete a quote (Deprecated)",
-        "description": "DEPRECATED: Use DELETE /api/v1/quotes/{id} instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the quote",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Quote deleted"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/quote/{id}.json": {
-      "get": {
-        "summary": "Get Quote Metadata as JSON (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/quotes/{id} instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the quote",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Quote metadata"
-          },
-          "404": {
-            "description": "Quote not found"
-          }
-        }
-      }
-    },
-    "/search": {
-      "get": {
-        "summary": "Search Content (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/search instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "search",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 4
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Search Results HTML"
-          }
-        }
-      }
-    },
-    "/stats": {
-      "get": {
-        "summary": "Get User Statistics (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/stats instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "responses": {
-          "200": {
-            "description": "Statistics HTML Page"
-          }
-        }
-      }
-    },
-    "/stats.json": {
-      "get": {
-        "summary": "Get User Statistics as JSON (Deprecated)",
-        "description": "DEPRECATED: Use GET /api/v1/stats instead.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 50
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 0
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Array of user statistics"
-          }
-        }
-      }
-    },
-    "/ogpreview": {
-      "get": {
-        "summary": "Get OpenGraph Preview (Deprecated)",
-        "description": "DEPRECATED: This endpoint may be removed in a future release.",
-        "deprecated": true,
-        "tags": ["Deprecated"],
-        "parameters": [
-          {
-            "name": "url",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OpenGraph Metadata"
+            "description": "Could not fetch preview for the URL"
           }
         }
       }
@@ -2498,8 +2131,8 @@
       "description": "Daily kitten management"
     },
     {
-      "name": "Deprecated",
-      "description": "Legacy endpoints - will be removed in a future release"
+      "name": "Preview",
+      "description": "OpenGraph link preview fetching"
     }
   ]
 }

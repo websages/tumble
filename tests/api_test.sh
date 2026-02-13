@@ -1,5 +1,5 @@
 #!/bin/bash
-# API Integration Tests for Tumble Go rewrite
+# API Integration Tests for Tumble
 
 BASE_URL="http://localhost:8080"
 FAIL=0
@@ -59,29 +59,11 @@ else
 fi
 
 # 3. Search (HTML)
-check_200 "/search?search=test"      # New
-check_200 "/search.cgi?search=test"  # Legacy
+check_200 "/search?search=test"
 
-# 4. IRCLink Redirect (Setup needed for real test, checking 404/400 for bad ID)
-echo -n "Checking /irclink/?id=999999 (Expect 404/Redirect)... "
-status=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/irclink/?id=999999")
-if [ "$status" == "404" ] || [ "$status" == "302" ]; then
-    echo "OK (Status: $status)"
-else
-    echo "FAIL (Status: $status)"
-    FAIL=1
-fi
-
-# 5. v0 Endpoints
-check_200 "/v0/"
-check_200 "/v0/search.cgi?search=test"
-
-# 6. OGPreview Routes
-check_200 "/ogpreview.cgi?url=https://example.com" # Legacy
-# YouTube 404 Check (New Route)
-echo -n "Checking YouTube value for missing video (Expect 200 OK + status: 404) on /ogpreview... "
-resp=$(curl -s "$BASE_URL/ogpreview?url=https://www.youtube.com/watch?v=video_gone")
-# Check if response contains '"status": 404' (or 'status":404' depending on spacing)
+# 4. API v1 Preview
+echo -n "Checking YouTube value for missing video (Expect 200 OK + status: 404) on /api/v1/preview... "
+resp=$(curl -s "$BASE_URL/api/v1/preview?url=https://www.youtube.com/watch?v=video_gone")
 if [[ "$resp" == *'"status":404'* ]] || [[ "$resp" == *'"status": 404'* ]]; then
    echo "OK"
 else
@@ -89,18 +71,21 @@ else
    FAIL=1
 fi
 
-# 7. Delete Link Test (Create -> Delete -> Verify)
-echo -n "Testing DELETE /irclink/ flow... "
-# Create a link first
-CREATE_OUT=$(curl -s "$BASE_URL/irclink/?user=testdel&url=http://delete-test.com&source=irc")
+# 5. API v1 Link Create -> Delete -> Verify
+echo -n "Testing API v1 Link Create/Delete flow... "
+# Create a link
+CREATE_OUT=$(curl -s -X POST "$BASE_URL/api/v1/links" \
+    -H "Content-Type: application/json" \
+    -H "Accept: text/plain" \
+    -d '{"user":"testdel","url":"http://delete-test.com"}')
 # Check if we got an ID (numeric)
 if [[ "$CREATE_OUT" =~ ^[0-9]+$ ]]; then
     DEL_ID=$CREATE_OUT
-    # Delete it (using admin secret from test config)
-    DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "X-Admin-Secret: test-admin-secret" "$BASE_URL/irclink/?id=$DEL_ID")
-    if [ "$DEL_STATUS" == "200" ]; then
+    # Delete it
+    DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "X-API-Key: test-admin-secret" "$BASE_URL/api/v1/links/$DEL_ID")
+    if [ "$DEL_STATUS" == "204" ]; then
         # Verify it's gone
-        GONE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/irclink/?id=$DEL_ID")
+        GONE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/v1/links/$DEL_ID")
         if [ "$GONE_STATUS" == "404" ]; then
             echo "OK"
         else

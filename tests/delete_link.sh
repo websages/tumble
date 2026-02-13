@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script to delete an IRC Link
+# Script to delete a Link via v1 API
 # Usage: ./delete_link.sh <id> [admin_secret]
 # If admin_secret is not provided, uses TUMBLE_ADMIN_SECRET env var
 
@@ -15,8 +15,8 @@ fi
 
 if [ -z "$SECRET" ]; then
     echo "Warning: No admin secret provided. Request may fail."
-    curl -v -X DELETE "$BASE_URL/irclink/?id=$ID"
+    curl -v -X DELETE "$BASE_URL/api/v1/links/$ID"
 else
-    curl -v -X DELETE -H "X-Admin-Secret: $SECRET" "$BASE_URL/irclink/?id=$ID"
+    curl -v -X DELETE -H "X-API-Key: $SECRET" "$BASE_URL/api/v1/links/$ID"
 fi
 echo ""

@@ -295,33 +295,11 @@ func main() {
 
 	// Main Routes
 	mux.HandleFunc("/", h.Index)
-	mux.HandleFunc("/index.cgi", h.Index)
 	mux.HandleFunc("/stats", h.Stats)
 	mux.HandleFunc("/stats.json", h.StatsJSON)
 	mux.HandleFunc("/search", h.Search)
-	mux.HandleFunc("/search.cgi", h.Search)
-	mux.HandleFunc("/link/", h.IRCLinkHandler)    // Primary endpoint for links
-	mux.HandleFunc("/irclink/", h.IRCLinkHandler) // Legacy endpoint (backwards compatibility)
-
-	mux.HandleFunc("/ogpreview", h.OGPreviewHandler)
-	mux.HandleFunc("/ogpreview.cgi", h.OGPreviewHandler)
-	mux.HandleFunc("/api/caching/invalidate", h.InvalidateCacheHandler)
-	mux.HandleFunc("/api/kitten/fetch", h.FetchKittenHandler)
-	mux.HandleFunc("/buttons/", h.ButtonHandler)           // Handle /buttons/ with ButtonHandler (landing + result)
-	mux.HandleFunc("/buttons/button.cgi", h.ButtonHandler) // Legacy explicit path
-
-	// v0 Routes (Aliased)
-	mux.HandleFunc("/v0/", h.Index)
-	mux.HandleFunc("/v0/index.cgi", h.Index)
-	mux.HandleFunc("/v0/search.cgi", h.Search)
-	mux.HandleFunc("/v0/link/", h.IRCLinkHandler)    // Primary v0 endpoint
-	mux.HandleFunc("/v0/irclink/", h.IRCLinkHandler) // Legacy v0 endpoint
-	mux.HandleFunc("/v0/ogpreview.cgi", h.OGPreviewHandler)
-	mux.HandleFunc("/v0/quote/", h.QuoteHandler)
-
-	// Quote Handler (Legacy)
+	mux.HandleFunc("/link/", h.IRCLinkHandler)
 	mux.HandleFunc("/quote/", h.QuoteHandler)
-	mux.HandleFunc("/quote/index.cgi", h.QuoteHandler)
 
 	// SEO Routes
 	mux.HandleFunc("/sitemap.xml", h.SitemapHandler)
@@ -333,7 +311,6 @@ func main() {
 	fileServer := http.FileServer(http.FS(assets.StaticFS))
 	mux.Handle("/css/", fileServer)
 	mux.Handle("/img/", fileServer)
-	// mux.Handle("/buttons/", fileServer) // Removed in favor of ButtonHandler check
 	mux.Handle("/favicon.ico", fileServer)
 	// Legacy static files
 	mux.Handle("/apple-touch-icon.png", fileServer)
@@ -355,6 +332,7 @@ func main() {
 	mux.HandleFunc("/api/v1/search", h.APIv1SearchHandler)
 	mux.HandleFunc("/api/v1/cache", h.APIv1CacheHandler)
 	mux.HandleFunc("/api/v1/kittens/", h.APIv1KittensDailyHandler)
+	mux.HandleFunc("/api/v1/preview", h.OGPreviewHandler)
 
 	// Public redirect shortlink
 	mux.HandleFunc("/go/", h.APIv1RedirectHandler)
