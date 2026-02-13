@@ -53,7 +53,7 @@ if [ "$DRIVER" == "sqlite" ] || [ -z "$DRIVER" ]; then
     fi
 fi
 
-TOTAL_FIXTURES=26
+TOTAL_FIXTURES=27
 CURRENT=0
 
 load_link() {
@@ -115,6 +115,9 @@ load_quote "Simba" "Everything the light touches is our kingdom."
 
 # Spotify
 load_link "music_lover" "https://open.spotify.com/episode/7makk4oTQel546B0PZlDM5"
+
+# SoundCloud
+load_link "dj_mix" "https://soundcloud.com/majorlazer/major-lazer-dj-snake-lean-on-feat-mo"
 
 # TikTok
 load_link "tiktok_star" "https://www.tiktok.com/@tiagogreis/video/6830059644233223429"

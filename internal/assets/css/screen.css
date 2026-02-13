@@ -1386,6 +1386,22 @@ body {
   padding: 0 !important;
 }
 
+/* SoundCloud embed styles */
+[data-embed-type="soundcloud"] iframe {
+  max-width: 800px !important;
+  width: 100% !important;
+  height: 400px !important;
+  border-radius: var(--radius-lg);
+  display: block;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.item [data-embed-type="soundcloud"] iframe {
+  margin: var(--space-2) 0 !important;
+  padding: 0 !important;
+}
+
 /* TikTok embeds */
 blockquote[class*="tiktok"],
 .tiktok-embed {

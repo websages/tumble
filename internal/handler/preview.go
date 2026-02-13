@@ -29,6 +29,7 @@ var oembedProviders = []struct {
 }{
 	{`^https?://(www\.)?(youtube\.com|youtu\.be)/.+`, "https://www.youtube.com/oembed", ""},
 	{`^https?://(open\.)?spotify\.com/.+`, "https://open.spotify.com/oembed", ""},
+	{`^https?://(www\.)?soundcloud\.com/.+`, "https://soundcloud.com/oembed", ""},
 	{`^https?://(www\.)?tiktok\.com/.+`, "https://www.tiktok.com/oembed", ""},
 	// {`^https?://(www\.)?reddit\.com/.+`, "https://www.reddit.com/oembed", ""}, // Use scraping for better metadata
 	{`^https?://(www\.)?flickr\.com/.+`, "https://www.flickr.com/services/oembed", ""},
@@ -44,7 +45,7 @@ var oembedProviders = []struct {
 // OEmbedResponse represents standard OEmbed keys
 type OEmbedResponse struct {
 	Type         string `json:"type"`
-	Version      string `json:"version"`
+	Version      interface{} `json:"version"`
 	Title        string `json:"title"`
 	AuthorName   string `json:"author_name"`
 	AuthorURL    string `json:"author_url"`

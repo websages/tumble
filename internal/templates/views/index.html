@@ -108,6 +108,7 @@
             defaultIcon: "https://www.redditstatic.com/desktop2x/img/favicon/favicon-32x32.png"
           },
           "Spotify":  { showTitle: false, showDescription: false, autoExpand: true },
+          "SoundCloud": { showTitle: false, showDescription: false, autoExpand: true },
           "GIPHY":    { showTitle: false, showDescription: false },
           "Flickr":   { clickableImage: true, forceAspect: "photo" },
           "_default": {
@@ -430,6 +431,7 @@
                 // Determine appropriate height based on embed type
                 var isReddit = embedHtml.indexOf('reddit') !== -1;
                 var isSpotify = embedHtml.indexOf('spotify') !== -1;
+                var isSoundCloud = embedHtml.indexOf('soundcloud') !== -1;
                 var isTikTok = embedHtml.indexOf('tiktok') !== -1;
 
                 // Auto-resize script for embeds that need dynamic height
@@ -462,6 +464,9 @@
                 if (isSpotify) {
                     iframe.style.height = '152px';
                     container.setAttribute('data-embed-type', 'spotify');
+                } else if (isSoundCloud) {
+                    iframe.style.height = '400px';
+                    container.setAttribute('data-embed-type', 'soundcloud');
                 } else if (isReddit) {
                     // Start with reasonable height, will auto-resize
                     iframe.style.height = '300px';

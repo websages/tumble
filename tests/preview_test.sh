@@ -111,6 +111,17 @@ test_preview "Flickr Single Photo" \
 #     "https://www.flickr.com/photos/username/albums/123456/" \
 #     '.provider_name == "Flickr" and .render_inline != "true"'
 
+# --- SOUNDCLOUD ---
+# Valid
+test_preview "SoundCloud Valid" \
+    "https://soundcloud.com/majorlazer/major-lazer-dj-snake-lean-on-feat-mo" \
+    '.provider_name == "SoundCloud" or .type == "rich"'
+
+# Invalid
+test_preview "SoundCloud Invalid" \
+    "https://soundcloud.com/nonexistent-user-xyz/nonexistent-track-abc-123" \
+    '.error != null or .title != null'
+
 # --- TIKTOK ---
 # Valid
 test_preview "TikTok Valid" \
