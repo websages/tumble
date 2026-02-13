@@ -5,3 +5,5 @@ bin/*
 .claude
 ./tumble
 .worktrees/
+*-shm
+*-wal
