@@ -107,6 +107,31 @@
               "type": "string"
             },
             "description": "Tags associated with this link"
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Source platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "source_network": {
+            "type": "string",
+            "description": "Source network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "source_channel": {
+            "type": "string",
+            "description": "Source channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "source_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "source_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["id", "url", "user", "created_at"],
@@ -226,6 +251,31 @@
               "type": "string"
             },
             "description": "Tags associated with this quote"
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Source platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "source_network": {
+            "type": "string",
+            "description": "Source network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "source_channel": {
+            "type": "string",
+            "description": "Source channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "source_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "source_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["id", "quote", "created_at"],
@@ -468,6 +518,31 @@
               "type": "string"
             },
             "description": "Optional tags to add to the link (lowercased, no spaces)"
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Source platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "source_network": {
+            "type": "string",
+            "description": "Source network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "source_channel": {
+            "type": "string",
+            "description": "Source channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "source_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "source_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["url", "user"],
@@ -571,6 +646,31 @@
               "type": "string"
             },
             "description": "Optional tags to add to the quote (lowercased, no spaces)"
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Source platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "source_network": {
+            "type": "string",
+            "description": "Source network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "source_channel": {
+            "type": "string",
+            "description": "Source channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "source_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "source_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["quote"],
@@ -660,6 +760,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "source_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source platform (e.g., irc, slack, discord)"
+          },
+          {
+            "name": "source_network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source network (requires source_type)"
+          },
+          {
+            "name": "source_channel",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source channel (requires source_type and source_network)"
           }
         ],
         "responses": {
@@ -693,7 +814,7 @@
       },
       "post": {
         "summary": "Create Link",
-        "description": "Submits a new link. Links are always created even if the URL was previously submitted. Duplicate information is included in the response.",
+        "description": "Submits a new link. Links are always created even if the URL was previously submitted. Duplicate information is included in the response. When source fields (source_type, source_network, source_channel) are provided, duplicate detection is scoped per source: a URL is only considered a duplicate if it was previously submitted from the same source.",
         "tags": ["Links"],
         "requestBody": {
           "required": true,
@@ -707,7 +828,7 @@
         },
         "responses": {
           "201": {
-            "description": "Link created successfully",
+            "description": "Link created successfully. If duplicate detection finds a prior submission (scoped per source when source fields are provided), the response includes is_duplicate=true and previous_submissions. Returns 208 instead when the link is an exact duplicate within the same source scope.",
             "content": {
               "application/json": {
                 "schema": {
@@ -882,6 +1003,27 @@
               "default": 0,
               "minimum": 0
             }
+          },
+          {
+            "name": "source_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source platform (e.g., irc, slack, discord)"
+          },
+          {
+            "name": "source_network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source network (requires source_type)"
+          },
+          {
+            "name": "source_channel",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source channel (requires source_type and source_network)"
           }
         ],
         "responses": {
@@ -1688,6 +1830,27 @@
               "default": 0,
               "minimum": 0
             }
+          },
+          {
+            "name": "source_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source platform (e.g., irc, slack, discord)"
+          },
+          {
+            "name": "source_network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source network (requires source_type)"
+          },
+          {
+            "name": "source_channel",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by source channel (requires source_type and source_network)"
           }
         ],
         "responses": {
