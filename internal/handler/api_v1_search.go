@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 	"strings"
+
+	"tumble/internal/data"
 )
 
 // APIv1SearchHandler handles GET /api/v1/search
@@ -78,7 +80,7 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Search links if requested
 	if searchLinks {
-		links, err := h.Store.SearchIRCLinks(ctx, query)
+		links, err := h.Store.SearchIRCLinks(ctx, query, data.SourceFilter{})
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search links")
 			return
@@ -114,7 +116,7 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Search quotes if requested
 	if searchQuotes {
-		quotes, err := h.Store.SearchQuotes(ctx, query)
+		quotes, err := h.Store.SearchQuotes(ctx, query, data.SourceFilter{})
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search quotes")
 			return

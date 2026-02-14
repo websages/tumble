@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"tumble/internal/data"
 )
 
 // APIv1QuotesHandler routes requests to /api/v1/quotes endpoints.
@@ -70,7 +72,7 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch all quotes from the last year
 	// We fetch more than needed so we can paginate in-memory
-	quotes, err := h.Store.GetRecentQuotes(ctx, 365, 0)
+	quotes, err := h.Store.GetRecentQuotes(ctx, 365, 0, data.SourceFilter{})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch quotes")
 		return
@@ -146,7 +148,7 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert the quote
-	quoteID, err := h.Store.InsertQuote(ctx, req.Quote, req.Author, req.Poster)
+	quoteID, err := h.Store.InsertQuote(ctx, &data.Quote{Quote: req.Quote, Author: req.Author, Poster: req.Poster})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create quote")
 		return

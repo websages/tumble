@@ -31,14 +31,14 @@ func (m *mockStatsStore) GetUserStats(ctx context.Context, sortBy string, limit 
 	return m.userStats, nil
 }
 
-func (m *mockStatsStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]data.IRCLink, error) {
+func (m *mockStatsStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.links, nil
 }
 
-func (m *mockStatsStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]data.Quote, error) {
+func (m *mockStatsStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

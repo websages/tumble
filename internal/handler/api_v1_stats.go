@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"tumble/internal/data"
 )
 
 // APIv1StatsHandler routes requests to /api/v1/stats endpoint.
@@ -60,13 +62,13 @@ func (h *Handler) apiV1GetStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get total links and quotes for site stats
-	links, err := h.Store.GetRecentIRCLinks(ctx, 36500, 0) // ~100 years to get all
+	links, err := h.Store.GetRecentIRCLinks(ctx, 36500, 0, data.SourceFilter{}) // ~100 years to get all
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch links")
 		return
 	}
 
-	quotes, err := h.Store.GetRecentQuotes(ctx, 36500, 0) // ~100 years to get all
+	quotes, err := h.Store.GetRecentQuotes(ctx, 36500, 0, data.SourceFilter{}) // ~100 years to get all
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch quotes")
 		return

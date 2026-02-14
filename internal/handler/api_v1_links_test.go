@@ -24,12 +24,12 @@ type mockAPIStore struct {
 	linksByURL     []data.IRCLink
 	linksByURLFn   func(url string) ([]data.IRCLink, error)
 	insertedLinkID int
-	insertLinkFn   func(user, title, url, contentType string) (int, error)
+	insertLinkFn   func(link *data.IRCLink) (int, error)
 	deleteLinkFn   func(id int) error
 	err            error
 }
 
-func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]data.IRCLink, error) {
+func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -46,7 +46,7 @@ func (m *mockAPIStore) GetIRCLinkByID(ctx context.Context, id int) (*data.IRCLin
 	return m.linkByID, nil
 }
 
-func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string) ([]data.IRCLink, error) {
+func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
 	if m.linksByURLFn != nil {
 		return m.linksByURLFn(url)
 	}
@@ -56,9 +56,9 @@ func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string) ([]data
 	return m.linksByURL, nil
 }
 
-func (m *mockAPIStore) InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error) {
+func (m *mockAPIStore) InsertIRCLink(ctx context.Context, link *data.IRCLink) (int, error) {
 	if m.insertLinkFn != nil {
-		return m.insertLinkFn(user, title, url, contentType)
+		return m.insertLinkFn(link)
 	}
 	if m.err != nil {
 		return 0, m.err
@@ -838,7 +838,7 @@ func TestAPIv1_CreateLink(t *testing.T) {
 func TestAPIv1_CreateLink_StoreError(t *testing.T) {
 	store := &mockAPIStore{
 		linksByURL: []data.IRCLink{},
-		insertLinkFn: func(user, title, url, contentType string) (int, error) {
+		insertLinkFn: func(link *data.IRCLink) (int, error) {
 			return 0, context.DeadlineExceeded
 		},
 	}

@@ -77,7 +77,7 @@ func FetchAndStoreDailyCat(ctx context.Context, store data.Store) (bool, error) 
 	}
 
 	// Store the image
-	id, err := store.InsertImage(ctx, kittenTitle, catAASUser, catURL)
+	id, err := store.InsertImage(ctx, &data.Image{Title: kittenTitle, Link: catAASUser, URL: catURL})
 	if err != nil {
 		return false, fmt.Errorf("failed to insert cat image: %w", err)
 	}
@@ -101,7 +101,7 @@ func ForceFetchDailyCat(ctx context.Context, store data.Store) (string, error) {
 	}
 
 	// Store the image
-	id, err := store.InsertImage(ctx, kittenTitle, catAASUser, catURL)
+	id, err := store.InsertImage(ctx, &data.Image{Title: kittenTitle, Link: catAASUser, URL: catURL})
 	if err != nil {
 		return "", fmt.Errorf("failed to insert cat image: %w", err)
 	}

@@ -13,9 +13,9 @@ type IRCLink struct {
 	URL            string    `json:"url" gorm:"column:url"`
 	Clicks         int       `json:"clicks" gorm:"column:clicks;default:0"`
 	ContentType    string    `json:"content_type" gorm:"column:content_type"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
+	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_link_source,priority:1"`
+	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_link_source,priority:2"`
+	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_link_source,priority:3"`
 	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
 	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
 }
@@ -32,9 +32,9 @@ type Image struct {
 	Link           string    `json:"link" gorm:"column:link"`
 	URL            string    `json:"url" gorm:"column:url"`
 	MD5Sum         string    `json:"md5sum" gorm:"column:md5sum"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
+	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_image_source,priority:1"`
+	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_image_source,priority:2"`
+	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_image_source,priority:3"`
 	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
 	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
 }
@@ -50,9 +50,9 @@ type Quote struct {
 	Quote          string    `json:"quote" gorm:"column:quote"`
 	Author         string    `json:"author" gorm:"column:author;type:varchar(255);index"`
 	Poster         string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
+	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_quote_source,priority:1"`
+	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_quote_source,priority:2"`
+	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_quote_source,priority:3"`
 	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
 	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
 }
@@ -134,20 +134,20 @@ func (ArchiveLookup) TableName() string {
 }
 
 type Store interface {
-	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]IRCLink, error)
-	GetRecentImages(ctx context.Context, days int, offsetDays int) ([]Image, error)
-	GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]Quote, error)
+	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]IRCLink, error)
+	GetRecentImages(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]Image, error)
+	GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]Quote, error)
 
-	SearchIRCLinks(ctx context.Context, query string) ([]IRCLink, error)
-	SearchQuotes(ctx context.Context, query string) ([]Quote, error)
+	SearchIRCLinks(ctx context.Context, query string, filter SourceFilter) ([]IRCLink, error)
+	SearchQuotes(ctx context.Context, query string, filter SourceFilter) ([]Quote, error)
 	GetTopIRCLinks(ctx context.Context, startDays int, endDays int, limit int) ([]IRCLink, error)
 	GetIRCLinkByID(ctx context.Context, id int) (*IRCLink, error)
 	GetIRCLinkURL(ctx context.Context, id int) (string, error)
-	GetIRCLinksByURL(ctx context.Context, url string) ([]IRCLink, error)
+	GetIRCLinksByURL(ctx context.Context, url string, filter SourceFilter) ([]IRCLink, error)
 	IncrementClicks(ctx context.Context, id int) error
-	InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error)
+	InsertIRCLink(ctx context.Context, link *IRCLink) (int, error)
 	DeleteIRCLink(ctx context.Context, id int) error
-	InsertQuote(ctx context.Context, quote, author, poster string) (int, error)
+	InsertQuote(ctx context.Context, quote *Quote) (int, error)
 	GetRandomQuote(ctx context.Context) (*Quote, error)
 	GetQuoteByID(ctx context.Context, id int) (*Quote, error)
 	DeleteQuote(ctx context.Context, id int) error
@@ -179,7 +179,7 @@ type Store interface {
 	DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error
 
 	// Image operations
-	InsertImage(ctx context.Context, title, link, url string) (int, error)
+	InsertImage(ctx context.Context, image *Image) (int, error)
 	GetTodayImageByLink(ctx context.Context, link string) (*Image, error)
 	DeleteTodayImageByLink(ctx context.Context, link string) error
 

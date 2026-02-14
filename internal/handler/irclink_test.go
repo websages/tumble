@@ -23,7 +23,7 @@ type MockIRCLinkStore struct {
 	NextID        int
 }
 
-func (m *MockIRCLinkStore) GetIRCLinksByURL(ctx context.Context, url string) ([]data.IRCLink, error) {
+func (m *MockIRCLinkStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
 	if links, ok := m.ExistingLinks[url]; ok {
 		return links, nil
 	}
@@ -37,18 +37,12 @@ func (m *MockIRCLinkStore) GetIRCLinkByID(ctx context.Context, id int) (*data.IR
 	return nil, nil
 }
 
-func (m *MockIRCLinkStore) InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error) {
+func (m *MockIRCLinkStore) InsertIRCLink(ctx context.Context, link *data.IRCLink) (int, error) {
 	m.NextID++
-	link := data.IRCLink{
-		ID:          m.NextID,
-		User:        user,
-		Title:       title,
-		URL:         url,
-		ContentType: contentType,
-		Timestamp:   time.Now(),
-		Clicks:      0,
-	}
-	m.InsertedLinks = append(m.InsertedLinks, link)
+	link.ID = m.NextID
+	link.Timestamp = time.Now()
+	link.Clicks = 0
+	m.InsertedLinks = append(m.InsertedLinks, *link)
 	return m.NextID, nil
 }
 

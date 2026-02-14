@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"tumble/internal/data"
 )
 
 // APIv1LinksHandler routes requests to /api/v1/links endpoints.
@@ -70,7 +72,7 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch all links from the last year
 	// We fetch more than needed so we can paginate in-memory
-	links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0)
+	links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, data.SourceFilter{})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch links")
 		return
@@ -151,14 +153,14 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check for duplicates
-	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL)
+	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, data.SourceFilter{})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to check for duplicates")
 		return
 	}
 
 	// Insert the link (use URL as title for now; existing code fetches title async)
-	linkID, err := h.Store.InsertIRCLink(ctx, req.User, req.URL, req.URL, "")
+	linkID, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{User: req.User, Title: req.URL, URL: req.URL, ContentType: ""})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create link")
 		return

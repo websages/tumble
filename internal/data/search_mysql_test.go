@@ -50,16 +50,16 @@ func TestSearchIRCLinks_ByTitle_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Golang Tutorial", "http://example.com/go-mysql", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Golang Tutorial", URL: "http://example.com/go-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
-	_, err = store.InsertIRCLink(ctx, "bob", "Rust Guide", "http://example.com/rust-mysql", "text/html")
+	_, err = store.InsertIRCLink(ctx, &IRCLink{User: "bob", Title: "Rust Guide", URL: "http://example.com/rust-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Golang")
+	links, err := store.SearchIRCLinks(ctx, "Golang", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -75,12 +75,12 @@ func TestSearchIRCLinks_ByURL_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Some Page", "http://example.com/unique-mysql-path", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Some Page", URL: "http://example.com/unique-mysql-path", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "unique-mysql-path")
+	links, err := store.SearchIRCLinks(ctx, "unique-mysql-path", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestSearchIRCLinks_ByTag_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	id, err := store.InsertIRCLink(ctx, "alice", "Tagged Link", "http://example.com/tagged-mysql", "text/html")
+	id, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Tagged Link", URL: "http://example.com/tagged-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -111,7 +111,7 @@ func TestSearchIRCLinks_ByTag_MySQL(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "special-mysql-topic")
+	links, err := store.SearchIRCLinks(ctx, "special-mysql-topic", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -127,12 +127,12 @@ func TestSearchIRCLinks_NoMatch_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Something", "http://example.com/a-mysql", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Something", URL: "http://example.com/a-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy-mysql")
+	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy-mysql", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -146,11 +146,11 @@ func TestSearchIRCLinks_OrderedByClicks_MySQL(t *testing.T) {
 	ctx := context.Background()
 	db := store.db
 
-	_, err := store.InsertIRCLink(ctx, "alice", "SearchM Low", "http://example.com/searchm-low", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "SearchM Low", URL: "http://example.com/searchm-low", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
-	_, err = store.InsertIRCLink(ctx, "bob", "SearchM High", "http://example.com/searchm-high", "text/html")
+	_, err = store.InsertIRCLink(ctx, &IRCLink{User: "bob", Title: "SearchM High", URL: "http://example.com/searchm-high", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestSearchIRCLinks_OrderedByClicks_MySQL(t *testing.T) {
 	db.Model(&IRCLink{}).Where("title = ?", "SearchM Low").Update("clicks", 5)
 	db.Model(&IRCLink{}).Where("title = ?", "SearchM High").Update("clicks", 50)
 
-	links, err := store.SearchIRCLinks(ctx, "SearchM")
+	links, err := store.SearchIRCLinks(ctx, "SearchM", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -177,11 +177,11 @@ func TestSearchIRCLinks_ExcludesErrorPreviews_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Good Link", "http://example.com/good-mysql", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Good Link", URL: "http://example.com/good-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
-	_, err = store.InsertIRCLink(ctx, "bob", "Bad Link", "http://example.com/bad-mysql", "text/html")
+	_, err = store.InsertIRCLink(ctx, &IRCLink{User: "bob", Title: "Bad Link", URL: "http://example.com/bad-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -191,7 +191,7 @@ func TestSearchIRCLinks_ExcludesErrorPreviews_MySQL(t *testing.T) {
 		t.Fatalf("InsertLinkPreview failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Link")
+	links, err := store.SearchIRCLinks(ctx, "Link", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -208,7 +208,7 @@ func TestSearchIRCLinks_ExpiredErrorCacheIncluded_MySQL(t *testing.T) {
 	ctx := context.Background()
 	db := store.db
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Recoverable Link", "http://example.com/recover-mysql", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Recoverable Link", URL: "http://example.com/recover-mysql", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -220,7 +220,7 @@ func TestSearchIRCLinks_ExpiredErrorCacheIncluded_MySQL(t *testing.T) {
 	twoDaysAgo := time.Now().Add(-48 * time.Hour)
 	db.Model(&LinkPreview{}).Where("url = ?", "http://example.com/recover-mysql").Update("updated_at", twoDaysAgo)
 
-	links, err := store.SearchIRCLinks(ctx, "Recoverable")
+	links, err := store.SearchIRCLinks(ctx, "Recoverable", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -238,16 +238,16 @@ func TestSearchQuotes_ByQuoteText_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertQuote(ctx, "To be or not to be", "Shakespeare", "alice")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "To be or not to be", Author: "Shakespeare", Poster: "alice"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
-	_, err = store.InsertQuote(ctx, "I think therefore I am", "Descartes", "bob")
+	_, err = store.InsertQuote(ctx, &Quote{Quote: "I think therefore I am", Author: "Descartes", Poster: "bob"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "not to be")
+	quotes, err := store.SearchQuotes(ctx, "not to be", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -263,12 +263,12 @@ func TestSearchQuotes_ByAuthor_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertQuote(ctx, "Some quote", "UniqueAuthor42", "alice")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "Some quote", Author: "UniqueAuthor42", Poster: "alice"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42")
+	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -284,7 +284,7 @@ func TestSearchQuotes_ByTag_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	id, err := store.InsertQuote(ctx, "A tagged quote", "someone", "alice")
+	id, err := store.InsertQuote(ctx, &Quote{Quote: "A tagged quote", Author: "someone", Poster: "alice"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
@@ -299,7 +299,7 @@ func TestSearchQuotes_ByTag_MySQL(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "philosophy")
+	quotes, err := store.SearchQuotes(ctx, "philosophy", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -315,12 +315,12 @@ func TestSearchQuotes_NoMatch_MySQL(t *testing.T) {
 	store := newMySQLTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertQuote(ctx, "Hello world", "author1", "poster1")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "Hello world", Author: "author1", Poster: "poster1"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy-mysql")
+	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy-mysql", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -334,11 +334,11 @@ func TestSearchQuotes_OrderedByTimestamp_MySQL(t *testing.T) {
 	ctx := context.Background()
 	db := store.db
 
-	_, err := store.InsertQuote(ctx, "SearchM older quote", "auth1", "poster")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "SearchM older quote", Author: "auth1", Poster: "poster"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
-	_, err = store.InsertQuote(ctx, "SearchM newer quote", "auth2", "poster")
+	_, err = store.InsertQuote(ctx, &Quote{Quote: "SearchM newer quote", Author: "auth2", Poster: "poster"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
@@ -347,7 +347,7 @@ func TestSearchQuotes_OrderedByTimestamp_MySQL(t *testing.T) {
 	db.Model(&Quote{}).Where("quote = ?", "SearchM older quote").Update("timestamp", now.Add(-48*time.Hour))
 	db.Model(&Quote{}).Where("quote = ?", "SearchM newer quote").Update("timestamp", now.Add(-1*time.Hour))
 
-	quotes, err := store.SearchQuotes(ctx, "SearchM")
+	quotes, err := store.SearchQuotes(ctx, "SearchM", SourceFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}

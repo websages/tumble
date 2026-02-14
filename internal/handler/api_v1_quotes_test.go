@@ -20,12 +20,12 @@ type mockQuoteStore struct {
 	quoteByID       *data.Quote
 	quoteByIDFn     func(id int) (*data.Quote, error)
 	insertedQuoteID int
-	insertQuoteFn   func(quote, author, poster string) (int, error)
+	insertQuoteFn   func(quote *data.Quote) (int, error)
 	deleteQuoteFn   func(id int) error
 	err             error
 }
 
-func (m *mockQuoteStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]data.Quote, error) {
+func (m *mockQuoteStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -42,9 +42,9 @@ func (m *mockQuoteStore) GetQuoteByID(ctx context.Context, id int) (*data.Quote,
 	return m.quoteByID, nil
 }
 
-func (m *mockQuoteStore) InsertQuote(ctx context.Context, quote, author, poster string) (int, error) {
+func (m *mockQuoteStore) InsertQuote(ctx context.Context, quote *data.Quote) (int, error) {
 	if m.insertQuoteFn != nil {
-		return m.insertQuoteFn(quote, author, poster)
+		return m.insertQuoteFn(quote)
 	}
 	if m.err != nil {
 		return 0, m.err
@@ -759,7 +759,7 @@ func TestAPIv1_CreateQuote(t *testing.T) {
 
 func TestAPIv1_CreateQuote_StoreError(t *testing.T) {
 	store := &mockQuoteStore{
-		insertQuoteFn: func(quote, author, poster string) (int, error) {
+		insertQuoteFn: func(quote *data.Quote) (int, error) {
 			return 0, context.DeadlineExceeded
 		},
 	}

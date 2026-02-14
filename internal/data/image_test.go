@@ -20,7 +20,7 @@ func TestInsertImage(t *testing.T) {
 	}
 
 	// Insert an image
-	id, err := store.InsertImage(context.Background(), "Daily Kitten", "cat AAS", "https://cataas.com/cat/abc123")
+	id, err := store.InsertImage(context.Background(), &Image{Title: "Daily Kitten", Link: "cat AAS", URL: "https://cataas.com/cat/abc123"})
 	if err != nil {
 		t.Fatalf("InsertImage failed: %v", err)
 	}
@@ -30,7 +30,7 @@ func TestInsertImage(t *testing.T) {
 	}
 
 	// Verify it's in the database via GetRecentImages
-	images, err := store.GetRecentImages(context.Background(), 1, 0)
+	images, err := store.GetRecentImages(context.Background(), 1, 0, SourceFilter{})
 	if err != nil {
 		t.Fatalf("GetRecentImages failed: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestGetTodayImageByLink(t *testing.T) {
 	}
 
 	// Insert an image
-	_, err = store.InsertImage(context.Background(), "Daily Kitten", "cat AAS", "https://cataas.com/cat/abc123")
+	_, err = store.InsertImage(context.Background(), &Image{Title: "Daily Kitten", Link: "cat AAS", URL: "https://cataas.com/cat/abc123"})
 	if err != nil {
 		t.Fatalf("InsertImage failed: %v", err)
 	}

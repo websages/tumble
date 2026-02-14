@@ -80,7 +80,7 @@ func TestHotLinksRegression(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		_, err := store.InsertIRCLink(ctx, "tester", f.Title, "http://example.com/"+f.Title, "text")
+		_, err := store.InsertIRCLink(ctx, &IRCLink{User: "tester", Title: f.Title, URL: "http://example.com/" + f.Title, ContentType: "text"})
 		if err != nil {
 			t.Fatalf("Failed to insert link: %v", err)
 		}
