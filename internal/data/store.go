@@ -6,13 +6,18 @@ import (
 )
 
 type IRCLink struct {
-	ID          int       `json:"ircLinkID" gorm:"column:ircLinkID;primaryKey"`
-	Timestamp   time.Time `json:"timestamp" gorm:"column:timestamp"`
-	User        string    `json:"user" gorm:"column:user;index"`
-	Title       string    `json:"title" gorm:"column:title"`
-	URL         string    `json:"url" gorm:"column:url"`
-	Clicks      int       `json:"clicks" gorm:"column:clicks;default:0"`
-	ContentType string    `json:"content_type" gorm:"column:content_type"`
+	ID             int       `json:"ircLinkID" gorm:"column:ircLinkID;primaryKey"`
+	Timestamp      time.Time `json:"timestamp" gorm:"column:timestamp"`
+	User           string    `json:"user" gorm:"column:user;index"`
+	Title          string    `json:"title" gorm:"column:title"`
+	URL            string    `json:"url" gorm:"column:url"`
+	Clicks         int       `json:"clicks" gorm:"column:clicks;default:0"`
+	ContentType    string    `json:"content_type" gorm:"column:content_type"`
+	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
+	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
+	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
+	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
+	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `ircLink`
@@ -21,12 +26,17 @@ func (IRCLink) TableName() string {
 }
 
 type Image struct {
-	ID        int       `json:"imageID" gorm:"column:imageID;primaryKey"`
-	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
-	Title     string    `json:"title" gorm:"column:title"`
-	Link      string    `json:"link" gorm:"column:link"`
-	URL       string    `json:"url" gorm:"column:url"`
-	MD5Sum    string    `json:"md5sum" gorm:"column:md5sum"`
+	ID             int       `json:"imageID" gorm:"column:imageID;primaryKey"`
+	Timestamp      time.Time `json:"timestamp" gorm:"column:timestamp"`
+	Title          string    `json:"title" gorm:"column:title"`
+	Link           string    `json:"link" gorm:"column:link"`
+	URL            string    `json:"url" gorm:"column:url"`
+	MD5Sum         string    `json:"md5sum" gorm:"column:md5sum"`
+	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
+	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
+	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
+	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
+	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `image`
@@ -35,11 +45,16 @@ func (Image) TableName() string {
 }
 
 type Quote struct {
-	ID        int       `json:"quoteID" gorm:"column:quoteID;primaryKey"`
-	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
-	Quote     string    `json:"quote" gorm:"column:quote"`
-	Author    string    `json:"author" gorm:"column:author;type:varchar(255);index"`
-	Poster    string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
+	ID             int       `json:"quoteID" gorm:"column:quoteID;primaryKey"`
+	Timestamp      time.Time `json:"timestamp" gorm:"column:timestamp"`
+	Quote          string    `json:"quote" gorm:"column:quote"`
+	Author         string    `json:"author" gorm:"column:author;type:varchar(255);index"`
+	Poster         string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
+	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
+	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
+	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
+	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
+	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `quote`
@@ -54,15 +69,30 @@ type UserStat struct {
 }
 
 type TimelineItem struct {
-	Type        string    `json:"type"` // "link", "quote", or "image"
-	ID          int       `json:"id"`
-	Timestamp   time.Time `json:"timestamp"`
-	Title       string    `json:"title"`                                  // For links and images
-	URL         string    `json:"url"`                                    // For links and images
-	Content     string    `json:"content"`                                // For quotes
-	Author      string    `json:"author"`                                 // For quotes (and links/images as User)
-	MD5Sum      string    `json:"md5sum"`                                 // For images
-	ContentType string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
+	Type           string    `json:"type"` // "link", "quote", or "image"
+	ID             int       `json:"id"`
+	Timestamp      time.Time `json:"timestamp"`
+	Title          string    `json:"title"`                                  // For links and images
+	URL            string    `json:"url"`                                    // For links and images
+	Content        string    `json:"content"`                                // For quotes
+	Author         string    `json:"author"`                                 // For quotes (and links/images as User)
+	MD5Sum         string    `json:"md5sum"`                                 // For images
+	ContentType    string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
+	SourceType     *string   `json:"source_type,omitempty"`
+	SourceNetwork  *string   `json:"source_network,omitempty"`
+	SourceChannel  *string   `json:"source_channel,omitempty"`
+	SourceUserID   *string   `json:"source_user_id,omitempty"`
+	SourceUserName *string   `json:"source_user_name,omitempty"`
+}
+
+type SourceFilter struct {
+	SourceType    *string
+	SourceNetwork *string
+	SourceChannel *string
+}
+
+func (f SourceFilter) IsEmpty() bool {
+	return f.SourceType == nil && f.SourceNetwork == nil && f.SourceChannel == nil
 }
 
 type Tag struct {
