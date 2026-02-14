@@ -25,13 +25,18 @@ type APIMeta struct {
 
 // APILinkResponse represents a single link in API responses.
 type APILinkResponse struct {
-	ID        int       `json:"id"`
-	URL       string    `json:"url"`
-	Title     string    `json:"title"`
-	User      string    `json:"user"`
-	Clicks    int       `json:"clicks"`
-	CreatedAt time.Time `json:"created_at"`
-	Tags      []string  `json:"tags,omitempty"`
+	ID             int       `json:"id"`
+	URL            string    `json:"url"`
+	Title          string    `json:"title"`
+	User           string    `json:"user"`
+	Clicks         int       `json:"clicks"`
+	CreatedAt      time.Time `json:"created_at"`
+	Tags           []string  `json:"tags,omitempty"`
+	SourceType     *string   `json:"source_type,omitempty"`
+	SourceNetwork  *string   `json:"source_network,omitempty"`
+	SourceChannel  *string   `json:"source_channel,omitempty"`
+	SourceUserID   *string   `json:"source_user_id,omitempty"`
+	SourceUserName *string   `json:"source_user_name,omitempty"`
 }
 
 // APIPreviousSubmission contains information about a previous submission
@@ -58,12 +63,17 @@ type APILinksResponse struct {
 
 // APIQuoteResponse represents a single quote in API responses.
 type APIQuoteResponse struct {
-	ID        int       `json:"id"`
-	Quote     string    `json:"quote"`
-	Author    string    `json:"author"`
-	Poster    string    `json:"poster,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	Tags      []string  `json:"tags,omitempty"`
+	ID             int       `json:"id"`
+	Quote          string    `json:"quote"`
+	Author         string    `json:"author"`
+	Poster         string    `json:"poster,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
+	Tags           []string  `json:"tags,omitempty"`
+	SourceType     *string   `json:"source_type,omitempty"`
+	SourceNetwork  *string   `json:"source_network,omitempty"`
+	SourceChannel  *string   `json:"source_channel,omitempty"`
+	SourceUserID   *string   `json:"source_user_id,omitempty"`
+	SourceUserName *string   `json:"source_user_name,omitempty"`
 }
 
 // APIQuotesResponse is the paginated response for a list of quotes.

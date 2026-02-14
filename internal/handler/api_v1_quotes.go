@@ -70,9 +70,21 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
+	// Parse source filter query params
+	var sourceFilter data.SourceFilter
+	if st := r.URL.Query().Get("source_type"); st != "" {
+		sourceFilter.SourceType = &st
+	}
+	if sn := r.URL.Query().Get("source_network"); sn != "" {
+		sourceFilter.SourceNetwork = &sn
+	}
+	if sc := r.URL.Query().Get("source_channel"); sc != "" {
+		sourceFilter.SourceChannel = &sc
+	}
+
 	// Fetch all quotes from the last year
 	// We fetch more than needed so we can paginate in-memory
-	quotes, err := h.Store.GetRecentQuotes(ctx, 365, 0, data.SourceFilter{})
+	quotes, err := h.Store.GetRecentQuotes(ctx, 365, 0, sourceFilter)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch quotes")
 		return
@@ -96,12 +108,17 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 	data := make([]APIQuoteResponse, 0, len(quotes))
 	for _, quote := range quotes {
 		data = append(data, APIQuoteResponse{
-			ID:        quote.ID,
-			Quote:     quote.Quote,
-			Author:    quote.Author,
-			Poster:    quote.Poster,
-			CreatedAt: quote.Timestamp,
-			Tags:      h.getTagStrings(ctx, "quote", quote.ID),
+			ID:             quote.ID,
+			Quote:          quote.Quote,
+			Author:         quote.Author,
+			Poster:         quote.Poster,
+			CreatedAt:      quote.Timestamp,
+			Tags:           h.getTagStrings(ctx, "quote", quote.ID),
+			SourceType:     quote.SourceType,
+			SourceNetwork:  quote.SourceNetwork,
+			SourceChannel:  quote.SourceChannel,
+			SourceUserID:   quote.SourceUserID,
+			SourceUserName: quote.SourceUserName,
 		})
 	}
 
@@ -119,10 +136,15 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 
 // APIQuoteCreateRequest is the request body for POST /api/v1/quotes.
 type APIQuoteCreateRequest struct {
-	Quote  string   `json:"quote"`
-	Author string   `json:"author"`
-	Poster string   `json:"poster"`
-	Tags   []string `json:"tags,omitempty"`
+	Quote          string   `json:"quote"`
+	Author         string   `json:"author"`
+	Poster         string   `json:"poster"`
+	Tags           []string `json:"tags,omitempty"`
+	SourceType     *string  `json:"source_type,omitempty"`
+	SourceNetwork  *string  `json:"source_network,omitempty"`
+	SourceChannel  *string  `json:"source_channel,omitempty"`
+	SourceUserID   *string  `json:"source_user_id,omitempty"`
+	SourceUserName *string  `json:"source_user_name,omitempty"`
 }
 
 // apiV1CreateQuote handles POST /api/v1/quotes
@@ -148,7 +170,16 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert the quote
-	quoteID, err := h.Store.InsertQuote(ctx, &data.Quote{Quote: req.Quote, Author: req.Author, Poster: req.Poster})
+	quoteID, err := h.Store.InsertQuote(ctx, &data.Quote{
+		Quote:          req.Quote,
+		Author:         req.Author,
+		Poster:         req.Poster,
+		SourceType:     req.SourceType,
+		SourceNetwork:  req.SourceNetwork,
+		SourceChannel:  req.SourceChannel,
+		SourceUserID:   req.SourceUserID,
+		SourceUserName: req.SourceUserName,
+	})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create quote")
 		return
@@ -181,12 +212,17 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := APIQuoteResponse{
-		ID:        quoteID,
-		Quote:     req.Quote,
-		Author:    req.Author,
-		Poster:    req.Poster,
-		CreatedAt: time.Now(),
-		Tags:      tagStrings,
+		ID:             quoteID,
+		Quote:          req.Quote,
+		Author:         req.Author,
+		Poster:         req.Poster,
+		CreatedAt:      time.Now(),
+		Tags:           tagStrings,
+		SourceType:     req.SourceType,
+		SourceNetwork:  req.SourceNetwork,
+		SourceChannel:  req.SourceChannel,
+		SourceUserID:   req.SourceUserID,
+		SourceUserName: req.SourceUserName,
 	}
 
 	writeJSON(w, http.StatusCreated, resp)
@@ -219,12 +255,17 @@ func (h *Handler) apiV1GetQuote(w http.ResponseWriter, r *http.Request, id int) 
 	}
 
 	writeJSON(w, http.StatusOK, APIQuoteResponse{
-		ID:        quote.ID,
-		Quote:     quote.Quote,
-		Author:    quote.Author,
-		Poster:    quote.Poster,
-		CreatedAt: quote.Timestamp,
-		Tags:      h.getTagStrings(ctx, "quote", quote.ID),
+		ID:             quote.ID,
+		Quote:          quote.Quote,
+		Author:         quote.Author,
+		Poster:         quote.Poster,
+		CreatedAt:      quote.Timestamp,
+		Tags:           h.getTagStrings(ctx, "quote", quote.ID),
+		SourceType:     quote.SourceType,
+		SourceNetwork:  quote.SourceNetwork,
+		SourceChannel:  quote.SourceChannel,
+		SourceUserID:   quote.SourceUserID,
+		SourceUserName: quote.SourceUserName,
 	})
 }
 

@@ -70,9 +70,21 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
+	// Parse source filter query params
+	var sourceFilter data.SourceFilter
+	if st := r.URL.Query().Get("source_type"); st != "" {
+		sourceFilter.SourceType = &st
+	}
+	if sn := r.URL.Query().Get("source_network"); sn != "" {
+		sourceFilter.SourceNetwork = &sn
+	}
+	if sc := r.URL.Query().Get("source_channel"); sc != "" {
+		sourceFilter.SourceChannel = &sc
+	}
+
 	// Fetch all links from the last year
 	// We fetch more than needed so we can paginate in-memory
-	links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, data.SourceFilter{})
+	links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, sourceFilter)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch links")
 		return
@@ -96,13 +108,18 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 	data := make([]APILinkResponse, 0, len(links))
 	for _, link := range links {
 		data = append(data, APILinkResponse{
-			ID:        link.ID,
-			URL:       link.URL,
-			Title:     link.Title,
-			User:      link.User,
-			Clicks:    link.Clicks,
-			CreatedAt: link.Timestamp,
-			Tags:      h.getTagStrings(ctx, "link", link.ID),
+			ID:             link.ID,
+			URL:            link.URL,
+			Title:          link.Title,
+			User:           link.User,
+			Clicks:         link.Clicks,
+			CreatedAt:      link.Timestamp,
+			Tags:           h.getTagStrings(ctx, "link", link.ID),
+			SourceType:     link.SourceType,
+			SourceNetwork:  link.SourceNetwork,
+			SourceChannel:  link.SourceChannel,
+			SourceUserID:   link.SourceUserID,
+			SourceUserName: link.SourceUserName,
 		})
 	}
 
@@ -120,9 +137,14 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 
 // APILinkCreateRequest is the request body for POST /api/v1/links.
 type APILinkCreateRequest struct {
-	URL  string   `json:"url"`
-	User string   `json:"user"`
-	Tags []string `json:"tags,omitempty"`
+	URL            string   `json:"url"`
+	User           string   `json:"user"`
+	Tags           []string `json:"tags,omitempty"`
+	SourceType     *string  `json:"source_type,omitempty"`
+	SourceNetwork  *string  `json:"source_network,omitempty"`
+	SourceChannel  *string  `json:"source_channel,omitempty"`
+	SourceUserID   *string  `json:"source_user_id,omitempty"`
+	SourceUserName *string  `json:"source_user_name,omitempty"`
 }
 
 // apiV1CreateLink handles POST /api/v1/links
@@ -152,15 +174,30 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check for duplicates
-	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, data.SourceFilter{})
+	// Check for duplicates (scoped by source if provided)
+	sourceFilter := data.SourceFilter{
+		SourceType:    req.SourceType,
+		SourceNetwork: req.SourceNetwork,
+		SourceChannel: req.SourceChannel,
+	}
+	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, sourceFilter)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to check for duplicates")
 		return
 	}
 
 	// Insert the link (use URL as title for now; existing code fetches title async)
-	linkID, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{User: req.User, Title: req.URL, URL: req.URL, ContentType: ""})
+	linkID, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{
+		User:           req.User,
+		Title:          req.URL,
+		URL:            req.URL,
+		ContentType:    "",
+		SourceType:     req.SourceType,
+		SourceNetwork:  req.SourceNetwork,
+		SourceChannel:  req.SourceChannel,
+		SourceUserID:   req.SourceUserID,
+		SourceUserName: req.SourceUserName,
+	})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create link")
 		return
@@ -206,13 +243,18 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 
 	resp := APILinkCreateResponse{
 		APILinkResponse: APILinkResponse{
-			ID:        linkID,
-			URL:       req.URL,
-			Title:     req.URL,
-			User:      req.User,
-			Clicks:    0,
-			CreatedAt: time.Now(),
-			Tags:      tagStrings,
+			ID:             linkID,
+			URL:            req.URL,
+			Title:          req.URL,
+			User:           req.User,
+			Clicks:         0,
+			CreatedAt:      time.Now(),
+			Tags:           tagStrings,
+			SourceType:     req.SourceType,
+			SourceNetwork:  req.SourceNetwork,
+			SourceChannel:  req.SourceChannel,
+			SourceUserID:   req.SourceUserID,
+			SourceUserName: req.SourceUserName,
 		},
 		IsDuplicate:         isDuplicate,
 		PreviousSubmissions: previousSubmissions,
@@ -244,13 +286,18 @@ func (h *Handler) apiV1GetLink(w http.ResponseWriter, r *http.Request, id int) {
 	}
 
 	writeJSON(w, http.StatusOK, APILinkResponse{
-		ID:        link.ID,
-		URL:       link.URL,
-		Title:     link.Title,
-		User:      link.User,
-		Clicks:    link.Clicks,
-		CreatedAt: link.Timestamp,
-		Tags:      h.getTagStrings(ctx, "link", link.ID),
+		ID:             link.ID,
+		URL:            link.URL,
+		Title:          link.Title,
+		User:           link.User,
+		Clicks:         link.Clicks,
+		CreatedAt:      link.Timestamp,
+		Tags:           h.getTagStrings(ctx, "link", link.ID),
+		SourceType:     link.SourceType,
+		SourceNetwork:  link.SourceNetwork,
+		SourceChannel:  link.SourceChannel,
+		SourceUserID:   link.SourceUserID,
+		SourceUserName: link.SourceUserName,
 	})
 }
 

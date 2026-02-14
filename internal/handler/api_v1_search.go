@@ -63,6 +63,18 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
+	// Parse source filter query params
+	var sourceFilter data.SourceFilter
+	if st := r.URL.Query().Get("source_type"); st != "" {
+		sourceFilter.SourceType = &st
+	}
+	if sn := r.URL.Query().Get("source_network"); sn != "" {
+		sourceFilter.SourceNetwork = &sn
+	}
+	if sc := r.URL.Query().Get("source_channel"); sc != "" {
+		sourceFilter.SourceChannel = &sc
+	}
+
 	// Initialize response
 	resp := APISearchResponse{
 		Links:  []APILinkResponse{},
@@ -80,7 +92,7 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Search links if requested
 	if searchLinks {
-		links, err := h.Store.SearchIRCLinks(ctx, query, data.SourceFilter{})
+		links, err := h.Store.SearchIRCLinks(ctx, query, sourceFilter)
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search links")
 			return
@@ -104,19 +116,24 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 		// Convert to API response format
 		for _, link := range links {
 			resp.Links = append(resp.Links, APILinkResponse{
-				ID:        link.ID,
-				URL:       link.URL,
-				Title:     link.Title,
-				User:      link.User,
-				Clicks:    link.Clicks,
-				CreatedAt: link.Timestamp,
+				ID:             link.ID,
+				URL:            link.URL,
+				Title:          link.Title,
+				User:           link.User,
+				Clicks:         link.Clicks,
+				CreatedAt:      link.Timestamp,
+				SourceType:     link.SourceType,
+				SourceNetwork:  link.SourceNetwork,
+				SourceChannel:  link.SourceChannel,
+				SourceUserID:   link.SourceUserID,
+				SourceUserName: link.SourceUserName,
 			})
 		}
 	}
 
 	// Search quotes if requested
 	if searchQuotes {
-		quotes, err := h.Store.SearchQuotes(ctx, query, data.SourceFilter{})
+		quotes, err := h.Store.SearchQuotes(ctx, query, sourceFilter)
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search quotes")
 			return
@@ -140,11 +157,16 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 		// Convert to API response format
 		for _, quote := range quotes {
 			resp.Quotes = append(resp.Quotes, APIQuoteResponse{
-				ID:        quote.ID,
-				Quote:     quote.Quote,
-				Author:    quote.Author,
-				Poster:    quote.Poster,
-				CreatedAt: quote.Timestamp,
+				ID:             quote.ID,
+				Quote:          quote.Quote,
+				Author:         quote.Author,
+				Poster:         quote.Poster,
+				CreatedAt:      quote.Timestamp,
+				SourceType:     quote.SourceType,
+				SourceNetwork:  quote.SourceNetwork,
+				SourceChannel:  quote.SourceChannel,
+				SourceUserID:   quote.SourceUserID,
+				SourceUserName: quote.SourceUserName,
 			})
 		}
 	}
