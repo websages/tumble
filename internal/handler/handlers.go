@@ -260,15 +260,15 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		wg.Add(3)
 		go func() {
 			defer wg.Done()
-			ircLinks, errIrc = h.Store.GetRecentIRCLinks(ctx, startDays, endDays, data.SourceFilter{})
+			ircLinks, errIrc = h.Store.GetRecentIRCLinks(ctx, startDays, endDays, data.ClientFilter{})
 		}()
 		go func() {
 			defer wg.Done()
-			images, errImg = h.Store.GetRecentImages(ctx, startDays, endDays, data.SourceFilter{})
+			images, errImg = h.Store.GetRecentImages(ctx, startDays, endDays, data.ClientFilter{})
 		}()
 		go func() {
 			defer wg.Done()
-			quotes, errQuote = h.Store.GetRecentQuotes(ctx, startDays, endDays, data.SourceFilter{})
+			quotes, errQuote = h.Store.GetRecentQuotes(ctx, startDays, endDays, data.ClientFilter{})
 		}()
 		wg.Wait()
 	}
@@ -547,7 +547,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	links, err := h.Store.SearchIRCLinks(ctx, query, data.SourceFilter{})
+	links, err := h.Store.SearchIRCLinks(ctx, query, data.ClientFilter{})
 	if err != nil {
 		h.ServerError(w, r, err)
 		return

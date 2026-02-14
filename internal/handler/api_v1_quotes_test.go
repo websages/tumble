@@ -25,7 +25,7 @@ type mockQuoteStore struct {
 	err             error
 }
 
-func (m *mockQuoteStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.Quote, error) {
+func (m *mockQuoteStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

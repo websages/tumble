@@ -30,7 +30,7 @@ func TestInsertImage(t *testing.T) {
 	}
 
 	// Verify it's in the database via GetRecentImages
-	images, err := store.GetRecentImages(context.Background(), 1, 0, SourceFilter{})
+	images, err := store.GetRecentImages(context.Background(), 1, 0, ClientFilter{})
 	if err != nil {
 		t.Fatalf("GetRecentImages failed: %v", err)
 	}

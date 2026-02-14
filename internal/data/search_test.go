@@ -21,7 +21,7 @@ func TestSearchIRCLinks_ByTitle(t *testing.T) {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Golang", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Golang", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestSearchIRCLinks_ByURL(t *testing.T) {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "unique-path", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "unique-path", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestSearchIRCLinks_ByTag(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "special-topic", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "special-topic", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestSearchIRCLinks_NoMatch(t *testing.T) {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -121,7 +121,7 @@ func TestSearchIRCLinks_OrderedByClicks(t *testing.T) {
 	db.Model(&IRCLink{}).Where("title = ?", "Search Low").Update("clicks", 5)
 	db.Model(&IRCLink{}).Where("title = ?", "Search High").Update("clicks", 50)
 
-	links, err := store.SearchIRCLinks(ctx, "Search", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Search", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -156,7 +156,7 @@ func TestSearchIRCLinks_ExcludesErrorPreviews(t *testing.T) {
 		t.Fatalf("InsertLinkPreview failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Link", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Link", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -188,7 +188,7 @@ func TestSearchIRCLinks_ExpiredErrorCacheIncluded(t *testing.T) {
 	twoDaysAgo := time.Now().Add(-48 * time.Hour)
 	db.Model(&LinkPreview{}).Where("url = ?", "http://example.com/recover").Update("updated_at", twoDaysAgo)
 
-	links, err := store.SearchIRCLinks(ctx, "Recoverable", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Recoverable", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestSearchQuotes_ByQuoteText(t *testing.T) {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "not to be", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "not to be", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -236,7 +236,7 @@ func TestSearchQuotes_ByAuthor(t *testing.T) {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestSearchQuotes_ByTag(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "philosophy", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "philosophy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -288,7 +288,7 @@ func TestSearchQuotes_NoMatch(t *testing.T) {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -316,7 +316,7 @@ func TestSearchQuotes_OrderedByTimestamp(t *testing.T) {
 	db.Model(&Quote{}).Where("quote = ?", "Search older quote").Update("timestamp", now.Add(-48*time.Hour))
 	db.Model(&Quote{}).Where("quote = ?", "Search newer quote").Update("timestamp", now.Add(-1*time.Hour))
 
-	quotes, err := store.SearchQuotes(ctx, "Search", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "Search", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}

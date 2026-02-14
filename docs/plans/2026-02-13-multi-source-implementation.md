@@ -1,21 +1,21 @@
-# Multi-Source Support Implementation Plan
+# Multi-Client Support Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add source metadata to links, quotes, and images so Tumble can track where posts originate and scope duplicate detection per source.
+**Goal:** Add client metadata to links, quotes, and images so Tumble can track where posts originate and scope duplicate detection per client.
 
-**Architecture:** Add five nullable source columns to all three content tables via GORM struct changes. Modify the Store interface to accept a `SourceFilter` for queries and duplicate detection. Update API handlers to parse, pass through, and return source fields.
+**Architecture:** Add five nullable client columns to all three content tables via GORM struct changes. Modify the Store interface to accept a `ClientFilter` for queries and duplicate detection. Update API handlers to parse, pass through, and return client fields.
 
 **Tech Stack:** Go, GORM, SQLite/MySQL, `net/http`, `httptest` for testing
 
 ---
 
-### Task 1: Add source fields to data models
+### Task 1: Add client fields to data models
 
 **Files:**
 - Modify: `internal/data/store.go`
 
-**Step 1: Add source fields to IRCLink struct**
+**Step 1: Add client fields to IRCLink struct**
 
 In `internal/data/store.go`, add five fields to the `IRCLink` struct (after the `ContentType` field, line 15):
 
@@ -28,15 +28,15 @@ type IRCLink struct {
 	URL            string    `json:"url" gorm:"column:url"`
 	Clicks         int       `json:"clicks" gorm:"column:clicks;default:0"`
 	ContentType    string    `json:"content_type" gorm:"column:content_type"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
-	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
-	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 ```
 
-**Step 2: Add source fields to Image struct**
+**Step 2: Add client fields to Image struct**
 
 Same five fields added to `Image` (after `MD5Sum`, line 29):
 
@@ -48,15 +48,15 @@ type Image struct {
 	Link           string    `json:"link" gorm:"column:link"`
 	URL            string    `json:"url" gorm:"column:url"`
 	MD5Sum         string    `json:"md5sum" gorm:"column:md5sum"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
-	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
-	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 ```
 
-**Step 3: Add source fields to Quote struct**
+**Step 3: Add client fields to Quote struct**
 
 Same five fields added to `Quote` (after `Poster`, line 42):
 
@@ -67,17 +67,17 @@ type Quote struct {
 	Quote          string    `json:"quote" gorm:"column:quote"`
 	Author         string    `json:"author" gorm:"column:author;type:varchar(255);index"`
 	Poster         string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_source,priority:3"`
-	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
-	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 ```
 
-**Step 4: Add source fields to TimelineItem struct**
+**Step 4: Add client fields to TimelineItem struct**
 
-Add source fields to `TimelineItem` (after `ContentType`, line 65):
+Add client fields to `TimelineItem` (after `ContentType`, line 65):
 
 ```go
 type TimelineItem struct {
@@ -90,25 +90,25 @@ type TimelineItem struct {
 	Author         string    `json:"author"`
 	MD5Sum         string    `json:"md5sum"`
 	ContentType    string    `json:"contentType" gorm:"column:content_type"`
-	SourceType     *string   `json:"source_type,omitempty"`
-	SourceNetwork  *string   `json:"source_network,omitempty"`
-	SourceChannel  *string   `json:"source_channel,omitempty"`
-	SourceUserID   *string   `json:"source_user_id,omitempty"`
-	SourceUserName *string   `json:"source_user_name,omitempty"`
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 ```
 
-**Step 5: Add SourceFilter type**
+**Step 5: Add ClientFilter type**
 
 Add a new type after the `TimelineItem` struct:
 
 ```go
-// SourceFilter is used to filter queries by source metadata.
-// When all fields are nil, no source filtering is applied.
-type SourceFilter struct {
-	SourceType    *string
-	SourceNetwork *string
-	SourceChannel *string
+// ClientFilter is used to filter queries by client metadata.
+// When all fields are nil, no client filtering is applied.
+type ClientFilter struct {
+	ClientType    *string
+	ClientNetwork *string
+	ClientChannel *string
 }
 ```
 
@@ -121,20 +121,20 @@ Expected: All existing tests pass (struct additions are backward compatible)
 
 ```bash
 git add internal/data/store.go
-git commit -m "feat: add source metadata fields to data models"
+git commit -m "feat: add client metadata fields to data models"
 ```
 
 ---
 
-### Task 2: Update Store interface and GormStore for source-aware queries
+### Task 2: Update Store interface and GormStore for client-aware queries
 
 **Files:**
 - Modify: `internal/data/store.go` (interface)
 - Modify: `internal/data/gorm_store.go` (implementation)
 
-**Step 1: Write failing test for source-scoped InsertIRCLink**
+**Step 1: Write failing test for client-scoped InsertIRCLink**
 
-Create test in a new file `internal/data/source_filter_test.go`:
+Create test in a new file `internal/data/client_filter_test.go`:
 
 ```go
 package data
@@ -143,20 +143,20 @@ import (
 	"testing"
 )
 
-func TestSourceFilter_IsEmpty(t *testing.T) {
+func TestClientFilter_IsEmpty(t *testing.T) {
 	tests := []struct {
 		name     string
-		filter   SourceFilter
+		filter   ClientFilter
 		expected bool
 	}{
-		{"all nil", SourceFilter{}, true},
-		{"type set", SourceFilter{SourceType: strPtr("irc")}, false},
-		{"network set", SourceFilter{SourceNetwork: strPtr("server")}, false},
-		{"channel set", SourceFilter{SourceChannel: strPtr("#chan")}, false},
-		{"all set", SourceFilter{
-			SourceType:    strPtr("irc"),
-			SourceNetwork: strPtr("server"),
-			SourceChannel: strPtr("#chan"),
+		{"all nil", ClientFilter{}, true},
+		{"type set", ClientFilter{ClientType: strPtr("irc")}, false},
+		{"network set", ClientFilter{ClientNetwork: strPtr("server")}, false},
+		{"channel set", ClientFilter{ClientChannel: strPtr("#chan")}, false},
+		{"all set", ClientFilter{
+			ClientType:    strPtr("irc"),
+			ClientNetwork: strPtr("server"),
+			ClientChannel: strPtr("#chan"),
 		}, false},
 	}
 
@@ -177,23 +177,23 @@ func strPtr(s string) *string {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/data/ -run TestSourceFilter`
-Expected: FAIL — `SourceFilter` has no `IsEmpty` method
+Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/data/ -run TestClientFilter`
+Expected: FAIL -- `ClientFilter` has no `IsEmpty` method
 
-**Step 3: Implement IsEmpty on SourceFilter**
+**Step 3: Implement IsEmpty on ClientFilter**
 
-In `internal/data/store.go`, add method after the `SourceFilter` struct:
+In `internal/data/store.go`, add method after the `ClientFilter` struct:
 
 ```go
-// IsEmpty returns true if no source filter fields are set.
-func (f SourceFilter) IsEmpty() bool {
-	return f.SourceType == nil && f.SourceNetwork == nil && f.SourceChannel == nil
+// IsEmpty returns true if no client filter fields are set.
+func (f ClientFilter) IsEmpty() bool {
+	return f.ClientType == nil && f.ClientNetwork == nil && f.ClientChannel == nil
 }
 ```
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/data/ -run TestSourceFilter`
+Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/data/ -run TestClientFilter`
 Expected: PASS
 
 **Step 5: Update Store interface signatures**
@@ -215,14 +215,14 @@ SearchQuotes(ctx context.Context, query string) ([]Quote, error)
 New:
 ```go
 InsertIRCLink(ctx context.Context, link *IRCLink) (int, error)
-GetIRCLinksByURL(ctx context.Context, url string, filter SourceFilter) ([]IRCLink, error)
-GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]IRCLink, error)
-GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]Quote, error)
-GetRecentImages(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]Image, error)
+GetIRCLinksByURL(ctx context.Context, url string, filter ClientFilter) ([]IRCLink, error)
+GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]IRCLink, error)
+GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Quote, error)
+GetRecentImages(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Image, error)
 InsertQuote(ctx context.Context, quote *Quote) (int, error)
 InsertImage(ctx context.Context, image *Image) (int, error)
-SearchIRCLinks(ctx context.Context, query string, filter SourceFilter) ([]IRCLink, error)
-SearchQuotes(ctx context.Context, query string, filter SourceFilter) ([]Quote, error)
+SearchIRCLinks(ctx context.Context, query string, filter ClientFilter) ([]IRCLink, error)
+SearchQuotes(ctx context.Context, query string, filter ClientFilter) ([]Quote, error)
 ```
 
 **Step 6: Update GormStore.InsertIRCLink**
@@ -307,7 +307,7 @@ func (s *GormStore) InsertImage(ctx context.Context, image *Image) (int, error) 
 }
 ```
 
-**Step 9: Update GormStore.GetIRCLinksByURL for source-scoped duplicate detection**
+**Step 9: Update GormStore.GetIRCLinksByURL for client-scoped duplicate detection**
 
 In `gorm_store.go` (line 191):
 
@@ -325,16 +325,16 @@ func (s *GormStore) GetIRCLinksByURL(ctx context.Context, url string) ([]IRCLink
 
 New:
 ```go
-func (s *GormStore) GetIRCLinksByURL(ctx context.Context, url string, filter SourceFilter) ([]IRCLink, error) {
+func (s *GormStore) GetIRCLinksByURL(ctx context.Context, url string, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
 	query := s.db.WithContext(ctx).Where("url = ?", url)
-	query = applySourceFilter(query, filter)
+	query = applyClientFilter(query, filter)
 	err := query.Order("timestamp DESC").Find(&links).Error
 	return links, err
 }
 ```
 
-**Step 10: Update GormStore.GetRecentIRCLinks for source filtering**
+**Step 10: Update GormStore.GetRecentIRCLinks for client filtering**
 
 In `gorm_store.go` (line 32):
 
@@ -356,7 +356,7 @@ func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDay
 
 New:
 ```go
-func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int, filter SourceFilter) ([]IRCLink, error) {
+func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
 	now := time.Now()
 	startDate := now.AddDate(0, 0, -startDays)
@@ -364,7 +364,7 @@ func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDay
 
 	query := s.db.WithContext(ctx).
 		Where("timestamp >= ? AND timestamp <= ?", startDate, endDate)
-	query = applySourceFilter(query, filter)
+	query = applyClientFilter(query, filter)
 	err := query.Order("timestamp DESC").Find(&links).Error
 	return links, err
 }
@@ -372,24 +372,24 @@ func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDay
 
 **Step 11: Apply same pattern to GetRecentQuotes, GetRecentImages, SearchIRCLinks, SearchQuotes**
 
-Add `filter SourceFilter` parameter and `applySourceFilter(query, filter)` call to each. Follow exact same pattern as Step 10.
+Add `filter ClientFilter` parameter and `applyClientFilter(query, filter)` call to each. Follow exact same pattern as Step 10.
 
-**Step 12: Add applySourceFilter helper**
+**Step 12: Add applyClientFilter helper**
 
 Add this function to `gorm_store.go`:
 
 ```go
-// applySourceFilter adds WHERE clauses for source metadata fields.
+// applyClientFilter adds WHERE clauses for client metadata fields.
 // When filter is empty, no clauses are added (backward compatible).
-func applySourceFilter(query *gorm.DB, filter SourceFilter) *gorm.DB {
-	if filter.SourceType != nil {
-		query = query.Where("source_type = ?", *filter.SourceType)
+func applyClientFilter(query *gorm.DB, filter ClientFilter) *gorm.DB {
+	if filter.ClientType != nil {
+		query = query.Where("client_type = ?", *filter.ClientType)
 	}
-	if filter.SourceNetwork != nil {
-		query = query.Where("source_network = ?", *filter.SourceNetwork)
+	if filter.ClientNetwork != nil {
+		query = query.Where("client_network = ?", *filter.ClientNetwork)
 	}
-	if filter.SourceChannel != nil {
-		query = query.Where("source_channel = ?", *filter.SourceChannel)
+	if filter.ClientChannel != nil {
+		query = query.Where("client_channel = ?", *filter.ClientChannel)
 	}
 	return query
 }
@@ -397,15 +397,15 @@ func applySourceFilter(query *gorm.DB, filter SourceFilter) *gorm.DB {
 
 **Step 13: Update all other callers of changed methods**
 
-Search the codebase for all calls to `InsertIRCLink`, `InsertQuote`, `InsertImage`, `GetIRCLinksByURL`, `GetRecentIRCLinks`, `GetRecentQuotes`, `GetRecentImages`, `SearchIRCLinks`, `SearchQuotes`. Update each call site to pass the new parameters. For existing callers that don't have source context, pass `data.SourceFilter{}` (empty filter).
+Search the codebase for all calls to `InsertIRCLink`, `InsertQuote`, `InsertImage`, `GetIRCLinksByURL`, `GetRecentIRCLinks`, `GetRecentQuotes`, `GetRecentImages`, `SearchIRCLinks`, `SearchQuotes`. Update each call site to pass the new parameters. For existing callers that don't have client context, pass `data.ClientFilter{}` (empty filter).
 
 Key callers to update:
-- `internal/handler/api_v1_links.go` — `apiV1CreateLink`, `apiV1ListLinks`
-- `internal/handler/api_v1_quotes.go` — `apiV1CreateQuote`, `apiV1ListQuotes`
-- `internal/handler/api_v1_search.go` — `APIv1SearchHandler`
-- `internal/handler/irclink.go` — legacy handler (if it exists)
-- `internal/handler/handlers.go` — any frontend handlers calling these
-- `internal/scheduler/` — any background jobs
+- `internal/handler/api_v1_links.go` -- `apiV1CreateLink`, `apiV1ListLinks`
+- `internal/handler/api_v1_quotes.go` -- `apiV1CreateQuote`, `apiV1ListQuotes`
+- `internal/handler/api_v1_search.go` -- `APIv1SearchHandler`
+- `internal/handler/irclink.go` -- legacy handler (if it exists)
+- `internal/handler/handlers.go` -- any frontend handlers calling these
+- `internal/scheduler/` -- any background jobs
 - All test mock implementations
 
 **Step 14: Update mock stores in test files**
@@ -413,14 +413,14 @@ Key callers to update:
 Update `mockAPIStore` in `internal/handler/api_v1_links_test.go` to match new signatures:
 
 ```go
-func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.links, nil
 }
 
-func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.linksByURLFn != nil {
 		return m.linksByURLFn(url)
 	}
@@ -451,18 +451,18 @@ Expected: All tests pass. Compilation succeeds with updated signatures.
 **Step 16: Commit**
 
 ```bash
-git add internal/data/store.go internal/data/gorm_store.go internal/data/source_filter_test.go
+git add internal/data/store.go internal/data/gorm_store.go internal/data/client_filter_test.go
 git add internal/handler/
-git commit -m "feat: update Store interface for source-aware queries
+git commit -m "feat: update Store interface for client-aware queries
 
 Change Insert methods to accept struct pointers instead of
-individual parameters. Add SourceFilter to Get and Search
-methods. Add applySourceFilter helper for GORM queries."
+individual parameters. Add ClientFilter to Get and Search
+methods. Add applyClientFilter helper for GORM queries."
 ```
 
 ---
 
-### Task 3: Update API handlers to accept and return source fields
+### Task 3: Update API handlers to accept and return client fields
 
 **Files:**
 - Modify: `internal/handler/api_v1_types.go`
@@ -470,14 +470,14 @@ methods. Add applySourceFilter helper for GORM queries."
 - Modify: `internal/handler/api_v1_quotes.go`
 - Modify: `internal/handler/api_v1_search.go`
 
-**Step 1: Write failing test for source fields in link creation**
+**Step 1: Write failing test for client fields in link creation**
 
 Add to `internal/handler/api_v1_links_test.go`, in the `TestAPIv1_CreateLink` function's test table:
 
 ```go
 {
-	name: "valid link with source fields",
-	body: `{"url":"https://example.com","user":"testuser","source_type":"slack","source_network":"T12345","source_channel":"C67890","source_user_id":"U99999","source_user_name":"testuser"}`,
+	name: "valid link with client fields",
+	body: `{"url":"https://example.com","user":"testuser","client_type":"slack","client_network":"T12345","client_channel":"C67890","client_user_id":"U99999","client_user_name":"testuser"}`,
 	store: &mockAPIStore{insertedLinkID: 42},
 	expectedStatus: http.StatusCreated,
 	checkBody: func(t *testing.T, body []byte) {
@@ -485,11 +485,11 @@ Add to `internal/handler/api_v1_links_test.go`, in the `TestAPIv1_CreateLink` fu
 		if err := json.Unmarshal(body, &resp); err != nil {
 			t.Fatalf("failed to unmarshal: %v", err)
 		}
-		if resp.SourceType == nil || *resp.SourceType != "slack" {
-			t.Errorf("expected source_type 'slack', got %v", resp.SourceType)
+		if resp.ClientType == nil || *resp.ClientType != "slack" {
+			t.Errorf("expected client_type 'slack', got %v", resp.ClientType)
 		}
-		if resp.SourceNetwork == nil || *resp.SourceNetwork != "T12345" {
-			t.Errorf("expected source_network 'T12345', got %v", resp.SourceNetwork)
+		if resp.ClientNetwork == nil || *resp.ClientNetwork != "T12345" {
+			t.Errorf("expected client_network 'T12345', got %v", resp.ClientNetwork)
 		}
 	},
 },
@@ -497,12 +497,12 @@ Add to `internal/handler/api_v1_links_test.go`, in the `TestAPIv1_CreateLink` fu
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/handler/ -run TestAPIv1_CreateLink/valid_link_with_source_fields`
-Expected: FAIL — `APILinkCreateResponse` has no `SourceType` field
+Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/handler/ -run TestAPIv1_CreateLink/valid_link_with_client_fields`
+Expected: FAIL -- `APILinkCreateResponse` has no `ClientType` field
 
-**Step 3: Add source fields to API response types**
+**Step 3: Add client fields to API response types**
 
-In `internal/handler/api_v1_types.go`, add source fields to `APILinkResponse`:
+In `internal/handler/api_v1_types.go`, add client fields to `APILinkResponse`:
 
 ```go
 type APILinkResponse struct {
@@ -513,15 +513,15 @@ type APILinkResponse struct {
 	Clicks         int       `json:"clicks"`
 	CreatedAt      time.Time `json:"created_at"`
 	Tags           []string  `json:"tags,omitempty"`
-	SourceType     *string   `json:"source_type,omitempty"`
-	SourceNetwork  *string   `json:"source_network,omitempty"`
-	SourceChannel  *string   `json:"source_channel,omitempty"`
-	SourceUserID   *string   `json:"source_user_id,omitempty"`
-	SourceUserName *string   `json:"source_user_name,omitempty"`
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 ```
 
-Add source fields to `APIQuoteResponse`:
+Add client fields to `APIQuoteResponse`:
 
 ```go
 type APIQuoteResponse struct {
@@ -531,15 +531,15 @@ type APIQuoteResponse struct {
 	Poster         string    `json:"poster,omitempty"`
 	CreatedAt      time.Time `json:"created_at"`
 	Tags           []string  `json:"tags,omitempty"`
-	SourceType     *string   `json:"source_type,omitempty"`
-	SourceNetwork  *string   `json:"source_network,omitempty"`
-	SourceChannel  *string   `json:"source_channel,omitempty"`
-	SourceUserID   *string   `json:"source_user_id,omitempty"`
-	SourceUserName *string   `json:"source_user_name,omitempty"`
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 ```
 
-**Step 4: Add source fields to request types**
+**Step 4: Add client fields to request types**
 
 In `internal/handler/api_v1_links.go`, update `APILinkCreateRequest`:
 
@@ -548,11 +548,11 @@ type APILinkCreateRequest struct {
 	URL            string   `json:"url"`
 	User           string   `json:"user"`
 	Tags           []string `json:"tags,omitempty"`
-	SourceType     *string  `json:"source_type,omitempty"`
-	SourceNetwork  *string  `json:"source_network,omitempty"`
-	SourceChannel  *string  `json:"source_channel,omitempty"`
-	SourceUserID   *string  `json:"source_user_id,omitempty"`
-	SourceUserName *string  `json:"source_user_name,omitempty"`
+	ClientType     *string  `json:"client_type,omitempty"`
+	ClientNetwork  *string  `json:"client_network,omitempty"`
+	ClientChannel  *string  `json:"client_channel,omitempty"`
+	ClientUserID   *string  `json:"client_user_id,omitempty"`
+	ClientUserName *string  `json:"client_user_name,omitempty"`
 }
 ```
 
@@ -564,45 +564,45 @@ type APIQuoteCreateRequest struct {
 	Author         string   `json:"author"`
 	Poster         string   `json:"poster"`
 	Tags           []string `json:"tags,omitempty"`
-	SourceType     *string  `json:"source_type,omitempty"`
-	SourceNetwork  *string  `json:"source_network,omitempty"`
-	SourceChannel  *string  `json:"source_channel,omitempty"`
-	SourceUserID   *string  `json:"source_user_id,omitempty"`
-	SourceUserName *string  `json:"source_user_name,omitempty"`
+	ClientType     *string  `json:"client_type,omitempty"`
+	ClientNetwork  *string  `json:"client_network,omitempty"`
+	ClientChannel  *string  `json:"client_channel,omitempty"`
+	ClientUserID   *string  `json:"client_user_id,omitempty"`
+	ClientUserName *string  `json:"client_user_name,omitempty"`
 }
 ```
 
-**Step 5: Update apiV1CreateLink to pass source fields through**
+**Step 5: Update apiV1CreateLink to pass client fields through**
 
-In `internal/handler/api_v1_links.go`, update `apiV1CreateLink` to build an `IRCLink` struct and pass source fields:
+In `internal/handler/api_v1_links.go`, update `apiV1CreateLink` to build an `IRCLink` struct and pass client fields:
 
 ```go
-// Build source filter for duplicate detection
-sourceFilter := data.SourceFilter{
-	SourceType:    req.SourceType,
-	SourceNetwork: req.SourceNetwork,
-	SourceChannel: req.SourceChannel,
+// Build client filter for duplicate detection
+clientFilter := data.ClientFilter{
+	ClientType:    req.ClientType,
+	ClientNetwork: req.ClientNetwork,
+	ClientChannel: req.ClientChannel,
 }
 
-// Check for duplicates (scoped by source when provided)
-existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, sourceFilter)
+// Check for duplicates (scoped by client when provided)
+existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, clientFilter)
 
-// Build the link struct with source metadata
+// Build the link struct with client metadata
 link := &data.IRCLink{
 	User:           req.User,
 	Title:          req.URL,
 	URL:            req.URL,
 	ContentType:    "",
-	SourceType:     req.SourceType,
-	SourceNetwork:  req.SourceNetwork,
-	SourceChannel:  req.SourceChannel,
-	SourceUserID:   req.SourceUserID,
-	SourceUserName: req.SourceUserName,
+	ClientType:     req.ClientType,
+	ClientNetwork:  req.ClientNetwork,
+	ClientChannel:  req.ClientChannel,
+	ClientUserID:   req.ClientUserID,
+	ClientUserName: req.ClientUserName,
 }
 linkID, err := h.Store.InsertIRCLink(ctx, link)
 ```
 
-Update the response builder to include source fields:
+Update the response builder to include client fields:
 
 ```go
 resp := APILinkCreateResponse{
@@ -614,11 +614,11 @@ resp := APILinkCreateResponse{
 		Clicks:         0,
 		CreatedAt:      time.Now(),
 		Tags:           tagStrings,
-		SourceType:     req.SourceType,
-		SourceNetwork:  req.SourceNetwork,
-		SourceChannel:  req.SourceChannel,
-		SourceUserID:   req.SourceUserID,
-		SourceUserName: req.SourceUserName,
+		ClientType:     req.ClientType,
+		ClientNetwork:  req.ClientNetwork,
+		ClientChannel:  req.ClientChannel,
+		ClientUserID:   req.ClientUserID,
+		ClientUserName: req.ClientUserName,
 	},
 	IsDuplicate:         isDuplicate,
 	PreviousSubmissions: previousSubmissions,
@@ -627,29 +627,29 @@ resp := APILinkCreateResponse{
 
 **Step 6: Update apiV1CreateQuote similarly**
 
-Pass source fields through to `InsertQuote` and include in response.
+Pass client fields through to `InsertQuote` and include in response.
 
-**Step 7: Update apiV1ListLinks to parse source query params and pass filter**
+**Step 7: Update apiV1ListLinks to parse client query params and pass filter**
 
 In `internal/handler/api_v1_links.go`, in `apiV1ListLinks`:
 
 ```go
-// Parse source filter parameters
-var sourceFilter data.SourceFilter
-if st := r.URL.Query().Get("source_type"); st != "" {
-	sourceFilter.SourceType = &st
+// Parse client filter parameters
+var clientFilter data.ClientFilter
+if st := r.URL.Query().Get("client_type"); st != "" {
+	clientFilter.ClientType = &st
 }
-if sn := r.URL.Query().Get("source_network"); sn != "" {
-	sourceFilter.SourceNetwork = &sn
+if sn := r.URL.Query().Get("client_network"); sn != "" {
+	clientFilter.ClientNetwork = &sn
 }
-if sc := r.URL.Query().Get("source_channel"); sc != "" {
-	sourceFilter.SourceChannel = &sc
+if sc := r.URL.Query().Get("client_channel"); sc != "" {
+	clientFilter.ClientChannel = &sc
 }
 
-links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, sourceFilter)
+links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, clientFilter)
 ```
 
-Update the response conversion loop to include source fields from each link:
+Update the response conversion loop to include client fields from each link:
 
 ```go
 data = append(data, APILinkResponse{
@@ -660,57 +660,57 @@ data = append(data, APILinkResponse{
 	Clicks:         link.Clicks,
 	CreatedAt:      link.Timestamp,
 	Tags:           h.getTagStrings(ctx, "link", link.ID),
-	SourceType:     link.SourceType,
-	SourceNetwork:  link.SourceNetwork,
-	SourceChannel:  link.SourceChannel,
-	SourceUserID:   link.SourceUserID,
-	SourceUserName: link.SourceUserName,
+	ClientType:     link.ClientType,
+	ClientNetwork:  link.ClientNetwork,
+	ClientChannel:  link.ClientChannel,
+	ClientUserID:   link.ClientUserID,
+	ClientUserName: link.ClientUserName,
 })
 ```
 
 **Step 8: Update apiV1ListQuotes the same way**
 
-Parse source query params, pass filter to `GetRecentQuotes`, include source fields in response.
+Parse client query params, pass filter to `GetRecentQuotes`, include client fields in response.
 
 **Step 9: Update apiV1GetLink and apiV1GetQuote responses**
 
-Include source fields from the fetched link/quote in the response structs.
+Include client fields from the fetched link/quote in the response structs.
 
 **Step 10: Update APIv1SearchHandler**
 
-In `internal/handler/api_v1_search.go`, parse source query params and pass filter to `SearchIRCLinks` and `SearchQuotes`. Include source fields in the response conversion loops.
+In `internal/handler/api_v1_search.go`, parse client query params and pass filter to `SearchIRCLinks` and `SearchQuotes`. Include client fields in the response conversion loops.
 
 **Step 11: Run tests**
 
 Run: `cd /Users/stahnma/development/personal/tumble/tumble && make test`
-Expected: All tests pass including the new source fields test
+Expected: All tests pass including the new client fields test
 
 **Step 12: Commit**
 
 ```bash
 git add internal/handler/
-git commit -m "feat: accept and return source fields in API endpoints
+git commit -m "feat: accept and return client fields in API endpoints
 
-POST links/quotes accepts optional source_type, source_network,
-source_channel, source_user_id, source_user_name fields.
-GET links/quotes/search supports source_type, source_network,
-source_channel query parameters for filtering.
-All responses include source fields with omitempty."
+POST links/quotes accepts optional client_type, client_network,
+client_channel, client_user_id, client_user_name fields.
+GET links/quotes/search supports client_type, client_network,
+client_channel query parameters for filtering.
+All responses include client fields with omitempty."
 ```
 
 ---
 
-### Task 4: Write comprehensive tests for source-scoped duplicate detection
+### Task 4: Write comprehensive tests for client-scoped duplicate detection
 
 **Files:**
 - Modify: `internal/handler/api_v1_links_test.go`
 
 **Step 1: Write test cases for scoped duplicate detection**
 
-Add a new test function `TestAPIv1_CreateLink_SourceDuplicates`:
+Add a new test function `TestAPIv1_CreateLink_ClientDuplicates`:
 
 ```go
-func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
+func TestAPIv1_CreateLink_ClientDuplicates(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
@@ -721,15 +721,15 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 		expectedDuplicate  bool
 	}{
 		{
-			name: "same URL different source is not duplicate",
-			body: `{"url":"https://example.com","user":"alice","source_type":"slack","source_network":"T111","source_channel":"C222"}`,
-			existingLinks: nil, // source-scoped query returns nothing
+			name: "same URL different client is not duplicate",
+			body: `{"url":"https://example.com","user":"alice","client_type":"slack","client_network":"T111","client_channel":"C222"}`,
+			existingLinks: nil, // client-scoped query returns nothing
 			expectedStatus: http.StatusCreated,
 			expectedDuplicate: false,
 		},
 		{
-			name: "same URL same source is duplicate",
-			body: `{"url":"https://example.com","user":"bob","source_type":"slack","source_network":"T111","source_channel":"C222"}`,
+			name: "same URL same client is duplicate",
+			body: `{"url":"https://example.com","user":"bob","client_type":"slack","client_network":"T111","client_channel":"C222"}`,
 			existingLinks: []data.IRCLink{
 				{ID: 10, User: "alice", URL: "https://example.com", Timestamp: now},
 			},
@@ -737,7 +737,7 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			expectedDuplicate: true,
 		},
 		{
-			name: "no source fields uses global duplicate check",
+			name: "no client fields uses global duplicate check",
 			body: `{"url":"https://example.com","user":"charlie"}`,
 			existingLinks: []data.IRCLink{
 				{ID: 10, User: "alice", URL: "https://example.com", Timestamp: now},
@@ -778,15 +778,15 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 
 **Step 2: Run tests**
 
-Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/handler/ -run TestAPIv1_CreateLink_SourceDuplicates`
+Run: `cd /Users/stahnma/development/personal/tumble/tumble && go test -v ./internal/handler/ -run TestAPIv1_CreateLink_ClientDuplicates`
 Expected: PASS
 
-**Step 3: Write test for source filtering on GET**
+**Step 3: Write test for client filtering on GET**
 
-Add `TestAPIv1_ListLinks_SourceFiltering`:
+Add `TestAPIv1_ListLinks_ClientFiltering`:
 
 ```go
-func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
+func TestAPIv1_ListLinks_ClientFiltering(t *testing.T) {
 	slackType := "slack"
 	slackNetwork := "T12345"
 	slackChannel := "C67890"
@@ -802,15 +802,15 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 			queryParams: "",
 			links: []data.IRCLink{
 				{ID: 1, User: "alice", URL: "https://a.com", Timestamp: time.Now()},
-				{ID: 2, User: "bob", URL: "https://b.com", Timestamp: time.Now(), SourceType: &slackType},
+				{ID: 2, User: "bob", URL: "https://b.com", Timestamp: time.Now(), ClientType: &slackType},
 			},
 			expectedTotal: 2,
 		},
 		{
-			name:        "filter by source_type",
-			queryParams: "?source_type=slack",
+			name:        "filter by client_type",
+			queryParams: "?client_type=slack",
 			links: []data.IRCLink{
-				{ID: 2, User: "bob", URL: "https://b.com", Timestamp: time.Now(), SourceType: &slackType},
+				{ID: 2, User: "bob", URL: "https://b.com", Timestamp: time.Now(), ClientType: &slackType},
 			},
 			expectedTotal: 1,
 		},
@@ -839,11 +839,11 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 
 **Step 4: Write test for omitempty serialization**
 
-Add `TestAPIv1_LinkResponse_SourceOmitEmpty`:
+Add `TestAPIv1_LinkResponse_ClientOmitEmpty`:
 
 ```go
-func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
-	t.Run("null source fields omitted from JSON", func(t *testing.T) {
+func TestAPIv1_LinkResponse_ClientOmitEmpty(t *testing.T) {
+	t.Run("null client fields omitted from JSON", func(t *testing.T) {
 		store := &mockAPIStore{
 			links: []data.IRCLink{
 				{ID: 1, User: "alice", URL: "https://a.com", Timestamp: time.Now()},
@@ -856,16 +856,16 @@ func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
 		handler.APIv1LinksHandler(w, req)
 
 		body := w.Body.String()
-		if strings.Contains(body, "source_type") {
-			t.Error("expected source_type to be omitted when null")
+		if strings.Contains(body, "client_type") {
+			t.Error("expected client_type to be omitted when null")
 		}
 	})
 
-	t.Run("source fields present when set", func(t *testing.T) {
+	t.Run("client fields present when set", func(t *testing.T) {
 		slackType := "slack"
 		store := &mockAPIStore{
 			links: []data.IRCLink{
-				{ID: 1, User: "alice", URL: "https://a.com", Timestamp: time.Now(), SourceType: &slackType},
+				{ID: 1, User: "alice", URL: "https://a.com", Timestamp: time.Now(), ClientType: &slackType},
 			},
 		}
 		handler := NewHandler(store, &config.Config{})
@@ -875,8 +875,8 @@ func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
 		handler.APIv1LinksHandler(w, req)
 
 		body := w.Body.String()
-		if !strings.Contains(body, `"source_type":"slack"`) {
-			t.Errorf("expected source_type in response, got: %s", body)
+		if !strings.Contains(body, `"client_type":"slack"`) {
+			t.Errorf("expected client_type in response, got: %s", body)
 		}
 	})
 }
@@ -891,7 +891,7 @@ Expected: All tests pass
 
 ```bash
 git add internal/handler/api_v1_links_test.go
-git commit -m "test: add tests for source-scoped duplicate detection and filtering"
+git commit -m "test: add tests for client-scoped duplicate detection and filtering"
 ```
 
 ---
@@ -899,42 +899,42 @@ git commit -m "test: add tests for source-scoped duplicate detection and filteri
 ### Task 5: Write backfill SQL script
 
 **Files:**
-- Create: `sql/backfill_sources.sql`
+- Create: `sql/backfill_clients.sql`
 
 **Step 1: Create the backfill script**
 
 ```sql
--- One-time backfill: set source metadata on all existing rows.
+-- One-time backfill: set client metadata on all existing rows.
 -- All existing data originates from IRC, #soggies channel on jameswhite.org.
--- Run this manually after deploying the source fields migration.
+-- Run this manually after deploying the client fields migration.
 --
--- Usage (SQLite):  sqlite3 tumble.db < sql/backfill_sources.sql
--- Usage (MySQL):   mysql -u user -p tumble < sql/backfill_sources.sql
+-- Usage (SQLite):  sqlite3 tumble.db < sql/backfill_clients.sql
+-- Usage (MySQL):   mysql -u user -p tumble < sql/backfill_clients.sql
 
 UPDATE ircLink
-SET source_type = 'irc',
-    source_network = 'jameswhite.org',
-    source_channel = '#soggies'
-WHERE source_type IS NULL;
+SET client_type = 'irc',
+    client_network = 'jameswhite.org',
+    client_channel = '#soggies'
+WHERE client_type IS NULL;
 
 UPDATE quote
-SET source_type = 'irc',
-    source_network = 'jameswhite.org',
-    source_channel = '#soggies'
-WHERE source_type IS NULL;
+SET client_type = 'irc',
+    client_network = 'jameswhite.org',
+    client_channel = '#soggies'
+WHERE client_type IS NULL;
 
 UPDATE image
-SET source_type = 'irc',
-    source_network = 'jameswhite.org',
-    source_channel = '#soggies'
-WHERE source_type IS NULL;
+SET client_type = 'irc',
+    client_network = 'jameswhite.org',
+    client_channel = '#soggies'
+WHERE client_type IS NULL;
 ```
 
 **Step 2: Commit**
 
 ```bash
-git add sql/backfill_sources.sql
-git commit -m "feat: add one-time backfill script for source metadata"
+git add sql/backfill_clients.sql
+git commit -m "feat: add one-time backfill script for client metadata"
 ```
 
 ---
@@ -944,32 +944,32 @@ git commit -m "feat: add one-time backfill script for source metadata"
 **Files:**
 - Modify: `internal/assets/openapi.json`
 
-**Step 1: Add source fields to LinkCreateRequest schema**
+**Step 1: Add client fields to LinkCreateRequest schema**
 
 Find the `LinkCreateRequest` schema in `openapi.json` and add:
 
 ```json
-"source_type": {
+"client_type": {
   "type": "string",
-  "description": "Source platform (e.g., irc, slack, discord, api, web)",
+  "description": "Client platform (e.g., irc, slack, discord, api, web)",
   "example": "slack"
 },
-"source_network": {
+"client_network": {
   "type": "string",
-  "description": "Source network identifier (e.g., IRC server, Slack team ID)",
+  "description": "Client network identifier (e.g., IRC server, Slack team ID)",
   "example": "T12345"
 },
-"source_channel": {
+"client_channel": {
   "type": "string",
-  "description": "Source channel identifier (e.g., IRC channel, Slack channel ID)",
+  "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
   "example": "C67890"
 },
-"source_user_id": {
+"client_user_id": {
   "type": "string",
   "description": "Platform-specific user ID",
   "example": "U99999"
 },
-"source_user_name": {
+"client_user_name": {
   "type": "string",
   "description": "Display/mention name at time of post",
   "example": "stahnma"
@@ -980,35 +980,35 @@ Find the `LinkCreateRequest` schema in `openapi.json` and add:
 
 Same five fields.
 
-**Step 3: Add source fields to APILinkResponse and APIQuoteResponse schemas**
+**Step 3: Add client fields to APILinkResponse and APIQuoteResponse schemas**
 
 Same five fields added to response schemas.
 
-**Step 4: Add source query parameters to GET /api/v1/links**
+**Step 4: Add client query parameters to GET /api/v1/links**
 
 Add three optional query parameters:
 
 ```json
 {
-  "name": "source_type",
+  "name": "client_type",
   "in": "query",
   "required": false,
   "schema": { "type": "string" },
-  "description": "Filter by source platform (e.g., irc, slack, discord)"
+  "description": "Filter by client platform (e.g., irc, slack, discord)"
 },
 {
-  "name": "source_network",
+  "name": "client_network",
   "in": "query",
   "required": false,
   "schema": { "type": "string" },
-  "description": "Filter by source network (requires source_type)"
+  "description": "Filter by client network (requires client_type)"
 },
 {
-  "name": "source_channel",
+  "name": "client_channel",
   "in": "query",
   "required": false,
   "schema": { "type": "string" },
-  "description": "Filter by source channel (requires source_type and source_network)"
+  "description": "Filter by client channel (requires client_type and client_network)"
 }
 ```
 
@@ -1016,7 +1016,7 @@ Add three optional query parameters:
 
 **Step 6: Update 208 response description**
 
-Update the duplicate detection documentation for POST /api/v1/links to note that duplicate detection is scoped per source when source fields are provided.
+Update the duplicate detection documentation for POST /api/v1/links to note that duplicate detection is scoped per client when client fields are provided.
 
 **Step 7: Run the app to verify docs render**
 
@@ -1028,10 +1028,10 @@ Then: `make kill`
 
 ```bash
 git add internal/assets/openapi.json
-git commit -m "docs: update OpenAPI spec with source metadata fields
+git commit -m "docs: update OpenAPI spec with client metadata fields
 
-Add source_type, source_network, source_channel, source_user_id,
-and source_user_name to request/response schemas. Add source
+Add client_type, client_network, client_channel, client_user_id,
+and client_user_name to request/response schemas. Add client
 filter query parameters to GET endpoints."
 ```
 
@@ -1053,19 +1053,19 @@ Expected: All integration tests pass
 
 Run: `cd /Users/stahnma/development/personal/tumble/tumble && make restart`
 
-Test creating a link with source fields:
+Test creating a link with client fields:
 ```bash
 curl -s -X POST http://localhost:8080/api/v1/links \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com/test","user":"testuser","source_type":"slack","source_network":"T12345","source_channel":"C67890","source_user_id":"U99999","source_user_name":"testuser"}' | jq .
+  -d '{"url":"https://example.com/test","user":"testuser","client_type":"slack","client_network":"T12345","client_channel":"C67890","client_user_id":"U99999","client_user_name":"testuser"}' | jq .
 ```
 
-Verify source fields in response. Then test filtering:
+Verify client fields in response. Then test filtering:
 ```bash
-curl -s "http://localhost:8080/api/v1/links?source_type=slack" | jq .
+curl -s "http://localhost:8080/api/v1/links?client_type=slack" | jq .
 ```
 
-Test that creating same URL without source fields still works:
+Test that creating same URL without client fields still works:
 ```bash
 curl -s -X POST http://localhost:8080/api/v1/links \
   -H "Content-Type: application/json" \

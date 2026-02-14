@@ -59,7 +59,7 @@ func TestSearchIRCLinks_ByTitle_MySQL(t *testing.T) {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Golang", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Golang", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestSearchIRCLinks_ByURL_MySQL(t *testing.T) {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "unique-mysql-path", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "unique-mysql-path", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -111,7 +111,7 @@ func TestSearchIRCLinks_ByTag_MySQL(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "special-mysql-topic", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "special-mysql-topic", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestSearchIRCLinks_NoMatch_MySQL(t *testing.T) {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy-mysql", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy-mysql", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestSearchIRCLinks_OrderedByClicks_MySQL(t *testing.T) {
 	db.Model(&IRCLink{}).Where("title = ?", "SearchM Low").Update("clicks", 5)
 	db.Model(&IRCLink{}).Where("title = ?", "SearchM High").Update("clicks", 50)
 
-	links, err := store.SearchIRCLinks(ctx, "SearchM", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "SearchM", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -191,7 +191,7 @@ func TestSearchIRCLinks_ExcludesErrorPreviews_MySQL(t *testing.T) {
 		t.Fatalf("InsertLinkPreview failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Link", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Link", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -220,7 +220,7 @@ func TestSearchIRCLinks_ExpiredErrorCacheIncluded_MySQL(t *testing.T) {
 	twoDaysAgo := time.Now().Add(-48 * time.Hour)
 	db.Model(&LinkPreview{}).Where("url = ?", "http://example.com/recover-mysql").Update("updated_at", twoDaysAgo)
 
-	links, err := store.SearchIRCLinks(ctx, "Recoverable", SourceFilter{})
+	links, err := store.SearchIRCLinks(ctx, "Recoverable", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -247,7 +247,7 @@ func TestSearchQuotes_ByQuoteText_MySQL(t *testing.T) {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "not to be", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "not to be", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -268,7 +268,7 @@ func TestSearchQuotes_ByAuthor_MySQL(t *testing.T) {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -299,7 +299,7 @@ func TestSearchQuotes_ByTag_MySQL(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "philosophy", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "philosophy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -320,7 +320,7 @@ func TestSearchQuotes_NoMatch_MySQL(t *testing.T) {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy-mysql", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy-mysql", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -347,7 +347,7 @@ func TestSearchQuotes_OrderedByTimestamp_MySQL(t *testing.T) {
 	db.Model(&Quote{}).Where("quote = ?", "SearchM older quote").Update("timestamp", now.Add(-48*time.Hour))
 	db.Model(&Quote{}).Where("quote = ?", "SearchM newer quote").Update("timestamp", now.Add(-1*time.Hour))
 
-	quotes, err := store.SearchQuotes(ctx, "SearchM", SourceFilter{})
+	quotes, err := store.SearchQuotes(ctx, "SearchM", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}

@@ -97,7 +97,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Handle link posting
 		// Check for existing submissions first
-		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url, data.SourceFilter{})
+		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url, data.ClientFilter{})
 		if err != nil {
 			h.ServerError(w, r, err)
 			return

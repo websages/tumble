@@ -32,11 +32,11 @@ type APILinkResponse struct {
 	Clicks         int       `json:"clicks"`
 	CreatedAt      time.Time `json:"created_at"`
 	Tags           []string  `json:"tags,omitempty"`
-	SourceType     *string   `json:"source_type,omitempty"`
-	SourceNetwork  *string   `json:"source_network,omitempty"`
-	SourceChannel  *string   `json:"source_channel,omitempty"`
-	SourceUserID   *string   `json:"source_user_id,omitempty"`
-	SourceUserName *string   `json:"source_user_name,omitempty"`
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 
 // APIPreviousSubmission contains information about a previous submission
@@ -69,11 +69,11 @@ type APIQuoteResponse struct {
 	Poster         string    `json:"poster,omitempty"`
 	CreatedAt      time.Time `json:"created_at"`
 	Tags           []string  `json:"tags,omitempty"`
-	SourceType     *string   `json:"source_type,omitempty"`
-	SourceNetwork  *string   `json:"source_network,omitempty"`
-	SourceChannel  *string   `json:"source_channel,omitempty"`
-	SourceUserID   *string   `json:"source_user_id,omitempty"`
-	SourceUserName *string   `json:"source_user_name,omitempty"`
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 
 // APIQuotesResponse is the paginated response for a list of quotes.

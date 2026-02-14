@@ -38,7 +38,7 @@ type integrationMockStore struct {
 	err error
 }
 
-func (m *integrationMockStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *integrationMockStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -58,7 +58,7 @@ func (m *integrationMockStore) GetIRCLinkByID(ctx context.Context, id int) (*dat
 	return m.linkByID, nil
 }
 
-func (m *integrationMockStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *integrationMockStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -76,7 +76,7 @@ func (m *integrationMockStore) DeleteIRCLink(ctx context.Context, id int) error 
 	return m.err
 }
 
-func (m *integrationMockStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.Quote, error) {
+func (m *integrationMockStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -114,14 +114,14 @@ func (m *integrationMockStore) GetUserStats(ctx context.Context, sortBy string, 
 	return m.userStats, nil
 }
 
-func (m *integrationMockStore) SearchIRCLinks(ctx context.Context, query string, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *integrationMockStore) SearchIRCLinks(ctx context.Context, query string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.searchLinks, nil
 }
 
-func (m *integrationMockStore) SearchQuotes(ctx context.Context, query string, filter data.SourceFilter) ([]data.Quote, error) {
+func (m *integrationMockStore) SearchQuotes(ctx context.Context, query string, filter data.ClientFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

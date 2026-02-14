@@ -13,11 +13,11 @@ type IRCLink struct {
 	URL            string    `json:"url" gorm:"column:url"`
 	Clicks         int       `json:"clicks" gorm:"column:clicks;default:0"`
 	ContentType    string    `json:"content_type" gorm:"column:content_type"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_link_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_link_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_link_source,priority:3"`
-	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
-	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_link_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_link_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_link_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `ircLink`
@@ -32,11 +32,11 @@ type Image struct {
 	Link           string    `json:"link" gorm:"column:link"`
 	URL            string    `json:"url" gorm:"column:url"`
 	MD5Sum         string    `json:"md5sum" gorm:"column:md5sum"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_image_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_image_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_image_source,priority:3"`
-	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
-	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_image_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_image_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_image_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `image`
@@ -50,11 +50,11 @@ type Quote struct {
 	Quote          string    `json:"quote" gorm:"column:quote"`
 	Author         string    `json:"author" gorm:"column:author;type:varchar(255);index"`
 	Poster         string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
-	SourceType     *string   `json:"source_type,omitempty" gorm:"column:source_type;type:varchar(50);index:idx_quote_source,priority:1"`
-	SourceNetwork  *string   `json:"source_network,omitempty" gorm:"column:source_network;type:varchar(255);index:idx_quote_source,priority:2"`
-	SourceChannel  *string   `json:"source_channel,omitempty" gorm:"column:source_channel;type:varchar(255);index:idx_quote_source,priority:3"`
-	SourceUserID   *string   `json:"source_user_id,omitempty" gorm:"column:source_user_id;type:varchar(255)"`
-	SourceUserName *string   `json:"source_user_name,omitempty" gorm:"column:source_user_name;type:varchar(255)"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_quote_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_quote_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_quote_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `quote`
@@ -78,21 +78,21 @@ type TimelineItem struct {
 	Author         string    `json:"author"`                                 // For quotes (and links/images as User)
 	MD5Sum         string    `json:"md5sum"`                                 // For images
 	ContentType    string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
-	SourceType     *string   `json:"source_type,omitempty"`
-	SourceNetwork  *string   `json:"source_network,omitempty"`
-	SourceChannel  *string   `json:"source_channel,omitempty"`
-	SourceUserID   *string   `json:"source_user_id,omitempty"`
-	SourceUserName *string   `json:"source_user_name,omitempty"`
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 
-type SourceFilter struct {
-	SourceType    *string
-	SourceNetwork *string
-	SourceChannel *string
+type ClientFilter struct {
+	ClientType    *string
+	ClientNetwork *string
+	ClientChannel *string
 }
 
-func (f SourceFilter) IsEmpty() bool {
-	return f.SourceType == nil && f.SourceNetwork == nil && f.SourceChannel == nil
+func (f ClientFilter) IsEmpty() bool {
+	return f.ClientType == nil && f.ClientNetwork == nil && f.ClientChannel == nil
 }
 
 type Tag struct {
@@ -134,16 +134,16 @@ func (ArchiveLookup) TableName() string {
 }
 
 type Store interface {
-	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]IRCLink, error)
-	GetRecentImages(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]Image, error)
-	GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter SourceFilter) ([]Quote, error)
+	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]IRCLink, error)
+	GetRecentImages(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Image, error)
+	GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Quote, error)
 
-	SearchIRCLinks(ctx context.Context, query string, filter SourceFilter) ([]IRCLink, error)
-	SearchQuotes(ctx context.Context, query string, filter SourceFilter) ([]Quote, error)
+	SearchIRCLinks(ctx context.Context, query string, filter ClientFilter) ([]IRCLink, error)
+	SearchQuotes(ctx context.Context, query string, filter ClientFilter) ([]Quote, error)
 	GetTopIRCLinks(ctx context.Context, startDays int, endDays int, limit int) ([]IRCLink, error)
 	GetIRCLinkByID(ctx context.Context, id int) (*IRCLink, error)
 	GetIRCLinkURL(ctx context.Context, id int) (string, error)
-	GetIRCLinksByURL(ctx context.Context, url string, filter SourceFilter) ([]IRCLink, error)
+	GetIRCLinksByURL(ctx context.Context, url string, filter ClientFilter) ([]IRCLink, error)
 	IncrementClicks(ctx context.Context, id int) error
 	InsertIRCLink(ctx context.Context, link *IRCLink) (int, error)
 	DeleteIRCLink(ctx context.Context, id int) error

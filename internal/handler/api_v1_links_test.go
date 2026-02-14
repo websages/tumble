@@ -23,8 +23,8 @@ type mockAPIStore struct {
 	linkByIDFn         func(id int) (*data.IRCLink, error)
 	linksByURL         []data.IRCLink
 	linksByURLFn       func(url string) ([]data.IRCLink, error)
-	linksByURLFilterFn func(url string, filter data.SourceFilter) ([]data.IRCLink, error)
-	recentLinksFn      func(filter data.SourceFilter) ([]data.IRCLink, error)
+	linksByURLFilterFn func(url string, filter data.ClientFilter) ([]data.IRCLink, error)
+	recentLinksFn      func(filter data.ClientFilter) ([]data.IRCLink, error)
 	insertedLinkID     int
 	insertLinkFn       func(link *data.IRCLink) (int, error)
 	lastInsertedLink   *data.IRCLink
@@ -32,7 +32,7 @@ type mockAPIStore struct {
 	err                error
 }
 
-func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.recentLinksFn != nil {
 		return m.recentLinksFn(filter)
 	}
@@ -52,7 +52,7 @@ func (m *mockAPIStore) GetIRCLinkByID(ctx context.Context, id int) (*data.IRCLin
 	return m.linkByID, nil
 }
 
-func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.linksByURLFilterFn != nil {
 		return m.linksByURLFilterFn(url, filter)
 	}
@@ -1112,7 +1112,7 @@ func TestAPIv1_DeleteLink_StoreError(t *testing.T) {
 	}
 }
 
-func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
+func TestAPIv1_CreateLink_ClientDuplicates(t *testing.T) {
 	now := time.Now()
 	irc := "irc"
 	freenode := "freenode"
@@ -1120,12 +1120,12 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 	userID := "U12345"
 	userName := "alice"
 
-	t.Run("same URL different source is not duplicate", func(t *testing.T) {
+	t.Run("same URL different client is not duplicate", func(t *testing.T) {
 		store := &mockAPIStore{
 			insertedLinkID: 42,
-			linksByURLFilterFn: func(url string, filter data.SourceFilter) ([]data.IRCLink, error) {
-				// When filtering by slack source, no existing links found
-				if filter.SourceType != nil && *filter.SourceType == "slack" {
+			linksByURLFilterFn: func(url string, filter data.ClientFilter) ([]data.IRCLink, error) {
+				// When filtering by slack client, no existing links found
+				if filter.ClientType != nil && *filter.ClientType == "slack" {
 					return []data.IRCLink{}, nil
 				}
 				// For other filters, return existing IRC link
@@ -1139,7 +1139,7 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			Config: &config.Config{},
 		}
 
-		body := `{"url":"https://example.com/article","user":"alice","source_type":"slack","source_network":"workspace1","source_channel":"#general"}`
+		body := `{"url":"https://example.com/article","user":"alice","client_type":"slack","client_network":"workspace1","client_channel":"#general"}`
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
 		req.RemoteAddr = "127.0.0.1:12345"
 		req.Header.Set("Content-Type", "application/json")
@@ -1156,19 +1156,19 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
 		if resp.IsDuplicate {
-			t.Error("expected is_duplicate=false for different source, got true")
+			t.Error("expected is_duplicate=false for different client, got true")
 		}
-		if resp.SourceType == nil || *resp.SourceType != "slack" {
-			t.Error("expected source_type=slack in response")
+		if resp.ClientType == nil || *resp.ClientType != "slack" {
+			t.Error("expected client_type=slack in response")
 		}
 	})
 
-	t.Run("same URL same source is duplicate", func(t *testing.T) {
+	t.Run("same URL same client is duplicate", func(t *testing.T) {
 		store := &mockAPIStore{
 			insertedLinkID: 43,
-			linksByURLFilterFn: func(url string, filter data.SourceFilter) ([]data.IRCLink, error) {
-				// Same source type filter matches existing link
-				if filter.SourceType != nil && *filter.SourceType == "irc" {
+			linksByURLFilterFn: func(url string, filter data.ClientFilter) ([]data.IRCLink, error) {
+				// Same client type filter matches existing link
+				if filter.ClientType != nil && *filter.ClientType == "irc" {
 					return []data.IRCLink{
 						{ID: 10, Timestamp: now, User: "bob", Title: "Old", URL: url},
 					}, nil
@@ -1181,7 +1181,7 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			Config: &config.Config{},
 		}
 
-		body := `{"url":"https://example.com/article","user":"alice","source_type":"irc","source_network":"freenode","source_channel":"#general"}`
+		body := `{"url":"https://example.com/article","user":"alice","client_type":"irc","client_network":"freenode","client_channel":"#general"}`
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
 		req.RemoteAddr = "127.0.0.1:12345"
 		req.Header.Set("Content-Type", "application/json")
@@ -1198,14 +1198,14 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
 		if !resp.IsDuplicate {
-			t.Error("expected is_duplicate=true for same source, got false")
+			t.Error("expected is_duplicate=true for same client, got false")
 		}
 		if len(resp.PreviousSubmissions) != 1 {
 			t.Fatalf("expected 1 previous submission, got %d", len(resp.PreviousSubmissions))
 		}
 	})
 
-	t.Run("no source fields uses global fallback", func(t *testing.T) {
+	t.Run("no client fields uses global fallback", func(t *testing.T) {
 		store := &mockAPIStore{
 			insertedLinkID: 44,
 			linksByURL: []data.IRCLink{
@@ -1238,7 +1238,7 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 		}
 	})
 
-	t.Run("source fields passed through to InsertIRCLink", func(t *testing.T) {
+	t.Run("client fields passed through to InsertIRCLink", func(t *testing.T) {
 		store := &mockAPIStore{
 			insertedLinkID: 45,
 			linksByURL:     []data.IRCLink{},
@@ -1248,7 +1248,7 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			Config: &config.Config{},
 		}
 
-		body := `{"url":"https://example.com/new","user":"alice","source_type":"irc","source_network":"freenode","source_channel":"#general","source_user_id":"U12345","source_user_name":"alice"}`
+		body := `{"url":"https://example.com/new","user":"alice","client_type":"irc","client_network":"freenode","client_channel":"#general","client_user_id":"U12345","client_user_name":"alice"}`
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
 		req.RemoteAddr = "127.0.0.1:12345"
 		req.Header.Set("Content-Type", "application/json")
@@ -1260,51 +1260,51 @@ func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
 			t.Fatalf("expected status 201, got %d. Body: %s", w.Code, w.Body.String())
 		}
 
-		// Verify source fields were passed to InsertIRCLink
+		// Verify client fields were passed to InsertIRCLink
 		inserted := store.lastInsertedLink
 		if inserted == nil {
 			t.Fatal("expected InsertIRCLink to be called")
 		}
-		if inserted.SourceType == nil || *inserted.SourceType != irc {
-			t.Errorf("expected source_type=%q, got %v", irc, inserted.SourceType)
+		if inserted.ClientType == nil || *inserted.ClientType != irc {
+			t.Errorf("expected client_type=%q, got %v", irc, inserted.ClientType)
 		}
-		if inserted.SourceNetwork == nil || *inserted.SourceNetwork != freenode {
-			t.Errorf("expected source_network=%q, got %v", freenode, inserted.SourceNetwork)
+		if inserted.ClientNetwork == nil || *inserted.ClientNetwork != freenode {
+			t.Errorf("expected client_network=%q, got %v", freenode, inserted.ClientNetwork)
 		}
-		if inserted.SourceChannel == nil || *inserted.SourceChannel != channel {
-			t.Errorf("expected source_channel=%q, got %v", channel, inserted.SourceChannel)
+		if inserted.ClientChannel == nil || *inserted.ClientChannel != channel {
+			t.Errorf("expected client_channel=%q, got %v", channel, inserted.ClientChannel)
 		}
-		if inserted.SourceUserID == nil || *inserted.SourceUserID != userID {
-			t.Errorf("expected source_user_id=%q, got %v", userID, inserted.SourceUserID)
+		if inserted.ClientUserID == nil || *inserted.ClientUserID != userID {
+			t.Errorf("expected client_user_id=%q, got %v", userID, inserted.ClientUserID)
 		}
-		if inserted.SourceUserName == nil || *inserted.SourceUserName != userName {
-			t.Errorf("expected source_user_name=%q, got %v", userName, inserted.SourceUserName)
+		if inserted.ClientUserName == nil || *inserted.ClientUserName != userName {
+			t.Errorf("expected client_user_name=%q, got %v", userName, inserted.ClientUserName)
 		}
 
-		// Also verify response contains source fields
+		// Also verify response contains client fields
 		var resp APILinkCreateResponse
 		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
-		if resp.SourceType == nil || *resp.SourceType != irc {
-			t.Errorf("expected source_type=%q in response, got %v", irc, resp.SourceType)
+		if resp.ClientType == nil || *resp.ClientType != irc {
+			t.Errorf("expected client_type=%q in response, got %v", irc, resp.ClientType)
 		}
-		if resp.SourceNetwork == nil || *resp.SourceNetwork != freenode {
-			t.Errorf("expected source_network=%q in response, got %v", freenode, resp.SourceNetwork)
+		if resp.ClientNetwork == nil || *resp.ClientNetwork != freenode {
+			t.Errorf("expected client_network=%q in response, got %v", freenode, resp.ClientNetwork)
 		}
-		if resp.SourceChannel == nil || *resp.SourceChannel != channel {
-			t.Errorf("expected source_channel=%q in response, got %v", channel, resp.SourceChannel)
+		if resp.ClientChannel == nil || *resp.ClientChannel != channel {
+			t.Errorf("expected client_channel=%q in response, got %v", channel, resp.ClientChannel)
 		}
-		if resp.SourceUserID == nil || *resp.SourceUserID != userID {
-			t.Errorf("expected source_user_id=%q in response, got %v", userID, resp.SourceUserID)
+		if resp.ClientUserID == nil || *resp.ClientUserID != userID {
+			t.Errorf("expected client_user_id=%q in response, got %v", userID, resp.ClientUserID)
 		}
-		if resp.SourceUserName == nil || *resp.SourceUserName != userName {
-			t.Errorf("expected source_user_name=%q in response, got %v", userName, resp.SourceUserName)
+		if resp.ClientUserName == nil || *resp.ClientUserName != userName {
+			t.Errorf("expected client_user_name=%q in response, got %v", userName, resp.ClientUserName)
 		}
 	})
 }
 
-func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
+func TestAPIv1_ListLinks_ClientFiltering(t *testing.T) {
 	now := time.Now()
 	irc := "irc"
 	slack := "slack"
@@ -1315,10 +1315,10 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 
 	allLinks := []data.IRCLink{
 		{ID: 1, Timestamp: now, User: "alice", Title: "IRC Link", URL: "https://example.com/1",
-			SourceType: &irc, SourceNetwork: &freenode, SourceChannel: &chanGeneral},
+			ClientType: &irc, ClientNetwork: &freenode, ClientChannel: &chanGeneral},
 		{ID: 2, Timestamp: now, User: "bob", Title: "Slack Link", URL: "https://example.com/2",
-			SourceType: &slack, SourceNetwork: &workspace, SourceChannel: &chanRandom},
-		{ID: 3, Timestamp: now, User: "charlie", Title: "No Source Link", URL: "https://example.com/3"},
+			ClientType: &slack, ClientNetwork: &workspace, ClientChannel: &chanRandom},
+		{ID: 3, Timestamp: now, User: "charlie", Title: "No Client Link", URL: "https://example.com/3"},
 	}
 
 	t.Run("no filter returns all links", func(t *testing.T) {
@@ -1347,11 +1347,11 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 		}
 	})
 
-	t.Run("filter by source_type returns subset", func(t *testing.T) {
+	t.Run("filter by client_type returns subset", func(t *testing.T) {
 		ircOnly := []data.IRCLink{allLinks[0]}
 		store := &mockAPIStore{
-			recentLinksFn: func(filter data.SourceFilter) ([]data.IRCLink, error) {
-				if filter.SourceType != nil && *filter.SourceType == "irc" {
+			recentLinksFn: func(filter data.ClientFilter) ([]data.IRCLink, error) {
+				if filter.ClientType != nil && *filter.ClientType == "irc" {
 					return ircOnly, nil
 				}
 				return allLinks, nil
@@ -1362,7 +1362,7 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 			Config: &config.Config{},
 		}
 
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/links?source_type=irc", nil)
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/links?client_type=irc", nil)
 		req.RemoteAddr = "127.0.0.1:12345"
 		w := httptest.NewRecorder()
 
@@ -1382,12 +1382,12 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 		if resp.Data[0].ID != 1 {
 			t.Errorf("expected link ID 1, got %d", resp.Data[0].ID)
 		}
-		if resp.Data[0].SourceType == nil || *resp.Data[0].SourceType != "irc" {
-			t.Errorf("expected source_type=irc, got %v", resp.Data[0].SourceType)
+		if resp.Data[0].ClientType == nil || *resp.Data[0].ClientType != "irc" {
+			t.Errorf("expected client_type=irc, got %v", resp.Data[0].ClientType)
 		}
 	})
 
-	t.Run("source fields included in list response", func(t *testing.T) {
+	t.Run("client fields included in list response", func(t *testing.T) {
 		store := &mockAPIStore{links: allLinks}
 		handler := &Handler{
 			Store:  store,
@@ -1409,34 +1409,34 @@ func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
 
-		// First link should have IRC source fields
+		// First link should have IRC client fields
 		link1 := resp.Data[0]
-		if link1.SourceType == nil || *link1.SourceType != "irc" {
-			t.Errorf("expected link 1 source_type=irc, got %v", link1.SourceType)
+		if link1.ClientType == nil || *link1.ClientType != "irc" {
+			t.Errorf("expected link 1 client_type=irc, got %v", link1.ClientType)
 		}
-		if link1.SourceNetwork == nil || *link1.SourceNetwork != "freenode" {
-			t.Errorf("expected link 1 source_network=freenode, got %v", link1.SourceNetwork)
+		if link1.ClientNetwork == nil || *link1.ClientNetwork != "freenode" {
+			t.Errorf("expected link 1 client_network=freenode, got %v", link1.ClientNetwork)
 		}
-		if link1.SourceChannel == nil || *link1.SourceChannel != "#general" {
-			t.Errorf("expected link 1 source_channel=#general, got %v", link1.SourceChannel)
+		if link1.ClientChannel == nil || *link1.ClientChannel != "#general" {
+			t.Errorf("expected link 1 client_channel=#general, got %v", link1.ClientChannel)
 		}
 
-		// Second link should have Slack source fields
+		// Second link should have Slack client fields
 		link2 := resp.Data[1]
-		if link2.SourceType == nil || *link2.SourceType != "slack" {
-			t.Errorf("expected link 2 source_type=slack, got %v", link2.SourceType)
+		if link2.ClientType == nil || *link2.ClientType != "slack" {
+			t.Errorf("expected link 2 client_type=slack, got %v", link2.ClientType)
 		}
 
-		// Third link should have nil source fields
+		// Third link should have nil client fields
 		link3 := resp.Data[2]
-		if link3.SourceType != nil {
-			t.Errorf("expected link 3 source_type=nil, got %v", link3.SourceType)
+		if link3.ClientType != nil {
+			t.Errorf("expected link 3 client_type=nil, got %v", link3.ClientType)
 		}
 	})
 }
 
-func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
-	t.Run("null source fields omitted from JSON", func(t *testing.T) {
+func TestAPIv1_LinkResponse_ClientOmitEmpty(t *testing.T) {
+	t.Run("null client fields omitted from JSON", func(t *testing.T) {
 		now := time.Now()
 		store := &mockAPIStore{
 			linkByID: &data.IRCLink{
@@ -1446,7 +1446,7 @@ func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
 				Title:     "Test Link",
 				URL:       "https://example.com",
 				Clicks:    10,
-				// All source fields are nil
+				// All client fields are nil
 			},
 		}
 		handler := &Handler{
@@ -1466,25 +1466,25 @@ func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
 
 		body := w.Body.String()
 
-		// Source fields should NOT appear in JSON when nil
-		if strings.Contains(body, "source_type") {
-			t.Error("expected source_type to be omitted from JSON when nil")
+		// Client fields should NOT appear in JSON when nil
+		if strings.Contains(body, "client_type") {
+			t.Error("expected client_type to be omitted from JSON when nil")
 		}
-		if strings.Contains(body, "source_network") {
-			t.Error("expected source_network to be omitted from JSON when nil")
+		if strings.Contains(body, "client_network") {
+			t.Error("expected client_network to be omitted from JSON when nil")
 		}
-		if strings.Contains(body, "source_channel") {
-			t.Error("expected source_channel to be omitted from JSON when nil")
+		if strings.Contains(body, "client_channel") {
+			t.Error("expected client_channel to be omitted from JSON when nil")
 		}
-		if strings.Contains(body, "source_user_id") {
-			t.Error("expected source_user_id to be omitted from JSON when nil")
+		if strings.Contains(body, "client_user_id") {
+			t.Error("expected client_user_id to be omitted from JSON when nil")
 		}
-		if strings.Contains(body, "source_user_name") {
-			t.Error("expected source_user_name to be omitted from JSON when nil")
+		if strings.Contains(body, "client_user_name") {
+			t.Error("expected client_user_name to be omitted from JSON when nil")
 		}
 	})
 
-	t.Run("set source fields present in JSON", func(t *testing.T) {
+	t.Run("set client fields present in JSON", func(t *testing.T) {
 		now := time.Now()
 		irc := "irc"
 		freenode := "freenode"
@@ -1500,11 +1500,11 @@ func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
 				Title:          "Test Link",
 				URL:            "https://example.com",
 				Clicks:         5,
-				SourceType:     &irc,
-				SourceNetwork:  &freenode,
-				SourceChannel:  &channel,
-				SourceUserID:   &userID,
-				SourceUserName: &userName,
+				ClientType:     &irc,
+				ClientNetwork:  &freenode,
+				ClientChannel:  &channel,
+				ClientUserID:   &userID,
+				ClientUserName: &userName,
 			},
 		}
 		handler := &Handler{
@@ -1527,39 +1527,39 @@ func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
 
-		// Source fields should be present and correct
-		if resp.SourceType == nil || *resp.SourceType != "irc" {
-			t.Errorf("expected source_type=irc, got %v", resp.SourceType)
+		// Client fields should be present and correct
+		if resp.ClientType == nil || *resp.ClientType != "irc" {
+			t.Errorf("expected client_type=irc, got %v", resp.ClientType)
 		}
-		if resp.SourceNetwork == nil || *resp.SourceNetwork != "freenode" {
-			t.Errorf("expected source_network=freenode, got %v", resp.SourceNetwork)
+		if resp.ClientNetwork == nil || *resp.ClientNetwork != "freenode" {
+			t.Errorf("expected client_network=freenode, got %v", resp.ClientNetwork)
 		}
-		if resp.SourceChannel == nil || *resp.SourceChannel != "#test" {
-			t.Errorf("expected source_channel=#test, got %v", resp.SourceChannel)
+		if resp.ClientChannel == nil || *resp.ClientChannel != "#test" {
+			t.Errorf("expected client_channel=#test, got %v", resp.ClientChannel)
 		}
-		if resp.SourceUserID == nil || *resp.SourceUserID != "U999" {
-			t.Errorf("expected source_user_id=U999, got %v", resp.SourceUserID)
+		if resp.ClientUserID == nil || *resp.ClientUserID != "U999" {
+			t.Errorf("expected client_user_id=U999, got %v", resp.ClientUserID)
 		}
-		if resp.SourceUserName == nil || *resp.SourceUserName != "bob" {
-			t.Errorf("expected source_user_name=bob, got %v", resp.SourceUserName)
+		if resp.ClientUserName == nil || *resp.ClientUserName != "bob" {
+			t.Errorf("expected client_user_name=bob, got %v", resp.ClientUserName)
 		}
 
 		// Also verify the raw JSON contains the fields
 		body := w.Body.String()
-		if !strings.Contains(body, `"source_type":"irc"`) {
-			t.Error("expected source_type in JSON response body")
+		if !strings.Contains(body, `"client_type":"irc"`) {
+			t.Error("expected client_type in JSON response body")
 		}
-		if !strings.Contains(body, `"source_network":"freenode"`) {
-			t.Error("expected source_network in JSON response body")
+		if !strings.Contains(body, `"client_network":"freenode"`) {
+			t.Error("expected client_network in JSON response body")
 		}
-		if !strings.Contains(body, `"source_channel":"#test"`) {
-			t.Error("expected source_channel in JSON response body")
+		if !strings.Contains(body, `"client_channel":"#test"`) {
+			t.Error("expected client_channel in JSON response body")
 		}
-		if !strings.Contains(body, `"source_user_id":"U999"`) {
-			t.Error("expected source_user_id in JSON response body")
+		if !strings.Contains(body, `"client_user_id":"U999"`) {
+			t.Error("expected client_user_id in JSON response body")
 		}
-		if !strings.Contains(body, `"source_user_name":"bob"`) {
-			t.Error("expected source_user_name in JSON response body")
+		if !strings.Contains(body, `"client_user_name":"bob"`) {
+			t.Error("expected client_user_name in JSON response body")
 		}
 	})
 }

@@ -22,7 +22,7 @@ type mockSearchStore struct {
 	err            error
 }
 
-func (m *mockSearchStore) SearchIRCLinks(ctx context.Context, query string, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *mockSearchStore) SearchIRCLinks(ctx context.Context, query string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.searchLinksFn != nil {
 		return m.searchLinksFn(query)
 	}
@@ -32,7 +32,7 @@ func (m *mockSearchStore) SearchIRCLinks(ctx context.Context, query string, filt
 	return m.links, nil
 }
 
-func (m *mockSearchStore) SearchQuotes(ctx context.Context, query string, filter data.SourceFilter) ([]data.Quote, error) {
+func (m *mockSearchStore) SearchQuotes(ctx context.Context, query string, filter data.ClientFilter) ([]data.Quote, error) {
 	if m.searchQuotesFn != nil {
 		return m.searchQuotesFn(query)
 	}

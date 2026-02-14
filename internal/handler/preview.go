@@ -97,7 +97,7 @@ func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request
 	// For error entries, look up the link's timestamp to determine TTL tier
 	var linkTimestamp time.Time
 	if strings.Contains(string(cached.Data), `"error":`) {
-		if links, err := h.Store.GetIRCLinksByURL(r.Context(), urlParam, data.SourceFilter{}); err == nil && len(links) > 0 {
+		if links, err := h.Store.GetIRCLinksByURL(r.Context(), urlParam, data.ClientFilter{}); err == nil && len(links) > 0 {
 			linkTimestamp = links[len(links)-1].Timestamp // oldest link (results ordered DESC)
 		}
 	}

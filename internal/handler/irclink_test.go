@@ -23,7 +23,7 @@ type MockIRCLinkStore struct {
 	NextID        int
 }
 
-func (m *MockIRCLinkStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+func (m *MockIRCLinkStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if links, ok := m.ExistingLinks[url]; ok {
 		return links, nil
 	}

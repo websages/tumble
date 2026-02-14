@@ -29,20 +29,20 @@ func (s *GormStore) Bootstrap(ctx context.Context) error {
 	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{})
 }
 
-func applySourceFilter(query *gorm.DB, filter SourceFilter) *gorm.DB {
-	if filter.SourceType != nil {
-		query = query.Where("source_type = ?", *filter.SourceType)
+func applyClientFilter(query *gorm.DB, filter ClientFilter) *gorm.DB {
+	if filter.ClientType != nil {
+		query = query.Where("client_type = ?", *filter.ClientType)
 	}
-	if filter.SourceNetwork != nil {
-		query = query.Where("source_network = ?", *filter.SourceNetwork)
+	if filter.ClientNetwork != nil {
+		query = query.Where("client_network = ?", *filter.ClientNetwork)
 	}
-	if filter.SourceChannel != nil {
-		query = query.Where("source_channel = ?", *filter.SourceChannel)
+	if filter.ClientChannel != nil {
+		query = query.Where("client_channel = ?", *filter.ClientChannel)
 	}
 	return query
 }
 
-func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int, filter SourceFilter) ([]IRCLink, error) {
+func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDays int, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
 	// timestamp >= NOW() - startDays AND timestamp <= NOW() - endDays
 	// Note: startDays is "further back" (larger number), endDays is "closer" (smaller number)
@@ -52,13 +52,13 @@ func (s *GormStore) GetRecentIRCLinks(ctx context.Context, startDays int, endDay
 
 	query := s.db.WithContext(ctx).
 		Where("timestamp >= ? AND timestamp <= ?", startDate, endDate)
-	query = applySourceFilter(query, filter)
+	query = applyClientFilter(query, filter)
 	err := query.Order("timestamp DESC").
 		Find(&links).Error
 	return links, err
 }
 
-func (s *GormStore) GetRecentImages(ctx context.Context, startDays int, endDays int, filter SourceFilter) ([]Image, error) {
+func (s *GormStore) GetRecentImages(ctx context.Context, startDays int, endDays int, filter ClientFilter) ([]Image, error) {
 	var images []Image
 	now := time.Now()
 	startDate := now.AddDate(0, 0, -startDays)
@@ -66,7 +66,7 @@ func (s *GormStore) GetRecentImages(ctx context.Context, startDays int, endDays 
 
 	query := s.db.WithContext(ctx).
 		Where("timestamp >= ? AND timestamp <= ?", startDate, endDate)
-	query = applySourceFilter(query, filter)
+	query = applyClientFilter(query, filter)
 	err := query.Order("timestamp DESC").
 		Find(&images).Error
 	return images, err
@@ -106,7 +106,7 @@ func (s *GormStore) DeleteTodayImageByLink(ctx context.Context, link string) err
 		Delete(&Image{}).Error
 }
 
-func (s *GormStore) GetRecentQuotes(ctx context.Context, startDays int, endDays int, filter SourceFilter) ([]Quote, error) {
+func (s *GormStore) GetRecentQuotes(ctx context.Context, startDays int, endDays int, filter ClientFilter) ([]Quote, error) {
 	var quotes []Quote
 	now := time.Now()
 	startDate := now.AddDate(0, 0, -startDays)
@@ -114,13 +114,13 @@ func (s *GormStore) GetRecentQuotes(ctx context.Context, startDays int, endDays 
 
 	query := s.db.WithContext(ctx).
 		Where("timestamp >= ? AND timestamp <= ?", startDate, endDate)
-	query = applySourceFilter(query, filter)
+	query = applyClientFilter(query, filter)
 	err := query.Order("timestamp DESC").
 		Find(&quotes).Error
 	return quotes, err
 }
 
-func (s *GormStore) SearchIRCLinks(ctx context.Context, query string, filter SourceFilter) ([]IRCLink, error) {
+func (s *GormStore) SearchIRCLinks(ctx context.Context, query string, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
 	// Simple LIKE search for cross-db compatibility
 	term := "%" + query + "%"
@@ -148,20 +148,20 @@ AND url NOT IN (
     (NOT EXISTS (SELECT 1 FROM ircLink il WHERE il.url = lp.url AND il.timestamp > ?) AND lp.updated_at > ?)
   )
 )`, term, term, term, linkAgeCutoff, recentCutoff, linkAgeCutoff, oldCutoff)
-	q = applySourceFilter(q, filter)
+	q = applyClientFilter(q, filter)
 	err := q.Order("clicks DESC").
 		Limit(50).
 		Find(&links).Error
 	return links, err
 }
 
-func (s *GormStore) SearchQuotes(ctx context.Context, query string, filter SourceFilter) ([]Quote, error) {
+func (s *GormStore) SearchQuotes(ctx context.Context, query string, filter ClientFilter) ([]Quote, error) {
 	var quotes []Quote
 	// Simple LIKE search for cross-db compatibility
 	term := "%" + query + "%"
 	q := s.db.WithContext(ctx).
 		Where("quote LIKE ? OR author LIKE ? OR quoteID IN (SELECT resource_id FROM tags WHERE resource_type = 'quote' AND tag LIKE ?)", term, term, term)
-	q = applySourceFilter(q, filter)
+	q = applyClientFilter(q, filter)
 	err := q.Order("timestamp DESC").
 		Limit(50).
 		Find(&quotes).Error
@@ -201,11 +201,11 @@ func (s *GormStore) GetIRCLinkURL(ctx context.Context, id int) (string, error) {
 	return link.URL, err
 }
 
-func (s *GormStore) GetIRCLinksByURL(ctx context.Context, url string, filter SourceFilter) ([]IRCLink, error) {
+func (s *GormStore) GetIRCLinksByURL(ctx context.Context, url string, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
 	query := s.db.WithContext(ctx).
 		Where("url = ?", url)
-	query = applySourceFilter(query, filter)
+	query = applyClientFilter(query, filter)
 	err := query.Order("timestamp DESC").
 		Find(&links).Error
 	return links, err

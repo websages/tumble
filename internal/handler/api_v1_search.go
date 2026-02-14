@@ -63,16 +63,16 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
-	// Parse source filter query params
-	var sourceFilter data.SourceFilter
-	if st := r.URL.Query().Get("source_type"); st != "" {
-		sourceFilter.SourceType = &st
+	// Parse client filter query params
+	var clientFilter data.ClientFilter
+	if st := r.URL.Query().Get("client_type"); st != "" {
+		clientFilter.ClientType = &st
 	}
-	if sn := r.URL.Query().Get("source_network"); sn != "" {
-		sourceFilter.SourceNetwork = &sn
+	if sn := r.URL.Query().Get("client_network"); sn != "" {
+		clientFilter.ClientNetwork = &sn
 	}
-	if sc := r.URL.Query().Get("source_channel"); sc != "" {
-		sourceFilter.SourceChannel = &sc
+	if sc := r.URL.Query().Get("client_channel"); sc != "" {
+		clientFilter.ClientChannel = &sc
 	}
 
 	// Initialize response
@@ -92,7 +92,7 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Search links if requested
 	if searchLinks {
-		links, err := h.Store.SearchIRCLinks(ctx, query, sourceFilter)
+		links, err := h.Store.SearchIRCLinks(ctx, query, clientFilter)
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search links")
 			return
@@ -122,18 +122,18 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 				User:           link.User,
 				Clicks:         link.Clicks,
 				CreatedAt:      link.Timestamp,
-				SourceType:     link.SourceType,
-				SourceNetwork:  link.SourceNetwork,
-				SourceChannel:  link.SourceChannel,
-				SourceUserID:   link.SourceUserID,
-				SourceUserName: link.SourceUserName,
+				ClientType:     link.ClientType,
+				ClientNetwork:  link.ClientNetwork,
+				ClientChannel:  link.ClientChannel,
+				ClientUserID:   link.ClientUserID,
+				ClientUserName: link.ClientUserName,
 			})
 		}
 	}
 
 	// Search quotes if requested
 	if searchQuotes {
-		quotes, err := h.Store.SearchQuotes(ctx, query, sourceFilter)
+		quotes, err := h.Store.SearchQuotes(ctx, query, clientFilter)
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search quotes")
 			return
@@ -162,11 +162,11 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 				Author:         quote.Author,
 				Poster:         quote.Poster,
 				CreatedAt:      quote.Timestamp,
-				SourceType:     quote.SourceType,
-				SourceNetwork:  quote.SourceNetwork,
-				SourceChannel:  quote.SourceChannel,
-				SourceUserID:   quote.SourceUserID,
-				SourceUserName: quote.SourceUserName,
+				ClientType:     quote.ClientType,
+				ClientNetwork:  quote.ClientNetwork,
+				ClientChannel:  quote.ClientChannel,
+				ClientUserID:   quote.ClientUserID,
+				ClientUserName: quote.ClientUserName,
 			})
 		}
 	}

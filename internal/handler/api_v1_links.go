@@ -70,21 +70,21 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
-	// Parse source filter query params
-	var sourceFilter data.SourceFilter
-	if st := r.URL.Query().Get("source_type"); st != "" {
-		sourceFilter.SourceType = &st
+	// Parse client filter query params
+	var clientFilter data.ClientFilter
+	if st := r.URL.Query().Get("client_type"); st != "" {
+		clientFilter.ClientType = &st
 	}
-	if sn := r.URL.Query().Get("source_network"); sn != "" {
-		sourceFilter.SourceNetwork = &sn
+	if sn := r.URL.Query().Get("client_network"); sn != "" {
+		clientFilter.ClientNetwork = &sn
 	}
-	if sc := r.URL.Query().Get("source_channel"); sc != "" {
-		sourceFilter.SourceChannel = &sc
+	if sc := r.URL.Query().Get("client_channel"); sc != "" {
+		clientFilter.ClientChannel = &sc
 	}
 
 	// Fetch all links from the last year
 	// We fetch more than needed so we can paginate in-memory
-	links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, sourceFilter)
+	links, err := h.Store.GetRecentIRCLinks(ctx, 365, 0, clientFilter)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch links")
 		return
@@ -115,11 +115,11 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 			Clicks:         link.Clicks,
 			CreatedAt:      link.Timestamp,
 			Tags:           h.getTagStrings(ctx, "link", link.ID),
-			SourceType:     link.SourceType,
-			SourceNetwork:  link.SourceNetwork,
-			SourceChannel:  link.SourceChannel,
-			SourceUserID:   link.SourceUserID,
-			SourceUserName: link.SourceUserName,
+			ClientType:     link.ClientType,
+			ClientNetwork:  link.ClientNetwork,
+			ClientChannel:  link.ClientChannel,
+			ClientUserID:   link.ClientUserID,
+			ClientUserName: link.ClientUserName,
 		})
 	}
 
@@ -140,11 +140,11 @@ type APILinkCreateRequest struct {
 	URL            string   `json:"url"`
 	User           string   `json:"user"`
 	Tags           []string `json:"tags,omitempty"`
-	SourceType     *string  `json:"source_type,omitempty"`
-	SourceNetwork  *string  `json:"source_network,omitempty"`
-	SourceChannel  *string  `json:"source_channel,omitempty"`
-	SourceUserID   *string  `json:"source_user_id,omitempty"`
-	SourceUserName *string  `json:"source_user_name,omitempty"`
+	ClientType     *string  `json:"client_type,omitempty"`
+	ClientNetwork  *string  `json:"client_network,omitempty"`
+	ClientChannel  *string  `json:"client_channel,omitempty"`
+	ClientUserID   *string  `json:"client_user_id,omitempty"`
+	ClientUserName *string  `json:"client_user_name,omitempty"`
 }
 
 // apiV1CreateLink handles POST /api/v1/links
@@ -174,13 +174,13 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check for duplicates (scoped by source if provided)
-	sourceFilter := data.SourceFilter{
-		SourceType:    req.SourceType,
-		SourceNetwork: req.SourceNetwork,
-		SourceChannel: req.SourceChannel,
+	// Check for duplicates (scoped by client if provided)
+	clientFilter := data.ClientFilter{
+		ClientType:    req.ClientType,
+		ClientNetwork: req.ClientNetwork,
+		ClientChannel: req.ClientChannel,
 	}
-	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, sourceFilter)
+	existingLinks, err := h.Store.GetIRCLinksByURL(ctx, req.URL, clientFilter)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to check for duplicates")
 		return
@@ -192,11 +192,11 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		Title:          req.URL,
 		URL:            req.URL,
 		ContentType:    "",
-		SourceType:     req.SourceType,
-		SourceNetwork:  req.SourceNetwork,
-		SourceChannel:  req.SourceChannel,
-		SourceUserID:   req.SourceUserID,
-		SourceUserName: req.SourceUserName,
+		ClientType:     req.ClientType,
+		ClientNetwork:  req.ClientNetwork,
+		ClientChannel:  req.ClientChannel,
+		ClientUserID:   req.ClientUserID,
+		ClientUserName: req.ClientUserName,
 	})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create link")
@@ -250,11 +250,11 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 			Clicks:         0,
 			CreatedAt:      time.Now(),
 			Tags:           tagStrings,
-			SourceType:     req.SourceType,
-			SourceNetwork:  req.SourceNetwork,
-			SourceChannel:  req.SourceChannel,
-			SourceUserID:   req.SourceUserID,
-			SourceUserName: req.SourceUserName,
+			ClientType:     req.ClientType,
+			ClientNetwork:  req.ClientNetwork,
+			ClientChannel:  req.ClientChannel,
+			ClientUserID:   req.ClientUserID,
+			ClientUserName: req.ClientUserName,
 		},
 		IsDuplicate:         isDuplicate,
 		PreviousSubmissions: previousSubmissions,
@@ -293,11 +293,11 @@ func (h *Handler) apiV1GetLink(w http.ResponseWriter, r *http.Request, id int) {
 		Clicks:         link.Clicks,
 		CreatedAt:      link.Timestamp,
 		Tags:           h.getTagStrings(ctx, "link", link.ID),
-		SourceType:     link.SourceType,
-		SourceNetwork:  link.SourceNetwork,
-		SourceChannel:  link.SourceChannel,
-		SourceUserID:   link.SourceUserID,
-		SourceUserName: link.SourceUserName,
+		ClientType:     link.ClientType,
+		ClientNetwork:  link.ClientNetwork,
+		ClientChannel:  link.ClientChannel,
+		ClientUserID:   link.ClientUserID,
+		ClientUserName: link.ClientUserName,
 	})
 }
 
