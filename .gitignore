@@ -2,7 +2,8 @@ tumble.sqlite
 tumble-test.sqlite*
 bin/*
 *.log
-.claude
+.claude/*
+!.claude/agents/
 ./tumble
 .worktrees/
 *-shm
