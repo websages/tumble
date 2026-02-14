@@ -18,18 +18,24 @@ import (
 // methods we need for testing.
 type mockAPIStore struct {
 	data.Store
-	links          []data.IRCLink
-	linkByID       *data.IRCLink
-	linkByIDFn     func(id int) (*data.IRCLink, error)
-	linksByURL     []data.IRCLink
-	linksByURLFn   func(url string) ([]data.IRCLink, error)
-	insertedLinkID int
-	insertLinkFn   func(link *data.IRCLink) (int, error)
-	deleteLinkFn   func(id int) error
-	err            error
+	links              []data.IRCLink
+	linkByID           *data.IRCLink
+	linkByIDFn         func(id int) (*data.IRCLink, error)
+	linksByURL         []data.IRCLink
+	linksByURLFn       func(url string) ([]data.IRCLink, error)
+	linksByURLFilterFn func(url string, filter data.SourceFilter) ([]data.IRCLink, error)
+	recentLinksFn      func(filter data.SourceFilter) ([]data.IRCLink, error)
+	insertedLinkID     int
+	insertLinkFn       func(link *data.IRCLink) (int, error)
+	lastInsertedLink   *data.IRCLink
+	deleteLinkFn       func(id int) error
+	err                error
 }
 
 func (m *mockAPIStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.SourceFilter) ([]data.IRCLink, error) {
+	if m.recentLinksFn != nil {
+		return m.recentLinksFn(filter)
+	}
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -47,6 +53,9 @@ func (m *mockAPIStore) GetIRCLinkByID(ctx context.Context, id int) (*data.IRCLin
 }
 
 func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+	if m.linksByURLFilterFn != nil {
+		return m.linksByURLFilterFn(url, filter)
+	}
 	if m.linksByURLFn != nil {
 		return m.linksByURLFn(url)
 	}
@@ -57,6 +66,7 @@ func (m *mockAPIStore) GetIRCLinksByURL(ctx context.Context, url string, filter 
 }
 
 func (m *mockAPIStore) InsertIRCLink(ctx context.Context, link *data.IRCLink) (int, error) {
+	m.lastInsertedLink = link
 	if m.insertLinkFn != nil {
 		return m.insertLinkFn(link)
 	}
@@ -1100,4 +1110,456 @@ func TestAPIv1_DeleteLink_StoreError(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAPIv1_CreateLink_SourceDuplicates(t *testing.T) {
+	now := time.Now()
+	irc := "irc"
+	freenode := "freenode"
+	channel := "#general"
+	userID := "U12345"
+	userName := "alice"
+
+	t.Run("same URL different source is not duplicate", func(t *testing.T) {
+		store := &mockAPIStore{
+			insertedLinkID: 42,
+			linksByURLFilterFn: func(url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+				// When filtering by slack source, no existing links found
+				if filter.SourceType != nil && *filter.SourceType == "slack" {
+					return []data.IRCLink{}, nil
+				}
+				// For other filters, return existing IRC link
+				return []data.IRCLink{
+					{ID: 10, Timestamp: now, User: "bob", Title: "Old", URL: url},
+				}, nil
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		body := `{"url":"https://example.com/article","user":"alice","source_type":"slack","source_network":"workspace1","source_channel":"#general"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected status 201, got %d. Body: %s", w.Code, w.Body.String())
+		}
+
+		var resp APILinkCreateResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if resp.IsDuplicate {
+			t.Error("expected is_duplicate=false for different source, got true")
+		}
+		if resp.SourceType == nil || *resp.SourceType != "slack" {
+			t.Error("expected source_type=slack in response")
+		}
+	})
+
+	t.Run("same URL same source is duplicate", func(t *testing.T) {
+		store := &mockAPIStore{
+			insertedLinkID: 43,
+			linksByURLFilterFn: func(url string, filter data.SourceFilter) ([]data.IRCLink, error) {
+				// Same source type filter matches existing link
+				if filter.SourceType != nil && *filter.SourceType == "irc" {
+					return []data.IRCLink{
+						{ID: 10, Timestamp: now, User: "bob", Title: "Old", URL: url},
+					}, nil
+				}
+				return []data.IRCLink{}, nil
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		body := `{"url":"https://example.com/article","user":"alice","source_type":"irc","source_network":"freenode","source_channel":"#general"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected status 201, got %d. Body: %s", w.Code, w.Body.String())
+		}
+
+		var resp APILinkCreateResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if !resp.IsDuplicate {
+			t.Error("expected is_duplicate=true for same source, got false")
+		}
+		if len(resp.PreviousSubmissions) != 1 {
+			t.Fatalf("expected 1 previous submission, got %d", len(resp.PreviousSubmissions))
+		}
+	})
+
+	t.Run("no source fields uses global fallback", func(t *testing.T) {
+		store := &mockAPIStore{
+			insertedLinkID: 44,
+			linksByURL: []data.IRCLink{
+				{ID: 10, Timestamp: now, User: "bob", Title: "Old", URL: "https://example.com/article"},
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		body := `{"url":"https://example.com/article","user":"alice"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected status 201, got %d. Body: %s", w.Code, w.Body.String())
+		}
+
+		var resp APILinkCreateResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if !resp.IsDuplicate {
+			t.Error("expected is_duplicate=true for global fallback, got false")
+		}
+	})
+
+	t.Run("source fields passed through to InsertIRCLink", func(t *testing.T) {
+		store := &mockAPIStore{
+			insertedLinkID: 45,
+			linksByURL:     []data.IRCLink{},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		body := `{"url":"https://example.com/new","user":"alice","source_type":"irc","source_network":"freenode","source_channel":"#general","source_user_id":"U12345","source_user_name":"alice"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected status 201, got %d. Body: %s", w.Code, w.Body.String())
+		}
+
+		// Verify source fields were passed to InsertIRCLink
+		inserted := store.lastInsertedLink
+		if inserted == nil {
+			t.Fatal("expected InsertIRCLink to be called")
+		}
+		if inserted.SourceType == nil || *inserted.SourceType != irc {
+			t.Errorf("expected source_type=%q, got %v", irc, inserted.SourceType)
+		}
+		if inserted.SourceNetwork == nil || *inserted.SourceNetwork != freenode {
+			t.Errorf("expected source_network=%q, got %v", freenode, inserted.SourceNetwork)
+		}
+		if inserted.SourceChannel == nil || *inserted.SourceChannel != channel {
+			t.Errorf("expected source_channel=%q, got %v", channel, inserted.SourceChannel)
+		}
+		if inserted.SourceUserID == nil || *inserted.SourceUserID != userID {
+			t.Errorf("expected source_user_id=%q, got %v", userID, inserted.SourceUserID)
+		}
+		if inserted.SourceUserName == nil || *inserted.SourceUserName != userName {
+			t.Errorf("expected source_user_name=%q, got %v", userName, inserted.SourceUserName)
+		}
+
+		// Also verify response contains source fields
+		var resp APILinkCreateResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if resp.SourceType == nil || *resp.SourceType != irc {
+			t.Errorf("expected source_type=%q in response, got %v", irc, resp.SourceType)
+		}
+		if resp.SourceNetwork == nil || *resp.SourceNetwork != freenode {
+			t.Errorf("expected source_network=%q in response, got %v", freenode, resp.SourceNetwork)
+		}
+		if resp.SourceChannel == nil || *resp.SourceChannel != channel {
+			t.Errorf("expected source_channel=%q in response, got %v", channel, resp.SourceChannel)
+		}
+		if resp.SourceUserID == nil || *resp.SourceUserID != userID {
+			t.Errorf("expected source_user_id=%q in response, got %v", userID, resp.SourceUserID)
+		}
+		if resp.SourceUserName == nil || *resp.SourceUserName != userName {
+			t.Errorf("expected source_user_name=%q in response, got %v", userName, resp.SourceUserName)
+		}
+	})
+}
+
+func TestAPIv1_ListLinks_SourceFiltering(t *testing.T) {
+	now := time.Now()
+	irc := "irc"
+	slack := "slack"
+	freenode := "freenode"
+	workspace := "myworkspace"
+	chanGeneral := "#general"
+	chanRandom := "#random"
+
+	allLinks := []data.IRCLink{
+		{ID: 1, Timestamp: now, User: "alice", Title: "IRC Link", URL: "https://example.com/1",
+			SourceType: &irc, SourceNetwork: &freenode, SourceChannel: &chanGeneral},
+		{ID: 2, Timestamp: now, User: "bob", Title: "Slack Link", URL: "https://example.com/2",
+			SourceType: &slack, SourceNetwork: &workspace, SourceChannel: &chanRandom},
+		{ID: 3, Timestamp: now, User: "charlie", Title: "No Source Link", URL: "https://example.com/3"},
+	}
+
+	t.Run("no filter returns all links", func(t *testing.T) {
+		store := &mockAPIStore{links: allLinks}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/links", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APILinksResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if len(resp.Data) != 3 {
+			t.Errorf("expected 3 links, got %d", len(resp.Data))
+		}
+	})
+
+	t.Run("filter by source_type returns subset", func(t *testing.T) {
+		ircOnly := []data.IRCLink{allLinks[0]}
+		store := &mockAPIStore{
+			recentLinksFn: func(filter data.SourceFilter) ([]data.IRCLink, error) {
+				if filter.SourceType != nil && *filter.SourceType == "irc" {
+					return ircOnly, nil
+				}
+				return allLinks, nil
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/links?source_type=irc", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APILinksResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if len(resp.Data) != 1 {
+			t.Fatalf("expected 1 link, got %d", len(resp.Data))
+		}
+		if resp.Data[0].ID != 1 {
+			t.Errorf("expected link ID 1, got %d", resp.Data[0].ID)
+		}
+		if resp.Data[0].SourceType == nil || *resp.Data[0].SourceType != "irc" {
+			t.Errorf("expected source_type=irc, got %v", resp.Data[0].SourceType)
+		}
+	})
+
+	t.Run("source fields included in list response", func(t *testing.T) {
+		store := &mockAPIStore{links: allLinks}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/links", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APILinksResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+
+		// First link should have IRC source fields
+		link1 := resp.Data[0]
+		if link1.SourceType == nil || *link1.SourceType != "irc" {
+			t.Errorf("expected link 1 source_type=irc, got %v", link1.SourceType)
+		}
+		if link1.SourceNetwork == nil || *link1.SourceNetwork != "freenode" {
+			t.Errorf("expected link 1 source_network=freenode, got %v", link1.SourceNetwork)
+		}
+		if link1.SourceChannel == nil || *link1.SourceChannel != "#general" {
+			t.Errorf("expected link 1 source_channel=#general, got %v", link1.SourceChannel)
+		}
+
+		// Second link should have Slack source fields
+		link2 := resp.Data[1]
+		if link2.SourceType == nil || *link2.SourceType != "slack" {
+			t.Errorf("expected link 2 source_type=slack, got %v", link2.SourceType)
+		}
+
+		// Third link should have nil source fields
+		link3 := resp.Data[2]
+		if link3.SourceType != nil {
+			t.Errorf("expected link 3 source_type=nil, got %v", link3.SourceType)
+		}
+	})
+}
+
+func TestAPIv1_LinkResponse_SourceOmitEmpty(t *testing.T) {
+	t.Run("null source fields omitted from JSON", func(t *testing.T) {
+		now := time.Now()
+		store := &mockAPIStore{
+			linkByID: &data.IRCLink{
+				ID:        1,
+				Timestamp: now,
+				User:      "testuser",
+				Title:     "Test Link",
+				URL:       "https://example.com",
+				Clicks:    10,
+				// All source fields are nil
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/links/1", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+
+		// Source fields should NOT appear in JSON when nil
+		if strings.Contains(body, "source_type") {
+			t.Error("expected source_type to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "source_network") {
+			t.Error("expected source_network to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "source_channel") {
+			t.Error("expected source_channel to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "source_user_id") {
+			t.Error("expected source_user_id to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "source_user_name") {
+			t.Error("expected source_user_name to be omitted from JSON when nil")
+		}
+	})
+
+	t.Run("set source fields present in JSON", func(t *testing.T) {
+		now := time.Now()
+		irc := "irc"
+		freenode := "freenode"
+		channel := "#test"
+		userID := "U999"
+		userName := "bob"
+
+		store := &mockAPIStore{
+			linkByID: &data.IRCLink{
+				ID:             2,
+				Timestamp:      now,
+				User:           "testuser",
+				Title:          "Test Link",
+				URL:            "https://example.com",
+				Clicks:         5,
+				SourceType:     &irc,
+				SourceNetwork:  &freenode,
+				SourceChannel:  &channel,
+				SourceUserID:   &userID,
+				SourceUserName: &userName,
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/links/2", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1LinksHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APILinkResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+
+		// Source fields should be present and correct
+		if resp.SourceType == nil || *resp.SourceType != "irc" {
+			t.Errorf("expected source_type=irc, got %v", resp.SourceType)
+		}
+		if resp.SourceNetwork == nil || *resp.SourceNetwork != "freenode" {
+			t.Errorf("expected source_network=freenode, got %v", resp.SourceNetwork)
+		}
+		if resp.SourceChannel == nil || *resp.SourceChannel != "#test" {
+			t.Errorf("expected source_channel=#test, got %v", resp.SourceChannel)
+		}
+		if resp.SourceUserID == nil || *resp.SourceUserID != "U999" {
+			t.Errorf("expected source_user_id=U999, got %v", resp.SourceUserID)
+		}
+		if resp.SourceUserName == nil || *resp.SourceUserName != "bob" {
+			t.Errorf("expected source_user_name=bob, got %v", resp.SourceUserName)
+		}
+
+		// Also verify the raw JSON contains the fields
+		body := w.Body.String()
+		if !strings.Contains(body, `"source_type":"irc"`) {
+			t.Error("expected source_type in JSON response body")
+		}
+		if !strings.Contains(body, `"source_network":"freenode"`) {
+			t.Error("expected source_network in JSON response body")
+		}
+		if !strings.Contains(body, `"source_channel":"#test"`) {
+			t.Error("expected source_channel in JSON response body")
+		}
+		if !strings.Contains(body, `"source_user_id":"U999"`) {
+			t.Error("expected source_user_id in JSON response body")
+		}
+		if !strings.Contains(body, `"source_user_name":"bob"`) {
+			t.Error("expected source_user_name in JSON response body")
+		}
+	})
 }
