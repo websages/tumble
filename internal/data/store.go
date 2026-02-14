@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -95,6 +96,18 @@ func (f ClientFilter) IsEmpty() bool {
 	return f.ClientType == nil && f.ClientNetwork == nil && f.ClientChannel == nil
 }
 
+// Validate checks that hierarchical filter dependencies are satisfied.
+// client_network requires client_type, and client_channel requires both.
+func (f ClientFilter) Validate() error {
+	if f.ClientNetwork != nil && f.ClientType == nil {
+		return fmt.Errorf("client_network requires client_type")
+	}
+	if f.ClientChannel != nil && (f.ClientType == nil || f.ClientNetwork == nil) {
+		return fmt.Errorf("client_channel requires client_type and client_network")
+	}
+	return nil
+}
+
 type Tag struct {
 	ID           int       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
 	Tag          string    `json:"tag" gorm:"column:tag;type:varchar(255);index"`
@@ -153,6 +166,8 @@ type Store interface {
 	DeleteQuote(ctx context.Context, id int) error
 
 	// Stats
+	CountIRCLinks(ctx context.Context) (int64, error)
+	CountQuotes(ctx context.Context) (int64, error)
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)

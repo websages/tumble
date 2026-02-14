@@ -16,8 +16,8 @@ type mockStatsStore struct {
 	data.Store
 	userStats   []data.UserStat
 	userStatsFn func(sortBy string, limit int, offset int) ([]data.UserStat, error)
-	links       []data.IRCLink
-	quotes      []data.Quote
+	linkCount   int64
+	quoteCount  int64
 	err         error
 }
 
@@ -31,18 +31,18 @@ func (m *mockStatsStore) GetUserStats(ctx context.Context, sortBy string, limit 
 	return m.userStats, nil
 }
 
-func (m *mockStatsStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.IRCLink, error) {
+func (m *mockStatsStore) CountIRCLinks(ctx context.Context) (int64, error) {
 	if m.err != nil {
-		return nil, m.err
+		return 0, m.err
 	}
-	return m.links, nil
+	return m.linkCount, nil
 }
 
-func (m *mockStatsStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.Quote, error) {
+func (m *mockStatsStore) CountQuotes(ctx context.Context) (int64, error) {
 	if m.err != nil {
-		return nil, m.err
+		return 0, m.err
 	}
-	return m.quotes, nil
+	return m.quoteCount, nil
 }
 
 func TestAPIv1_Stats(t *testing.T) {
@@ -51,8 +51,8 @@ func TestAPIv1_Stats(t *testing.T) {
 		method         string
 		path           string
 		userStats      []data.UserStat
-		links          []data.IRCLink
-		quotes         []data.Quote
+		linkCount      int64
+		quoteCount     int64
 		storeErr       error
 		expectedStatus int
 		checkBody      func(t *testing.T, body []byte)
@@ -62,8 +62,8 @@ func TestAPIv1_Stats(t *testing.T) {
 			method:         http.MethodGet,
 			path:           "/api/v1/stats",
 			userStats:      []data.UserStat{},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
+			linkCount:      0,
+			quoteCount:     0,
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -101,8 +101,8 @@ func TestAPIv1_Stats(t *testing.T) {
 				{User: "alice", LinkCount: 500, QuoteCount: 120},
 				{User: "bob", LinkCount: 300, QuoteCount: 80},
 			},
-			links:          make([]data.IRCLink, 15000),
-			quotes:         make([]data.Quote, 3200),
+			linkCount:      15000,
+			quoteCount:     3200,
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -143,8 +143,6 @@ func TestAPIv1_Stats(t *testing.T) {
 				{User: "alice", LinkCount: 500, QuoteCount: 120},
 				{User: "bob", LinkCount: 300, QuoteCount: 80},
 			},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -171,8 +169,6 @@ func TestAPIv1_Stats(t *testing.T) {
 				{User: "alice", LinkCount: 500, QuoteCount: 120},
 				{User: "bob", LinkCount: 300, QuoteCount: 80},
 			},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -195,8 +191,6 @@ func TestAPIv1_Stats(t *testing.T) {
 			method:         http.MethodGet,
 			path:           "/api/v1/stats?limit=5000",
 			userStats:      []data.UserStat{},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -213,8 +207,6 @@ func TestAPIv1_Stats(t *testing.T) {
 			method:         http.MethodGet,
 			path:           "/api/v1/stats?limit=abc",
 			userStats:      []data.UserStat{},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -233,8 +225,6 @@ func TestAPIv1_Stats(t *testing.T) {
 			userStats: []data.UserStat{
 				{User: "alice", LinkCount: 500, QuoteCount: 120},
 			},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -254,8 +244,6 @@ func TestAPIv1_Stats(t *testing.T) {
 			method:         http.MethodPost,
 			path:           "/api/v1/stats",
 			userStats:      []data.UserStat{},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusMethodNotAllowed,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIErrorResponse
@@ -274,8 +262,6 @@ func TestAPIv1_Stats(t *testing.T) {
 			userStats: []data.UserStat{
 				{User: "alice", LinkCount: 500, QuoteCount: 120},
 			},
-			links:          []data.IRCLink{},
-			quotes:         []data.Quote{},
 			expectedStatus: http.StatusOK,
 			checkBody: func(t *testing.T, body []byte) {
 				var resp APIStatsResponse
@@ -292,10 +278,10 @@ func TestAPIv1_Stats(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := &mockStatsStore{
-				userStats: tt.userStats,
-				links:     tt.links,
-				quotes:    tt.quotes,
-				err:       tt.storeErr,
+				userStats:  tt.userStats,
+				linkCount:  tt.linkCount,
+				quoteCount: tt.quoteCount,
+				err:        tt.storeErr,
 			}
 			handler := &Handler{
 				Store:  store,

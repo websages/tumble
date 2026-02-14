@@ -277,6 +277,18 @@ func (s *GormStore) DeleteQuote(ctx context.Context, id int) error {
 	return nil
 }
 
+func (s *GormStore) CountIRCLinks(ctx context.Context) (int64, error) {
+	var count int64
+	err := s.db.WithContext(ctx).Model(&IRCLink{}).Count(&count).Error
+	return count, err
+}
+
+func (s *GormStore) CountQuotes(ctx context.Context) (int64, error) {
+	var count int64
+	err := s.db.WithContext(ctx).Model(&Quote{}).Count(&count).Error
+	return count, err
+}
+
 func (s *GormStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error) {
 	var stats []UserStat
 

@@ -50,6 +50,63 @@ func TestClientFilter_IsEmpty(t *testing.T) {
 	}
 }
 
+func TestClientFilter_Validate(t *testing.T) {
+	tests := []struct {
+		name      string
+		filter    ClientFilter
+		wantError bool
+	}{
+		{
+			name:   "empty filter is valid",
+			filter: ClientFilter{},
+		},
+		{
+			name:   "type only is valid",
+			filter: ClientFilter{ClientType: strPtr("irc")},
+		},
+		{
+			name:   "type and network is valid",
+			filter: ClientFilter{ClientType: strPtr("irc"), ClientNetwork: strPtr("libera")},
+		},
+		{
+			name:   "all three is valid",
+			filter: ClientFilter{ClientType: strPtr("irc"), ClientNetwork: strPtr("libera"), ClientChannel: strPtr("#general")},
+		},
+		{
+			name:      "network without type is invalid",
+			filter:    ClientFilter{ClientNetwork: strPtr("libera")},
+			wantError: true,
+		},
+		{
+			name:      "channel without type is invalid",
+			filter:    ClientFilter{ClientChannel: strPtr("#general")},
+			wantError: true,
+		},
+		{
+			name:      "channel without network is invalid",
+			filter:    ClientFilter{ClientType: strPtr("irc"), ClientChannel: strPtr("#general")},
+			wantError: true,
+		},
+		{
+			name:      "channel and network without type is invalid",
+			filter:    ClientFilter{ClientNetwork: strPtr("libera"), ClientChannel: strPtr("#general")},
+			wantError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.filter.Validate()
+			if tt.wantError && err == nil {
+				t.Error("expected error, got nil")
+			}
+			if !tt.wantError && err != nil {
+				t.Errorf("expected no error, got %v", err)
+			}
+		})
+	}
+}
+
 func strPtr(s string) *string {
 	return &s
 }

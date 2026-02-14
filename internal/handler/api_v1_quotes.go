@@ -81,6 +81,10 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 	if sc := r.URL.Query().Get("client_channel"); sc != "" {
 		clientFilter.ClientChannel = &sc
 	}
+	if err := clientFilter.Validate(); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_params", err.Error())
+		return
+	}
 
 	// Fetch all quotes from the last year
 	// We fetch more than needed so we can paginate in-memory

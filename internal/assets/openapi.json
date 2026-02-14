@@ -773,14 +773,14 @@
             "in": "query",
             "required": false,
             "schema": { "type": "string" },
-            "description": "Filter by client network (requires client_type)"
+            "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
           },
           {
             "name": "client_channel",
             "in": "query",
             "required": false,
             "schema": { "type": "string" },
-            "description": "Filter by client channel (requires client_type and client_network)"
+            "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
         "responses": {
@@ -796,6 +796,16 @@
                 "schema": {
                   "type": "string",
                   "description": "Plain text representation of links"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client filter parameters (e.g., client_network without client_type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
                 }
               }
             }
@@ -828,7 +838,7 @@
         },
         "responses": {
           "201": {
-            "description": "Link created successfully. If duplicate detection finds a prior submission (scoped per client when client fields are provided), the response includes is_duplicate=true and previous_submissions. Returns 208 instead when the link is an exact duplicate within the same client scope.",
+            "description": "Link created successfully. If duplicate detection finds a prior submission (scoped per client when client fields are provided), the response includes is_duplicate=true and previous_submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1016,14 +1026,14 @@
             "in": "query",
             "required": false,
             "schema": { "type": "string" },
-            "description": "Filter by client network (requires client_type)"
+            "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
           },
           {
             "name": "client_channel",
             "in": "query",
             "required": false,
             "schema": { "type": "string" },
-            "description": "Filter by client channel (requires client_type and client_network)"
+            "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
         "responses": {
@@ -1039,6 +1049,16 @@
                 "schema": {
                   "type": "string",
                   "description": "Plain text representation of quotes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client filter parameters (e.g., client_network without client_type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
                 }
               }
             }
@@ -1843,14 +1863,14 @@
             "in": "query",
             "required": false,
             "schema": { "type": "string" },
-            "description": "Filter by client network (requires client_type)"
+            "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
           },
           {
             "name": "client_channel",
             "in": "query",
             "required": false,
             "schema": { "type": "string" },
-            "description": "Filter by client channel (requires client_type and client_network)"
+            "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
         "responses": {
@@ -1866,6 +1886,16 @@
                 "schema": {
                   "type": "string",
                   "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client filter parameters (e.g., client_network without client_type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
                 }
               }
             }

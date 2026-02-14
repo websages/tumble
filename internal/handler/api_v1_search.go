@@ -74,6 +74,10 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if sc := r.URL.Query().Get("client_channel"); sc != "" {
 		clientFilter.ClientChannel = &sc
 	}
+	if err := clientFilter.Validate(); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_params", err.Error())
+		return
+	}
 
 	// Initialize response
 	resp := APISearchResponse{

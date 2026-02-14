@@ -107,6 +107,20 @@ func (m *integrationMockStore) DeleteQuote(ctx context.Context, id int) error {
 	return m.err
 }
 
+func (m *integrationMockStore) CountIRCLinks(ctx context.Context) (int64, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
+	return int64(len(m.links)), nil
+}
+
+func (m *integrationMockStore) CountQuotes(ctx context.Context) (int64, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
+	return int64(len(m.quotes)), nil
+}
+
 func (m *integrationMockStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]data.UserStat, error) {
 	if m.err != nil {
 		return nil, m.err
