@@ -3,7 +3,7 @@
 # Usage: ./tests/preview_test.sh [BASE_URL]
 
 BASE_URL="${1:-http://localhost:8080}"
-ENDPOINT="$BASE_URL/ogpreview"
+ENDPOINT="$BASE_URL/api/v1/preview"
 
 echo "Running Preview Tests against $ENDPOINT"
 
