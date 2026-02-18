@@ -3,11 +3,21 @@ package data
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+// escapeLike escapes SQL LIKE pattern wildcards (%, _) in user input
+// so they are matched as literal characters.
+func escapeLike(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `%`, `\%`)
+	s = strings.ReplaceAll(s, `_`, `\_`)
+	return s
+}
 
 type GormStore struct {
 	db *gorm.DB
@@ -123,7 +133,7 @@ func (s *GormStore) GetRecentQuotes(ctx context.Context, startDays int, endDays 
 func (s *GormStore) SearchIRCLinks(ctx context.Context, query string, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
 	// Simple LIKE search for cross-db compatibility
-	term := "%" + query + "%"
+	term := "%" + escapeLike(query) + "%"
 	// Exclude links with cached error previews using tiered TTLs:
 	// - Recent links (< 10 days old): error cache expires after 24h
 	// - Old links (>= 10 days old): error cache expires after 60 days
@@ -158,7 +168,7 @@ AND url NOT IN (
 func (s *GormStore) SearchQuotes(ctx context.Context, query string, filter ClientFilter) ([]Quote, error) {
 	var quotes []Quote
 	// Simple LIKE search for cross-db compatibility
-	term := "%" + query + "%"
+	term := "%" + escapeLike(query) + "%"
 	q := s.db.WithContext(ctx).
 		Where("quote LIKE ? OR author LIKE ? OR quoteID IN (SELECT resource_id FROM tags WHERE resource_type = 'quote' AND tag LIKE ?)", term, term, term)
 	q = applyClientFilter(q, filter)
