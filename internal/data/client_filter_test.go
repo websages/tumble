@@ -92,6 +92,11 @@ func TestClientFilter_Validate(t *testing.T) {
 			filter:    ClientFilter{ClientNetwork: strPtr("libera"), ClientChannel: strPtr("#general")},
 			wantError: true,
 		},
+		{
+			name:      "invalid client_type is rejected",
+			filter:    ClientFilter{ClientType: strPtr("foobar")},
+			wantError: true,
+		},
 	}
 
 	for _, tt := range tests {

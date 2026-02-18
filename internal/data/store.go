@@ -86,6 +86,15 @@ type TimelineItem struct {
 	ClientUserName *string   `json:"client_user_name,omitempty"`
 }
 
+// ValidClientTypes is the set of allowed client_type values.
+var ValidClientTypes = map[string]bool{
+	"irc":     true,
+	"slack":   true,
+	"discord": true,
+	"api":     true,
+	"web":     true,
+}
+
 type ClientFilter struct {
 	ClientType    *string
 	ClientNetwork *string
@@ -99,6 +108,9 @@ func (f ClientFilter) IsEmpty() bool {
 // Validate checks that hierarchical filter dependencies are satisfied.
 // client_network requires client_type, and client_channel requires both.
 func (f ClientFilter) Validate() error {
+	if f.ClientType != nil && !ValidClientTypes[*f.ClientType] {
+		return fmt.Errorf("invalid client_type: must be one of irc, slack, discord, api, web")
+	}
 	if f.ClientNetwork != nil && f.ClientType == nil {
 		return fmt.Errorf("client_network requires client_type")
 	}
