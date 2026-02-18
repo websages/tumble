@@ -71,17 +71,8 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
 	// Parse client filter query params
-	var clientFilter data.ClientFilter
-	if st := r.URL.Query().Get("client_type"); st != "" {
-		clientFilter.ClientType = &st
-	}
-	if sn := r.URL.Query().Get("client_network"); sn != "" {
-		clientFilter.ClientNetwork = &sn
-	}
-	if sc := r.URL.Query().Get("client_channel"); sc != "" {
-		clientFilter.ClientChannel = &sc
-	}
-	if err := clientFilter.Validate(); err != nil {
+	clientFilter, err := parseClientFilter(r)
+	if err != nil {
 		writeAPIError(w, http.StatusBadRequest, "invalid_params", err.Error())
 		return
 	}
