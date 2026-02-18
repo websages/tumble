@@ -12,16 +12,16 @@ func TestSearchIRCLinks_ByTitle(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Golang Tutorial", "http://example.com/go", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Golang Tutorial", URL: "http://example.com/go", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
-	_, err = store.InsertIRCLink(ctx, "bob", "Rust Guide", "http://example.com/rust", "text/html")
+	_, err = store.InsertIRCLink(ctx, &IRCLink{User: "bob", Title: "Rust Guide", URL: "http://example.com/rust", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Golang")
+	links, err := store.SearchIRCLinks(ctx, "Golang", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -37,12 +37,12 @@ func TestSearchIRCLinks_ByURL(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Some Page", "http://example.com/unique-path", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Some Page", URL: "http://example.com/unique-path", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "unique-path")
+	links, err := store.SearchIRCLinks(ctx, "unique-path", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestSearchIRCLinks_ByTag(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	id, err := store.InsertIRCLink(ctx, "alice", "Tagged Link", "http://example.com/tagged", "text/html")
+	id, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Tagged Link", URL: "http://example.com/tagged", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestSearchIRCLinks_ByTag(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "special-topic")
+	links, err := store.SearchIRCLinks(ctx, "special-topic", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -89,12 +89,12 @@ func TestSearchIRCLinks_NoMatch(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Something", "http://example.com/a", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Something", URL: "http://example.com/a", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy")
+	links, err := store.SearchIRCLinks(ctx, "nonexistent-xyzzy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -108,11 +108,11 @@ func TestSearchIRCLinks_OrderedByClicks(t *testing.T) {
 	ctx := context.Background()
 	db := store.db
 
-	_, err := store.InsertIRCLink(ctx, "alice", "Search Low", "http://example.com/search-low", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Search Low", URL: "http://example.com/search-low", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
-	_, err = store.InsertIRCLink(ctx, "bob", "Search High", "http://example.com/search-high", "text/html")
+	_, err = store.InsertIRCLink(ctx, &IRCLink{User: "bob", Title: "Search High", URL: "http://example.com/search-high", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -121,7 +121,7 @@ func TestSearchIRCLinks_OrderedByClicks(t *testing.T) {
 	db.Model(&IRCLink{}).Where("title = ?", "Search Low").Update("clicks", 5)
 	db.Model(&IRCLink{}).Where("title = ?", "Search High").Update("clicks", 50)
 
-	links, err := store.SearchIRCLinks(ctx, "Search")
+	links, err := store.SearchIRCLinks(ctx, "Search", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -141,11 +141,11 @@ func TestSearchIRCLinks_ExcludesErrorPreviews(t *testing.T) {
 	ctx := context.Background()
 
 	// Insert two links — one will have an error preview, one won't
-	_, err := store.InsertIRCLink(ctx, "alice", "Good Link", "http://example.com/good", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Good Link", URL: "http://example.com/good", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
-	_, err = store.InsertIRCLink(ctx, "bob", "Bad Link", "http://example.com/bad", "text/html")
+	_, err = store.InsertIRCLink(ctx, &IRCLink{User: "bob", Title: "Bad Link", URL: "http://example.com/bad", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -156,7 +156,7 @@ func TestSearchIRCLinks_ExcludesErrorPreviews(t *testing.T) {
 		t.Fatalf("InsertLinkPreview failed: %v", err)
 	}
 
-	links, err := store.SearchIRCLinks(ctx, "Link")
+	links, err := store.SearchIRCLinks(ctx, "Link", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -174,7 +174,7 @@ func TestSearchIRCLinks_ExpiredErrorCacheIncluded(t *testing.T) {
 	db := store.db
 
 	// Insert link that is "recent" (< 10 days old) — its error cache TTL is 24h
-	_, err := store.InsertIRCLink(ctx, "alice", "Recoverable Link", "http://example.com/recover", "text/html")
+	_, err := store.InsertIRCLink(ctx, &IRCLink{User: "alice", Title: "Recoverable Link", URL: "http://example.com/recover", ContentType: "text/html"})
 	if err != nil {
 		t.Fatalf("InsertIRCLink failed: %v", err)
 	}
@@ -188,7 +188,7 @@ func TestSearchIRCLinks_ExpiredErrorCacheIncluded(t *testing.T) {
 	twoDaysAgo := time.Now().Add(-48 * time.Hour)
 	db.Model(&LinkPreview{}).Where("url = ?", "http://example.com/recover").Update("updated_at", twoDaysAgo)
 
-	links, err := store.SearchIRCLinks(ctx, "Recoverable")
+	links, err := store.SearchIRCLinks(ctx, "Recoverable", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchIRCLinks failed: %v", err)
 	}
@@ -206,16 +206,16 @@ func TestSearchQuotes_ByQuoteText(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertQuote(ctx, "To be or not to be", "Shakespeare", "alice")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "To be or not to be", Author: "Shakespeare", Poster: "alice"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
-	_, err = store.InsertQuote(ctx, "I think therefore I am", "Descartes", "bob")
+	_, err = store.InsertQuote(ctx, &Quote{Quote: "I think therefore I am", Author: "Descartes", Poster: "bob"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "not to be")
+	quotes, err := store.SearchQuotes(ctx, "not to be", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -231,12 +231,12 @@ func TestSearchQuotes_ByAuthor(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertQuote(ctx, "Some quote", "UniqueAuthor42", "alice")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "Some quote", Author: "UniqueAuthor42", Poster: "alice"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42")
+	quotes, err := store.SearchQuotes(ctx, "UniqueAuthor42", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -252,7 +252,7 @@ func TestSearchQuotes_ByTag(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	id, err := store.InsertQuote(ctx, "A tagged quote", "someone", "alice")
+	id, err := store.InsertQuote(ctx, &Quote{Quote: "A tagged quote", Author: "someone", Poster: "alice"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestSearchQuotes_ByTag(t *testing.T) {
 		t.Fatalf("CreateTag failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "philosophy")
+	quotes, err := store.SearchQuotes(ctx, "philosophy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -283,12 +283,12 @@ func TestSearchQuotes_NoMatch(t *testing.T) {
 	store := newTestStore(t)
 	ctx := context.Background()
 
-	_, err := store.InsertQuote(ctx, "Hello world", "author1", "poster1")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "Hello world", Author: "author1", Poster: "poster1"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
 
-	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy")
+	quotes, err := store.SearchQuotes(ctx, "nonexistent-xyzzy", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}
@@ -302,11 +302,11 @@ func TestSearchQuotes_OrderedByTimestamp(t *testing.T) {
 	ctx := context.Background()
 	db := store.db
 
-	_, err := store.InsertQuote(ctx, "Search older quote", "auth1", "poster")
+	_, err := store.InsertQuote(ctx, &Quote{Quote: "Search older quote", Author: "auth1", Poster: "poster"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
-	_, err = store.InsertQuote(ctx, "Search newer quote", "auth2", "poster")
+	_, err = store.InsertQuote(ctx, &Quote{Quote: "Search newer quote", Author: "auth2", Poster: "poster"})
 	if err != nil {
 		t.Fatalf("InsertQuote failed: %v", err)
 	}
@@ -316,7 +316,7 @@ func TestSearchQuotes_OrderedByTimestamp(t *testing.T) {
 	db.Model(&Quote{}).Where("quote = ?", "Search older quote").Update("timestamp", now.Add(-48*time.Hour))
 	db.Model(&Quote{}).Where("quote = ?", "Search newer quote").Update("timestamp", now.Add(-1*time.Hour))
 
-	quotes, err := store.SearchQuotes(ctx, "Search")
+	quotes, err := store.SearchQuotes(ctx, "Search", ClientFilter{})
 	if err != nil {
 		t.Fatalf("SearchQuotes failed: %v", err)
 	}

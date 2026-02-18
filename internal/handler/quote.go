@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"tumble/internal/data"
 )
 
 // QuoteHandler handles /quote/ submissions and /quote/{id} permalinks
@@ -115,7 +117,7 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Quote provided -> Insert Quote (author is optional)
-	id, err := h.Store.InsertQuote(ctx, quote, author, poster)
+	id, err := h.Store.InsertQuote(ctx, &data.Quote{Quote: quote, Author: author, Poster: poster})
 	if err != nil {
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return

@@ -3,7 +3,7 @@
 # Usage: ./tests/preview_test.sh [BASE_URL]
 
 BASE_URL="${1:-http://localhost:8080}"
-ENDPOINT="$BASE_URL/ogpreview"
+ENDPOINT="$BASE_URL/api/v1/preview"
 
 echo "Running Preview Tests against $ENDPOINT"
 
@@ -50,9 +50,10 @@ test_preview "Reddit Valid" \
     '.provider_name == "Reddit" or .title != null'
 
 # Invalid: specific non-existent post.
+# Reddit may return an error, a generic title, or a minimal response with just provider_name.
 test_preview "Reddit Invalid" \
     "https://www.reddit.com/r/valheim/comments/INVALID_ID_12345/" \
-    '.error != null or (.title | contains("Page not found") or contains("Reddit"))'
+    '.error != null or .title == null or (.title | contains("Page not found") or contains("Reddit"))'
 
 # --- SPOTIFY ---
 # Valid

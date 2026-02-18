@@ -60,15 +60,15 @@ func (h *Handler) apiV1GetStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get total links and quotes for site stats
-	links, err := h.Store.GetRecentIRCLinks(ctx, 36500, 0) // ~100 years to get all
+	totalLinks, err := h.Store.CountIRCLinks(ctx)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch links")
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to count links")
 		return
 	}
 
-	quotes, err := h.Store.GetRecentQuotes(ctx, 36500, 0) // ~100 years to get all
+	totalQuotes, err := h.Store.CountQuotes(ctx)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch quotes")
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to count quotes")
 		return
 	}
 
@@ -84,8 +84,8 @@ func (h *Handler) apiV1GetStats(w http.ResponseWriter, r *http.Request) {
 
 	resp := APIStatsResponse{
 		Site: APISiteStats{
-			TotalLinks:  len(links),
-			TotalQuotes: len(quotes),
+			TotalLinks:  int(totalLinks),
+			TotalQuotes: int(totalQuotes),
 			TotalUsers:  totalUsers,
 		},
 		Leaderboard: leaderboardData,

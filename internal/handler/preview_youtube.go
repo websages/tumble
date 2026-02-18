@@ -34,9 +34,15 @@ func (h *Handler) GetYouTubePreview(targetURL string) (map[string]string, error)
 	title = strings.TrimSuffix(title, " - YouTube")
 	meta["title"] = title
 
-	// If scrape yielded no real title or image, fall through to OEmbed
+	// Empty title after stripping suffix means the page had no real video title
+	// (e.g. " - YouTube"), which is another form of YouTube's soft 404.
+	if title == "" {
+		return nil, fmt.Errorf("status 404")
+	}
+
+	// If scrape yielded no image, fall through to OEmbed
 	// which is more reliable for YouTube
-	if title == "" || meta["image"] == "" {
+	if meta["image"] == "" {
 		return nil, fmt.Errorf("incomplete scrape, falling back to oembed")
 	}
 

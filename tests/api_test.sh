@@ -78,9 +78,9 @@ CREATE_OUT=$(curl -s -X POST "$BASE_URL/api/v1/links" \
     -H "Content-Type: application/json" \
     -H "Accept: text/plain" \
     -d '{"user":"testdel","url":"http://delete-test.com"}')
-# Check if we got an ID (numeric)
-if [[ "$CREATE_OUT" =~ ^[0-9]+$ ]]; then
-    DEL_ID=$CREATE_OUT
+# Parse ID from response (format: "Created link N: URL")
+if [[ "$CREATE_OUT" =~ Created\ link\ ([0-9]+) ]]; then
+    DEL_ID=${BASH_REMATCH[1]}
     # Delete it
     DEL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE -H "X-API-Key: test-admin-secret" "$BASE_URL/api/v1/links/$DEL_ID")
     if [ "$DEL_STATUS" == "204" ]; then

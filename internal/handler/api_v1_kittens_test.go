@@ -17,7 +17,7 @@ import (
 type mockKittenStore struct {
 	data.Store
 	getTodayImageByLinkFn    func(ctx context.Context, link string) (*data.Image, error)
-	insertImageFn            func(ctx context.Context, title, link, url string) (int, error)
+	insertImageFn            func(ctx context.Context, image *data.Image) (int, error)
 	deleteTodayImageByLinkFn func(ctx context.Context, link string) error
 }
 
@@ -28,9 +28,9 @@ func (m *mockKittenStore) GetTodayImageByLink(ctx context.Context, link string) 
 	return nil, nil
 }
 
-func (m *mockKittenStore) InsertImage(ctx context.Context, title, link, url string) (int, error) {
+func (m *mockKittenStore) InsertImage(ctx context.Context, image *data.Image) (int, error) {
 	if m.insertImageFn != nil {
-		return m.insertImageFn(ctx, title, link, url)
+		return m.insertImageFn(ctx, image)
 	}
 	return 1, nil
 }
@@ -158,7 +158,7 @@ func TestAPIv1_PutKittenDaily(t *testing.T) {
 		apiKey         string
 		adminSecret    string
 		getTodayFn     func(ctx context.Context, link string) (*data.Image, error)
-		insertImageFn  func(ctx context.Context, title, link, url string) (int, error)
+		insertImageFn  func(ctx context.Context, image *data.Image) (int, error)
 		expectedStatus int
 		checkBody      func(t *testing.T, body []byte)
 	}{

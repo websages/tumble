@@ -38,7 +38,7 @@ type integrationMockStore struct {
 	err error
 }
 
-func (m *integrationMockStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]data.IRCLink, error) {
+func (m *integrationMockStore) GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -58,14 +58,14 @@ func (m *integrationMockStore) GetIRCLinkByID(ctx context.Context, id int) (*dat
 	return m.linkByID, nil
 }
 
-func (m *integrationMockStore) GetIRCLinksByURL(ctx context.Context, url string) ([]data.IRCLink, error) {
+func (m *integrationMockStore) GetIRCLinksByURL(ctx context.Context, url string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return nil, nil // No duplicates by default
 }
 
-func (m *integrationMockStore) InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error) {
+func (m *integrationMockStore) InsertIRCLink(ctx context.Context, link *data.IRCLink) (int, error) {
 	if m.err != nil {
 		return 0, m.err
 	}
@@ -76,7 +76,7 @@ func (m *integrationMockStore) DeleteIRCLink(ctx context.Context, id int) error 
 	return m.err
 }
 
-func (m *integrationMockStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]data.Quote, error) {
+func (m *integrationMockStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -96,7 +96,7 @@ func (m *integrationMockStore) GetQuoteByID(ctx context.Context, id int) (*data.
 	return m.quoteByID, nil
 }
 
-func (m *integrationMockStore) InsertQuote(ctx context.Context, quote, author, poster string) (int, error) {
+func (m *integrationMockStore) InsertQuote(ctx context.Context, quote *data.Quote) (int, error) {
 	if m.err != nil {
 		return 0, m.err
 	}
@@ -107,6 +107,20 @@ func (m *integrationMockStore) DeleteQuote(ctx context.Context, id int) error {
 	return m.err
 }
 
+func (m *integrationMockStore) CountIRCLinks(ctx context.Context) (int64, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
+	return int64(len(m.links)), nil
+}
+
+func (m *integrationMockStore) CountQuotes(ctx context.Context) (int64, error) {
+	if m.err != nil {
+		return 0, m.err
+	}
+	return int64(len(m.quotes)), nil
+}
+
 func (m *integrationMockStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]data.UserStat, error) {
 	if m.err != nil {
 		return nil, m.err
@@ -114,14 +128,14 @@ func (m *integrationMockStore) GetUserStats(ctx context.Context, sortBy string, 
 	return m.userStats, nil
 }
 
-func (m *integrationMockStore) SearchIRCLinks(ctx context.Context, query string) ([]data.IRCLink, error) {
+func (m *integrationMockStore) SearchIRCLinks(ctx context.Context, query string, filter data.ClientFilter) ([]data.IRCLink, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.searchLinks, nil
 }
 
-func (m *integrationMockStore) SearchQuotes(ctx context.Context, query string) ([]data.Quote, error) {
+func (m *integrationMockStore) SearchQuotes(ctx context.Context, query string, filter data.ClientFilter) ([]data.Quote, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

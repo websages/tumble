@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"tumble/internal/data"
+
 	"github.com/doyensec/safeurl"
 )
 
@@ -95,7 +97,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Handle link posting
 		// Check for existing submissions first
-		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url)
+		existingLinks, err := h.Store.GetIRCLinksByURL(ctx, url, data.ClientFilter{})
 		if err != nil {
 			h.ServerError(w, r, err)
 			return
@@ -137,7 +139,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Insert the link (always insert, even if duplicate)
-		id, err := h.Store.InsertIRCLink(ctx, user, title, url, contentType)
+		id, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{User: user, Title: title, URL: url, ContentType: contentType})
 		if err != nil {
 			h.ServerError(w, r, err)
 			return

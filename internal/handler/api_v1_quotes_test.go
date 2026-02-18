@@ -16,16 +16,21 @@ import (
 // mockQuoteStore is a mock implementation of data.Store for testing quote API handlers.
 type mockQuoteStore struct {
 	data.Store
-	quotes          []data.Quote
-	quoteByID       *data.Quote
-	quoteByIDFn     func(id int) (*data.Quote, error)
-	insertedQuoteID int
-	insertQuoteFn   func(quote, author, poster string) (int, error)
-	deleteQuoteFn   func(id int) error
-	err             error
+	quotes            []data.Quote
+	recentQuotesFn    func(filter data.ClientFilter) ([]data.Quote, error)
+	quoteByID         *data.Quote
+	quoteByIDFn       func(id int) (*data.Quote, error)
+	insertedQuoteID   int
+	insertQuoteFn     func(quote *data.Quote) (int, error)
+	lastInsertedQuote *data.Quote
+	deleteQuoteFn     func(id int) error
+	err               error
 }
 
-func (m *mockQuoteStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]data.Quote, error) {
+func (m *mockQuoteStore) GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter data.ClientFilter) ([]data.Quote, error) {
+	if m.recentQuotesFn != nil {
+		return m.recentQuotesFn(filter)
+	}
 	if m.err != nil {
 		return nil, m.err
 	}
@@ -42,9 +47,10 @@ func (m *mockQuoteStore) GetQuoteByID(ctx context.Context, id int) (*data.Quote,
 	return m.quoteByID, nil
 }
 
-func (m *mockQuoteStore) InsertQuote(ctx context.Context, quote, author, poster string) (int, error) {
+func (m *mockQuoteStore) InsertQuote(ctx context.Context, quote *data.Quote) (int, error) {
+	m.lastInsertedQuote = quote
 	if m.insertQuoteFn != nil {
-		return m.insertQuoteFn(quote, author, poster)
+		return m.insertQuoteFn(quote)
 	}
 	if m.err != nil {
 		return 0, m.err
@@ -759,7 +765,7 @@ func TestAPIv1_CreateQuote(t *testing.T) {
 
 func TestAPIv1_CreateQuote_StoreError(t *testing.T) {
 	store := &mockQuoteStore{
-		insertQuoteFn: func(quote, author, poster string) (int, error) {
+		insertQuoteFn: func(quote *data.Quote) (int, error) {
 			return 0, context.DeadlineExceeded
 		},
 	}
@@ -1017,4 +1023,286 @@ func TestAPIv1_DeleteQuote_StoreError(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAPIv1_CreateQuote_ClientFields(t *testing.T) {
+	irc := "irc"
+	freenode := "freenode"
+	channel := "#general"
+	userID := "U12345"
+	userName := "alice"
+
+	t.Run("client fields passed through to InsertQuote", func(t *testing.T) {
+		store := &mockQuoteStore{insertedQuoteID: 50}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		body := `{"quote":"To be or not to be","author":"Shakespeare","poster":"alice","client_type":"irc","client_network":"freenode","client_channel":"#general","client_user_id":"U12345","client_user_name":"alice"}`
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/quotes", strings.NewReader(body))
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		handler.APIv1QuotesHandler(w, req)
+
+		if w.Code != http.StatusCreated {
+			t.Fatalf("expected status 201, got %d. Body: %s", w.Code, w.Body.String())
+		}
+
+		// Verify client fields were passed to InsertQuote
+		inserted := store.lastInsertedQuote
+		if inserted == nil {
+			t.Fatal("expected InsertQuote to be called")
+		}
+		if inserted.ClientType == nil || *inserted.ClientType != irc {
+			t.Errorf("expected client_type=%q, got %v", irc, inserted.ClientType)
+		}
+		if inserted.ClientNetwork == nil || *inserted.ClientNetwork != freenode {
+			t.Errorf("expected client_network=%q, got %v", freenode, inserted.ClientNetwork)
+		}
+		if inserted.ClientChannel == nil || *inserted.ClientChannel != channel {
+			t.Errorf("expected client_channel=%q, got %v", channel, inserted.ClientChannel)
+		}
+		if inserted.ClientUserID == nil || *inserted.ClientUserID != userID {
+			t.Errorf("expected client_user_id=%q, got %v", userID, inserted.ClientUserID)
+		}
+		if inserted.ClientUserName == nil || *inserted.ClientUserName != userName {
+			t.Errorf("expected client_user_name=%q, got %v", userName, inserted.ClientUserName)
+		}
+
+		// Verify response contains client fields
+		var resp APIQuoteResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if resp.ClientType == nil || *resp.ClientType != irc {
+			t.Errorf("expected client_type=%q in response, got %v", irc, resp.ClientType)
+		}
+		if resp.ClientNetwork == nil || *resp.ClientNetwork != freenode {
+			t.Errorf("expected client_network=%q in response, got %v", freenode, resp.ClientNetwork)
+		}
+		if resp.ClientChannel == nil || *resp.ClientChannel != channel {
+			t.Errorf("expected client_channel=%q in response, got %v", channel, resp.ClientChannel)
+		}
+		if resp.ClientUserID == nil || *resp.ClientUserID != userID {
+			t.Errorf("expected client_user_id=%q in response, got %v", userID, resp.ClientUserID)
+		}
+		if resp.ClientUserName == nil || *resp.ClientUserName != userName {
+			t.Errorf("expected client_user_name=%q in response, got %v", userName, resp.ClientUserName)
+		}
+	})
+}
+
+func TestAPIv1_ListQuotes_ClientFiltering(t *testing.T) {
+	now := time.Now()
+	irc := "irc"
+	slack := "slack"
+	freenode := "freenode"
+	workspace := "myworkspace"
+	chanGeneral := "#general"
+	chanRandom := "#random"
+
+	allQuotes := []data.Quote{
+		{ID: 1, Timestamp: now, Quote: "IRC Quote", Author: "Author1", Poster: "poster1",
+			ClientType: &irc, ClientNetwork: &freenode, ClientChannel: &chanGeneral},
+		{ID: 2, Timestamp: now, Quote: "Slack Quote", Author: "Author2", Poster: "poster2",
+			ClientType: &slack, ClientNetwork: &workspace, ClientChannel: &chanRandom},
+		{ID: 3, Timestamp: now, Quote: "No Client Quote", Author: "Author3", Poster: "poster3"},
+	}
+
+	t.Run("filter by client_type returns subset", func(t *testing.T) {
+		ircOnly := []data.Quote{allQuotes[0]}
+		store := &mockQuoteStore{
+			recentQuotesFn: func(filter data.ClientFilter) ([]data.Quote, error) {
+				if filter.ClientType != nil && *filter.ClientType == "irc" {
+					return ircOnly, nil
+				}
+				return allQuotes, nil
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/quotes?client_type=irc", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1QuotesHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APIQuotesResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if len(resp.Data) != 1 {
+			t.Fatalf("expected 1 quote, got %d", len(resp.Data))
+		}
+		if resp.Data[0].ClientType == nil || *resp.Data[0].ClientType != "irc" {
+			t.Errorf("expected client_type=irc, got %v", resp.Data[0].ClientType)
+		}
+	})
+
+	t.Run("client fields included in list response", func(t *testing.T) {
+		store := &mockQuoteStore{quotes: allQuotes}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/quotes", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1QuotesHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APIQuotesResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+
+		// First quote should have IRC client fields
+		q1 := resp.Data[0]
+		if q1.ClientType == nil || *q1.ClientType != "irc" {
+			t.Errorf("expected quote 1 client_type=irc, got %v", q1.ClientType)
+		}
+		if q1.ClientNetwork == nil || *q1.ClientNetwork != "freenode" {
+			t.Errorf("expected quote 1 client_network=freenode, got %v", q1.ClientNetwork)
+		}
+		if q1.ClientChannel == nil || *q1.ClientChannel != "#general" {
+			t.Errorf("expected quote 1 client_channel=#general, got %v", q1.ClientChannel)
+		}
+
+		// Second quote should have Slack client fields
+		q2 := resp.Data[1]
+		if q2.ClientType == nil || *q2.ClientType != "slack" {
+			t.Errorf("expected quote 2 client_type=slack, got %v", q2.ClientType)
+		}
+
+		// Third quote should have nil client fields
+		q3 := resp.Data[2]
+		if q3.ClientType != nil {
+			t.Errorf("expected quote 3 client_type=nil, got %v", q3.ClientType)
+		}
+	})
+}
+
+func TestAPIv1_QuoteResponse_ClientOmitEmpty(t *testing.T) {
+	t.Run("null client fields omitted from JSON", func(t *testing.T) {
+		now := time.Now()
+		store := &mockQuoteStore{
+			quoteByID: &data.Quote{
+				ID:        1,
+				Timestamp: now,
+				Quote:     "To be or not to be",
+				Author:    "Shakespeare",
+				Poster:    "testuser",
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/quotes/1", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1QuotesHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if strings.Contains(body, "client_type") {
+			t.Error("expected client_type to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "client_network") {
+			t.Error("expected client_network to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "client_channel") {
+			t.Error("expected client_channel to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "client_user_id") {
+			t.Error("expected client_user_id to be omitted from JSON when nil")
+		}
+		if strings.Contains(body, "client_user_name") {
+			t.Error("expected client_user_name to be omitted from JSON when nil")
+		}
+	})
+
+	t.Run("set client fields present in JSON", func(t *testing.T) {
+		now := time.Now()
+		irc := "irc"
+		freenode := "freenode"
+		channel := "#test"
+		userID := "U999"
+		userName := "bob"
+
+		store := &mockQuoteStore{
+			quoteByID: &data.Quote{
+				ID:             2,
+				Timestamp:      now,
+				Quote:          "I think therefore I am",
+				Author:         "Descartes",
+				Poster:         "testuser",
+				ClientType:     &irc,
+				ClientNetwork:  &freenode,
+				ClientChannel:  &channel,
+				ClientUserID:   &userID,
+				ClientUserName: &userName,
+			},
+		}
+		handler := &Handler{
+			Store:  store,
+			Config: &config.Config{},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/quotes/2", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		w := httptest.NewRecorder()
+
+		handler.APIv1QuotesHandler(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		var resp APIQuoteResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+
+		if resp.ClientType == nil || *resp.ClientType != "irc" {
+			t.Errorf("expected client_type=irc, got %v", resp.ClientType)
+		}
+		if resp.ClientNetwork == nil || *resp.ClientNetwork != "freenode" {
+			t.Errorf("expected client_network=freenode, got %v", resp.ClientNetwork)
+		}
+		if resp.ClientChannel == nil || *resp.ClientChannel != "#test" {
+			t.Errorf("expected client_channel=#test, got %v", resp.ClientChannel)
+		}
+		if resp.ClientUserID == nil || *resp.ClientUserID != "U999" {
+			t.Errorf("expected client_user_id=U999, got %v", resp.ClientUserID)
+		}
+		if resp.ClientUserName == nil || *resp.ClientUserName != "bob" {
+			t.Errorf("expected client_user_name=bob, got %v", resp.ClientUserName)
+		}
+
+		body := w.Body.String()
+		if !strings.Contains(body, `"client_type":"irc"`) {
+			t.Error("expected client_type in JSON response body")
+		}
+	})
 }

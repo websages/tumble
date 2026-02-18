@@ -20,10 +20,10 @@ type MockStore struct {
 	NextID     int
 }
 
-func (m *MockStore) InsertQuote(ctx context.Context, quote, author, poster string) (int, error) {
-	m.LastQuote = quote
-	m.LastAuthor = author
-	m.LastPoster = poster
+func (m *MockStore) InsertQuote(ctx context.Context, quote *data.Quote) (int, error) {
+	m.LastQuote = quote.Quote
+	m.LastAuthor = quote.Author
+	m.LastPoster = quote.Poster
 	if m.NextID == 0 {
 		m.NextID = 1
 	}

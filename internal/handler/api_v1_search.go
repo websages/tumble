@@ -61,6 +61,13 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
+	// Parse client filter query params
+	clientFilter, err := parseClientFilter(r)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_params", err.Error())
+		return
+	}
+
 	// Initialize response
 	resp := APISearchResponse{
 		Links:  []APILinkResponse{},
@@ -78,7 +85,7 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Search links if requested
 	if searchLinks {
-		links, err := h.Store.SearchIRCLinks(ctx, query)
+		links, err := h.Store.SearchIRCLinks(ctx, query, clientFilter)
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search links")
 			return
@@ -102,19 +109,24 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 		// Convert to API response format
 		for _, link := range links {
 			resp.Links = append(resp.Links, APILinkResponse{
-				ID:        link.ID,
-				URL:       link.URL,
-				Title:     link.Title,
-				User:      link.User,
-				Clicks:    link.Clicks,
-				CreatedAt: link.Timestamp,
+				ID:             link.ID,
+				URL:            link.URL,
+				Title:          link.Title,
+				User:           link.User,
+				Clicks:         link.Clicks,
+				CreatedAt:      link.Timestamp,
+				ClientType:     link.ClientType,
+				ClientNetwork:  link.ClientNetwork,
+				ClientChannel:  link.ClientChannel,
+				ClientUserID:   link.ClientUserID,
+				ClientUserName: link.ClientUserName,
 			})
 		}
 	}
 
 	// Search quotes if requested
 	if searchQuotes {
-		quotes, err := h.Store.SearchQuotes(ctx, query)
+		quotes, err := h.Store.SearchQuotes(ctx, query, clientFilter)
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to search quotes")
 			return
@@ -138,11 +150,16 @@ func (h *Handler) APIv1SearchHandler(w http.ResponseWriter, r *http.Request) {
 		// Convert to API response format
 		for _, quote := range quotes {
 			resp.Quotes = append(resp.Quotes, APIQuoteResponse{
-				ID:        quote.ID,
-				Quote:     quote.Quote,
-				Author:    quote.Author,
-				Poster:    quote.Poster,
-				CreatedAt: quote.Timestamp,
+				ID:             quote.ID,
+				Quote:          quote.Quote,
+				Author:         quote.Author,
+				Poster:         quote.Poster,
+				CreatedAt:      quote.Timestamp,
+				ClientType:     quote.ClientType,
+				ClientNetwork:  quote.ClientNetwork,
+				ClientChannel:  quote.ClientChannel,
+				ClientUserID:   quote.ClientUserID,
+				ClientUserName: quote.ClientUserName,
 			})
 		}
 	}

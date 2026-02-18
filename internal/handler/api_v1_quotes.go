@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"tumble/internal/data"
 )
 
 // APIv1QuotesHandler routes requests to /api/v1/quotes endpoints.
@@ -68,9 +70,16 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 	limit := parseIntParam(r, "limit", 50, 1000)
 	offset := parseIntParam(r, "offset", 0, 1000000)
 
+	// Parse client filter query params
+	clientFilter, err := parseClientFilter(r)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_params", err.Error())
+		return
+	}
+
 	// Fetch all quotes from the last year
 	// We fetch more than needed so we can paginate in-memory
-	quotes, err := h.Store.GetRecentQuotes(ctx, 365, 0)
+	quotes, err := h.Store.GetRecentQuotes(ctx, 365, 0, clientFilter)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch quotes")
 		return
@@ -94,12 +103,17 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 	data := make([]APIQuoteResponse, 0, len(quotes))
 	for _, quote := range quotes {
 		data = append(data, APIQuoteResponse{
-			ID:        quote.ID,
-			Quote:     quote.Quote,
-			Author:    quote.Author,
-			Poster:    quote.Poster,
-			CreatedAt: quote.Timestamp,
-			Tags:      h.getTagStrings(ctx, "quote", quote.ID),
+			ID:             quote.ID,
+			Quote:          quote.Quote,
+			Author:         quote.Author,
+			Poster:         quote.Poster,
+			CreatedAt:      quote.Timestamp,
+			Tags:           h.getTagStrings(ctx, "quote", quote.ID),
+			ClientType:     quote.ClientType,
+			ClientNetwork:  quote.ClientNetwork,
+			ClientChannel:  quote.ClientChannel,
+			ClientUserID:   quote.ClientUserID,
+			ClientUserName: quote.ClientUserName,
 		})
 	}
 
@@ -117,10 +131,15 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 
 // APIQuoteCreateRequest is the request body for POST /api/v1/quotes.
 type APIQuoteCreateRequest struct {
-	Quote  string   `json:"quote"`
-	Author string   `json:"author"`
-	Poster string   `json:"poster"`
-	Tags   []string `json:"tags,omitempty"`
+	Quote          string   `json:"quote"`
+	Author         string   `json:"author"`
+	Poster         string   `json:"poster"`
+	Tags           []string `json:"tags,omitempty"`
+	ClientType     *string  `json:"client_type,omitempty"`
+	ClientNetwork  *string  `json:"client_network,omitempty"`
+	ClientChannel  *string  `json:"client_channel,omitempty"`
+	ClientUserID   *string  `json:"client_user_id,omitempty"`
+	ClientUserName *string  `json:"client_user_name,omitempty"`
 }
 
 // apiV1CreateQuote handles POST /api/v1/quotes
@@ -146,7 +165,16 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert the quote
-	quoteID, err := h.Store.InsertQuote(ctx, req.Quote, req.Author, req.Poster)
+	quoteID, err := h.Store.InsertQuote(ctx, &data.Quote{
+		Quote:          req.Quote,
+		Author:         req.Author,
+		Poster:         req.Poster,
+		ClientType:     req.ClientType,
+		ClientNetwork:  req.ClientNetwork,
+		ClientChannel:  req.ClientChannel,
+		ClientUserID:   req.ClientUserID,
+		ClientUserName: req.ClientUserName,
+	})
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create quote")
 		return
@@ -179,12 +207,17 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := APIQuoteResponse{
-		ID:        quoteID,
-		Quote:     req.Quote,
-		Author:    req.Author,
-		Poster:    req.Poster,
-		CreatedAt: time.Now(),
-		Tags:      tagStrings,
+		ID:             quoteID,
+		Quote:          req.Quote,
+		Author:         req.Author,
+		Poster:         req.Poster,
+		CreatedAt:      time.Now(),
+		Tags:           tagStrings,
+		ClientType:     req.ClientType,
+		ClientNetwork:  req.ClientNetwork,
+		ClientChannel:  req.ClientChannel,
+		ClientUserID:   req.ClientUserID,
+		ClientUserName: req.ClientUserName,
 	}
 
 	writeJSON(w, http.StatusCreated, resp)
@@ -217,12 +250,17 @@ func (h *Handler) apiV1GetQuote(w http.ResponseWriter, r *http.Request, id int) 
 	}
 
 	writeJSON(w, http.StatusOK, APIQuoteResponse{
-		ID:        quote.ID,
-		Quote:     quote.Quote,
-		Author:    quote.Author,
-		Poster:    quote.Poster,
-		CreatedAt: quote.Timestamp,
-		Tags:      h.getTagStrings(ctx, "quote", quote.ID),
+		ID:             quote.ID,
+		Quote:          quote.Quote,
+		Author:         quote.Author,
+		Poster:         quote.Poster,
+		CreatedAt:      quote.Timestamp,
+		Tags:           h.getTagStrings(ctx, "quote", quote.ID),
+		ClientType:     quote.ClientType,
+		ClientNetwork:  quote.ClientNetwork,
+		ClientChannel:  quote.ClientChannel,
+		ClientUserID:   quote.ClientUserID,
+		ClientUserName: quote.ClientUserName,
 	})
 }
 

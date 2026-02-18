@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"tumble/internal/data"
 )
 
 // writeJSON writes a JSON response with the given status code and data.
@@ -125,6 +127,24 @@ func trimFormatSuffix(path string) string {
 		return strings.TrimSuffix(path, ".txt")
 	}
 	return path
+}
+
+// parseClientFilter extracts client filter parameters from the request query string.
+func parseClientFilter(r *http.Request) (data.ClientFilter, error) {
+	var f data.ClientFilter
+	if st := r.URL.Query().Get("client_type"); st != "" {
+		f.ClientType = &st
+	}
+	if sn := r.URL.Query().Get("client_network"); sn != "" {
+		f.ClientNetwork = &sn
+	}
+	if sc := r.URL.Query().Get("client_channel"); sc != "" {
+		f.ClientChannel = &sc
+	}
+	if err := f.Validate(); err != nil {
+		return f, err
+	}
+	return f, nil
 }
 
 // isAuthorizedAPIKey checks if the request has a valid API key.

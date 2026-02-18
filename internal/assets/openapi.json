@@ -107,6 +107,31 @@
               "type": "string"
             },
             "description": "Tags associated with this link"
+          },
+          "client_type": {
+            "type": "string",
+            "description": "Client platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "client_network": {
+            "type": "string",
+            "description": "Client network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "client_channel": {
+            "type": "string",
+            "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "client_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "client_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["id", "url", "user", "created_at"],
@@ -226,6 +251,31 @@
               "type": "string"
             },
             "description": "Tags associated with this quote"
+          },
+          "client_type": {
+            "type": "string",
+            "description": "Client platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "client_network": {
+            "type": "string",
+            "description": "Client network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "client_channel": {
+            "type": "string",
+            "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "client_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "client_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["id", "quote", "created_at"],
@@ -468,6 +518,31 @@
               "type": "string"
             },
             "description": "Optional tags to add to the link (lowercased, no spaces)"
+          },
+          "client_type": {
+            "type": "string",
+            "description": "Client platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "client_network": {
+            "type": "string",
+            "description": "Client network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "client_channel": {
+            "type": "string",
+            "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "client_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "client_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["url", "user"],
@@ -571,6 +646,31 @@
               "type": "string"
             },
             "description": "Optional tags to add to the quote (lowercased, no spaces)"
+          },
+          "client_type": {
+            "type": "string",
+            "description": "Client platform (e.g., irc, slack, discord, api, web)",
+            "example": "slack"
+          },
+          "client_network": {
+            "type": "string",
+            "description": "Client network identifier (e.g., IRC server, Slack team ID)",
+            "example": "T12345"
+          },
+          "client_channel": {
+            "type": "string",
+            "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
+            "example": "C67890"
+          },
+          "client_user_id": {
+            "type": "string",
+            "description": "Platform-specific user ID",
+            "example": "U99999"
+          },
+          "client_user_name": {
+            "type": "string",
+            "description": "Display/mention name at time of post",
+            "example": "stahnma"
           }
         },
         "required": ["quote"],
@@ -660,6 +760,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "client_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client platform (e.g., irc, slack, discord)"
+          },
+          {
+            "name": "client_network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
+          },
+          {
+            "name": "client_channel",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
         "responses": {
@@ -679,6 +800,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid client filter parameters (e.g., client_network without client_type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Server error",
             "content": {
@@ -693,7 +824,7 @@
       },
       "post": {
         "summary": "Create Link",
-        "description": "Submits a new link. Links are always created even if the URL was previously submitted. Duplicate information is included in the response.",
+        "description": "Submits a new link. Links are always created even if the URL was previously submitted. Duplicate information is included in the response. When client fields (client_type, client_network, client_channel) are provided, duplicate detection is scoped per client: a URL is only considered a duplicate if it was previously submitted from the same client.",
         "tags": ["Links"],
         "requestBody": {
           "required": true,
@@ -707,7 +838,7 @@
         },
         "responses": {
           "201": {
-            "description": "Link created successfully",
+            "description": "Link created successfully. If duplicate detection finds a prior submission (scoped per client when client fields are provided), the response includes is_duplicate=true and previous_submissions.",
             "content": {
               "application/json": {
                 "schema": {
@@ -882,6 +1013,27 @@
               "default": 0,
               "minimum": 0
             }
+          },
+          {
+            "name": "client_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client platform (e.g., irc, slack, discord)"
+          },
+          {
+            "name": "client_network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
+          },
+          {
+            "name": "client_channel",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
         "responses": {
@@ -897,6 +1049,16 @@
                 "schema": {
                   "type": "string",
                   "description": "Plain text representation of quotes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client filter parameters (e.g., client_network without client_type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
                 }
               }
             }
@@ -1688,6 +1850,27 @@
               "default": 0,
               "minimum": 0
             }
+          },
+          {
+            "name": "client_type",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client platform (e.g., irc, slack, discord)"
+          },
+          {
+            "name": "client_network",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
+          },
+          {
+            "name": "client_channel",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
         "responses": {
@@ -1703,6 +1886,16 @@
                 "schema": {
                   "type": "string",
                   "description": "Plain text representation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client filter parameters (e.g., client_network without client_type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
                 }
               }
             }

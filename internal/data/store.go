@@ -2,17 +2,23 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
 type IRCLink struct {
-	ID          int       `json:"ircLinkID" gorm:"column:ircLinkID;primaryKey"`
-	Timestamp   time.Time `json:"timestamp" gorm:"column:timestamp"`
-	User        string    `json:"user" gorm:"column:user;index"`
-	Title       string    `json:"title" gorm:"column:title"`
-	URL         string    `json:"url" gorm:"column:url"`
-	Clicks      int       `json:"clicks" gorm:"column:clicks;default:0"`
-	ContentType string    `json:"content_type" gorm:"column:content_type"`
+	ID             int       `json:"ircLinkID" gorm:"column:ircLinkID;primaryKey"`
+	Timestamp      time.Time `json:"timestamp" gorm:"column:timestamp"`
+	User           string    `json:"user" gorm:"column:user;index"`
+	Title          string    `json:"title" gorm:"column:title"`
+	URL            string    `json:"url" gorm:"column:url"`
+	Clicks         int       `json:"clicks" gorm:"column:clicks;default:0"`
+	ContentType    string    `json:"content_type" gorm:"column:content_type"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_link_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_link_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_link_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `ircLink`
@@ -21,12 +27,17 @@ func (IRCLink) TableName() string {
 }
 
 type Image struct {
-	ID        int       `json:"imageID" gorm:"column:imageID;primaryKey"`
-	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
-	Title     string    `json:"title" gorm:"column:title"`
-	Link      string    `json:"link" gorm:"column:link"`
-	URL       string    `json:"url" gorm:"column:url"`
-	MD5Sum    string    `json:"md5sum" gorm:"column:md5sum"`
+	ID             int       `json:"imageID" gorm:"column:imageID;primaryKey"`
+	Timestamp      time.Time `json:"timestamp" gorm:"column:timestamp"`
+	Title          string    `json:"title" gorm:"column:title"`
+	Link           string    `json:"link" gorm:"column:link"`
+	URL            string    `json:"url" gorm:"column:url"`
+	MD5Sum         string    `json:"md5sum" gorm:"column:md5sum"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_image_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_image_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_image_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `image`
@@ -35,11 +46,16 @@ func (Image) TableName() string {
 }
 
 type Quote struct {
-	ID        int       `json:"quoteID" gorm:"column:quoteID;primaryKey"`
-	Timestamp time.Time `json:"timestamp" gorm:"column:timestamp"`
-	Quote     string    `json:"quote" gorm:"column:quote"`
-	Author    string    `json:"author" gorm:"column:author;type:varchar(255);index"`
-	Poster    string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
+	ID             int       `json:"quoteID" gorm:"column:quoteID;primaryKey"`
+	Timestamp      time.Time `json:"timestamp" gorm:"column:timestamp"`
+	Quote          string    `json:"quote" gorm:"column:quote"`
+	Author         string    `json:"author" gorm:"column:author;type:varchar(255);index"`
+	Poster         string    `json:"poster,omitempty" gorm:"column:poster;type:varchar(255);index"`
+	ClientType     *string   `json:"client_type,omitempty" gorm:"column:client_type;type:varchar(50);index:idx_quote_client,priority:1"`
+	ClientNetwork  *string   `json:"client_network,omitempty" gorm:"column:client_network;type:varchar(255);index:idx_quote_client,priority:2"`
+	ClientChannel  *string   `json:"client_channel,omitempty" gorm:"column:client_channel;type:varchar(255);index:idx_quote_client,priority:3"`
+	ClientUserID   *string   `json:"client_user_id,omitempty" gorm:"column:client_user_id;type:varchar(255)"`
+	ClientUserName *string   `json:"client_user_name,omitempty" gorm:"column:client_user_name;type:varchar(255)"`
 }
 
 // TableName overrides the table name used by User to `quote`
@@ -54,15 +70,54 @@ type UserStat struct {
 }
 
 type TimelineItem struct {
-	Type        string    `json:"type"` // "link", "quote", or "image"
-	ID          int       `json:"id"`
-	Timestamp   time.Time `json:"timestamp"`
-	Title       string    `json:"title"`                                  // For links and images
-	URL         string    `json:"url"`                                    // For links and images
-	Content     string    `json:"content"`                                // For quotes
-	Author      string    `json:"author"`                                 // For quotes (and links/images as User)
-	MD5Sum      string    `json:"md5sum"`                                 // For images
-	ContentType string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
+	Type           string    `json:"type"` // "link", "quote", or "image"
+	ID             int       `json:"id"`
+	Timestamp      time.Time `json:"timestamp"`
+	Title          string    `json:"title"`                                  // For links and images
+	URL            string    `json:"url"`                                    // For links and images
+	Content        string    `json:"content"`                                // For quotes
+	Author         string    `json:"author"`                                 // For quotes (and links/images as User)
+	MD5Sum         string    `json:"md5sum"`                                 // For images
+	ContentType    string    `json:"contentType" gorm:"column:content_type"` // For links (to detect images)
+	ClientType     *string   `json:"client_type,omitempty"`
+	ClientNetwork  *string   `json:"client_network,omitempty"`
+	ClientChannel  *string   `json:"client_channel,omitempty"`
+	ClientUserID   *string   `json:"client_user_id,omitempty"`
+	ClientUserName *string   `json:"client_user_name,omitempty"`
+}
+
+// ValidClientTypes is the set of allowed client_type values.
+var ValidClientTypes = map[string]bool{
+	"irc":     true,
+	"slack":   true,
+	"discord": true,
+	"api":     true,
+	"web":     true,
+}
+
+type ClientFilter struct {
+	ClientType    *string
+	ClientNetwork *string
+	ClientChannel *string
+}
+
+func (f ClientFilter) IsEmpty() bool {
+	return f.ClientType == nil && f.ClientNetwork == nil && f.ClientChannel == nil
+}
+
+// Validate checks that hierarchical filter dependencies are satisfied.
+// client_network requires client_type, and client_channel requires both.
+func (f ClientFilter) Validate() error {
+	if f.ClientType != nil && !ValidClientTypes[*f.ClientType] {
+		return fmt.Errorf("invalid client_type: must be one of irc, slack, discord, api, web")
+	}
+	if f.ClientNetwork != nil && f.ClientType == nil {
+		return fmt.Errorf("client_network requires client_type")
+	}
+	if f.ClientChannel != nil && (f.ClientType == nil || f.ClientNetwork == nil) {
+		return fmt.Errorf("client_channel requires client_type and client_network")
+	}
+	return nil
 }
 
 type Tag struct {
@@ -104,25 +159,27 @@ func (ArchiveLookup) TableName() string {
 }
 
 type Store interface {
-	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int) ([]IRCLink, error)
-	GetRecentImages(ctx context.Context, days int, offsetDays int) ([]Image, error)
-	GetRecentQuotes(ctx context.Context, days int, offsetDays int) ([]Quote, error)
+	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]IRCLink, error)
+	GetRecentImages(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Image, error)
+	GetRecentQuotes(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Quote, error)
 
-	SearchIRCLinks(ctx context.Context, query string) ([]IRCLink, error)
-	SearchQuotes(ctx context.Context, query string) ([]Quote, error)
+	SearchIRCLinks(ctx context.Context, query string, filter ClientFilter) ([]IRCLink, error)
+	SearchQuotes(ctx context.Context, query string, filter ClientFilter) ([]Quote, error)
 	GetTopIRCLinks(ctx context.Context, startDays int, endDays int, limit int) ([]IRCLink, error)
 	GetIRCLinkByID(ctx context.Context, id int) (*IRCLink, error)
 	GetIRCLinkURL(ctx context.Context, id int) (string, error)
-	GetIRCLinksByURL(ctx context.Context, url string) ([]IRCLink, error)
+	GetIRCLinksByURL(ctx context.Context, url string, filter ClientFilter) ([]IRCLink, error)
 	IncrementClicks(ctx context.Context, id int) error
-	InsertIRCLink(ctx context.Context, user, title, url, contentType string) (int, error)
+	InsertIRCLink(ctx context.Context, link *IRCLink) (int, error)
 	DeleteIRCLink(ctx context.Context, id int) error
-	InsertQuote(ctx context.Context, quote, author, poster string) (int, error)
+	InsertQuote(ctx context.Context, quote *Quote) (int, error)
 	GetRandomQuote(ctx context.Context) (*Quote, error)
 	GetQuoteByID(ctx context.Context, id int) (*Quote, error)
 	DeleteQuote(ctx context.Context, id int) error
 
 	// Stats
+	CountIRCLinks(ctx context.Context) (int64, error)
+	CountQuotes(ctx context.Context) (int64, error)
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)
@@ -149,7 +206,7 @@ type Store interface {
 	DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error
 
 	// Image operations
-	InsertImage(ctx context.Context, title, link, url string) (int, error)
+	InsertImage(ctx context.Context, image *Image) (int, error)
 	GetTodayImageByLink(ctx context.Context, link string) (*Image, error)
 	DeleteTodayImageByLink(ctx context.Context, link string) error
 
