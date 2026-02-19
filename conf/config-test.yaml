@@ -7,3 +7,4 @@ mode: dev
 logging:
   level: debug
   output: tumble.log
+request_timeout: 10s
