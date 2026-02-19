@@ -10,8 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/html"
 	"tumble/internal/data"
+
+	"golang.org/x/net/html"
 )
 
 const (
@@ -121,7 +122,11 @@ func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request
 
 	// Cache hit - serve response
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "public, max-age=86400")
+	if !h.Config.Caching.Enabled {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+	}
 	json.NewEncoder(w).Encode(meta)
 	return true
 }
@@ -284,8 +289,12 @@ func (h *Handler) cacheAndRespond(w http.ResponseWriter, r *http.Request, urlPar
 			h.Store.InsertLinkPreview(r.Context(), urlParam, data)
 		}
 	}
-	// Client-side Caching Header (24h)
-	w.Header().Set("Cache-Control", "public, max-age=86400")
+	if !h.Config.Caching.Enabled {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	} else {
+		// Client-side Caching Header (24h)
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+	}
 	json.NewEncoder(w).Encode(meta)
 }
 
@@ -481,6 +490,16 @@ func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]strin
 				metadata["image"] = content
 			} else if property == "og:site_name" {
 				metadata["provider_name"] = content
+			} else if property == "og:video" || property == "og:video:url" {
+				metadata["video"] = content
+			} else if property == "og:video:secure_url" {
+				metadata["video_secure_url"] = content
+			} else if property == "og:video:width" {
+				metadata["video_width"] = content
+			} else if property == "og:video:height" {
+				metadata["video_height"] = content
+			} else if property == "og:type" {
+				metadata["og_type"] = content
 			} else if name == "twitter:image" {
 				metadata["twitter_image"] = content
 			} else if name == "twitter:title" {

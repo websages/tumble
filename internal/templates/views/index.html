@@ -169,7 +169,8 @@
           }
 
           // Create preview endpoint URL
-          var previewUrl = "/api/v1/preview?url=" + encodeURIComponent(url);
+          // Append timestamp to bypass previously aggressive browser-cached responses
+          var previewUrl = "/api/v1/preview?url=" + encodeURIComponent(url) + "&t=" + new Date().getTime();
 
           // Load preview asynchronously
           var xhr = new XMLHttpRequest();
@@ -343,6 +344,8 @@
                   var embedHtmlAttr = '';
                   if (data.embed_html) {
                       embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
+                      if (data.embed_width) embedHtmlAttr += ' data-embed-width="' + data.embed_width + '"';
+                      if (data.embed_height) embedHtmlAttr += ' data-embed-height="' + data.embed_height + '"';
                   }
 
                   // Determine aspect ratio
@@ -368,8 +371,10 @@
                     "</div>";
                 } else if (!imageUrl && data.embed_html && (data.type === "video" || data.type === "rich")) {
                   // Embed exists but no thumbnail image — create container for auto-expand
-                  var embedHtmlAttr = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
-                  previewHTML += '<div class="og-image is-video"' + embedHtmlAttr + ' data-aspect="video"></div>';
+                  var embedHtmlAttr2 = ' data-embed-html="' + encodeURIComponent(data.embed_html) + '"';
+                  if (data.embed_width) embedHtmlAttr2 += ' data-embed-width="' + data.embed_width + '"';
+                  if (data.embed_height) embedHtmlAttr2 += ' data-embed-height="' + data.embed_height + '"';
+                  previewHTML += '<div class="og-image is-video"' + embedHtmlAttr2 + ' data-aspect="video"></div>';
                 }
 
                 // Text Content
@@ -419,6 +424,91 @@
             var embedHtmlEncoded = container.getAttribute('data-embed-html');
             if (embedHtmlEncoded) {
                 var embedHtml = decodeURIComponent(embedHtmlEncoded);
+
+                // Reddit video embeds (redditmedia.com/mediaembed/) use src directly
+                // to avoid iframe-in-iframe and ensure the video player works correctly
+                var redditVideoMatch = embedHtml.match(/src="(https:\/\/www\.redditmedia\.com\/mediaembed\/[^"]+)"/);
+                if (redditVideoMatch) {
+                    var iframe = document.createElement('iframe');
+                    iframe.sandbox = 'allow-scripts allow-same-origin allow-popups allow-presentation';
+                    iframe.src = redditVideoMatch[1];
+                    iframe.style.width = '100%';
+                    iframe.style.border = 'none';
+                    iframe.style.display = 'block';
+                    iframe.allowFullscreen = true;
+                    container.setAttribute('data-embed-type', 'reddit');
+
+                    // Size iframe to match the embed player's aspect ratio.
+                    // Dimensions come from the embed page's data-video-width/height
+                    // (the player's display ratio, not the raw video dimensions).
+                    // Controls overlay on the video so no extra padding is needed.
+                    var ew = parseInt(container.getAttribute('data-embed-width'));
+                    var eh = parseInt(container.getAttribute('data-embed-height'));
+                    console.log("[Debug] replaceWithVideo: ew=" + ew + ", eh=" + eh + ", html=" + container.outerHTML);
+                    window.__redditDebug = window.__redditDebug || [];
+                    window.__redditDebug.push({ew: ew, eh: eh, html: container.outerHTML});
+
+                    // Capture image dimensions before clearing container
+                    var img = container.querySelector('img');
+                    var naturalRatio = (img && img.naturalWidth) ? (img.naturalHeight / img.naturalWidth) : 0;
+
+                    // Essential for CSS to allow height > 600px (see screen.css .og-image[data-embed-type="reddit"])
+                    container.setAttribute('data-embed-type', 'reddit');
+
+                    // If image dimensions aren't available yet, verify them via a new Image object
+                    if (!naturalRatio && img && img.src) {
+                        var tester = new Image();
+                        tester.onload = function() {
+                            if (this.naturalWidth > 0) {
+                                naturalRatio = this.naturalHeight / this.naturalWidth;
+                                iframe.setAttribute('data-debug-loaded', 'true');
+                                iframe.setAttribute('data-debug-ratio', naturalRatio);
+                                iframe.setAttribute('data-debug-img-src', img.src);
+                                sizeRedditEmbed(); // Recalculate with new ratio
+                            }
+                        };
+                        tester.src = img.src;
+                    }
+
+                    function sizeRedditEmbed() {
+                        var cw = container.offsetWidth || 640;
+                        iframe.setAttribute('data-debug-ew', ew);
+                        iframe.setAttribute('data-debug-eh', eh);
+
+                        // Priority 1: Use explicit embed dimensions if they exist
+                        if (ew && eh) {
+                            var calculatedHeight = Math.round(cw * eh / ew);
+                            // Reddit's mediaembed player doesn't fill portrait iframes properly (it letterboxes).
+                            // Clamp the aspect ratio to a maximum of 1:1 (square) to avoid huge whitespace below portrait videos.
+                            if (calculatedHeight > cw) {
+                                iframe.style.height = cw + 'px';
+                            } else {
+                                iframe.style.height = calculatedHeight + 'px';
+                            }
+                        }
+                        // Priority 2: Use natural image aspect ratio if valid
+                        else if (naturalRatio) {
+                             iframe.style.height = Math.round(cw * naturalRatio) + 'px';
+                        }
+                        // Priority 3: Default to 16:9
+                        else {
+                            iframe.style.height = Math.round(cw * 9 / 16) + 'px';
+                        }
+                        iframe.setAttribute('data-debug-final-height', iframe.style.height);
+                    }
+                    sizeRedditEmbed();
+
+                    if (window.ResizeObserver) {
+                        new ResizeObserver(sizeRedditEmbed).observe(container);
+                    }
+
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                    container.onclick = null;
+                    container.classList.remove('is-video');
+                    container.style.cursor = 'default';
+                    return;
+                }
 
                 // Security: Use sandboxed iframe to isolate external embed content
                 // This prevents embedded content from accessing the parent page
