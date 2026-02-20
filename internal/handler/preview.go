@@ -188,8 +188,14 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			h.cacheAndRespond(w, r, urlParam, meta)
 			return
 		}
-		// If we detected a soft 404, stop here and return 404 so UI can render "missing" badge
+		// If we detected a soft 404 from scraping (e.g. consent page with generic
+		// "YouTube" title), verify with OEmbed before declaring dead. The OEmbed API
+		// returns proper data regardless of consent screens or JS rendering.
 		if err.Error() == "status 404" {
+			if oeMeta, oeErr := h.tryOEmbed(urlParam); oeErr == nil {
+				h.cacheAndRespond(w, r, urlParam, oeMeta)
+				return
+			}
 			h.cacheErrorPreview(r, urlParam, "Video Unavailable", 404)
 			archiveData := h.attachArchiveData(r.Context(), urlParam)
 			resp := map[string]interface{}{
