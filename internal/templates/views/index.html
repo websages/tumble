@@ -841,9 +841,10 @@
       if (isEnabled) {
         html.removeAttribute("data-scott-mode");
         localStorage.setItem("scottMode", "false");
-        // Restore theme preference
+        // Restore theme preference (match init logic: explicit setting or OS preference)
         var savedTheme = localStorage.getItem("theme");
-        if (savedTheme === "dark") {
+        var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
           html.setAttribute("data-theme", "dark");
         }
       } else {
