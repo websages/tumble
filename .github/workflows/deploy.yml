@@ -49,6 +49,7 @@ jobs:
         env:
           IRC_PASSWORD: ${{ secrets.IRC_PASSWORD }}
         run: |
+          sudo apt-get install -y -qq ncat > /dev/null 2>&1
           COMMIT_MSG=$(git log -1 --pretty=%s)
           {
             sleep 1
@@ -62,4 +63,4 @@ jobs:
             sleep 1
             printf "QUIT :Done\r\n"
             sleep 1
-          } | nc 72.14.177.235 8080 || true
+          } | ncat --ssl 72.14.177.235 8080 || true
