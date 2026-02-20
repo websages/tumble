@@ -43,3 +43,23 @@ jobs:
             chmod +x /srv/tumble/bin/tumble
             sudo systemctl restart tumble
           EOF
+
+      - name: Notify IRC
+        if: success()
+        env:
+          IRC_PASSWORD: ${{ secrets.IRC_PASSWORD }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          {
+            sleep 1
+            printf "PASS %s\r\n" "$IRC_PASSWORD"
+            printf "NICK tumble-deploy\r\n"
+            printf "USER tumble-deploy 0 * :Tumble Deploy Bot\r\n"
+            sleep 3
+            printf "JOIN #heathsmom\r\n"
+            sleep 2
+            printf "PRIVMSG #heathsmom :Tumble deployed: %.7s - %s\r\n" "$GITHUB_SHA" "$COMMIT_MSG"
+            sleep 1
+            printf "QUIT :Done\r\n"
+            sleep 1
+          } | nc 72.14.177.235 8080 || true
