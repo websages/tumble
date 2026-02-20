@@ -553,12 +553,69 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	quotes, err := h.Store.SearchQuotes(ctx, query, data.ClientFilter{})
+	if err != nil {
+		h.ServerError(w, r, err)
+		return
+	}
+
 	containerHTML := ""
-	if len(links) > 0 {
+	if len(links) > 0 || len(quotes) > 0 {
+		// Process all items into DisplayItems
+		var allItems []service.DisplayItem
 		for _, item := range links {
-			d := h.Service.ProcessIRCLink(item)
-			s, _ := h.Renderer.RenderToString("tumble_item_ircLink.html", d)
+			allItems = append(allItems, h.Service.ProcessIRCLink(item))
+		}
+		for _, item := range quotes {
+			allItems = append(allItems, h.Service.ProcessQuote(item))
+		}
+
+		// Sort by timestamp descending (newest first)
+		sort.Slice(allItems, func(i, j int) bool {
+			return allItems[i].Timestamp.After(allItems[j].Timestamp)
+		})
+
+		// Render items with date grouping
+		lastDate := ""
+		sectionOpen := false
+		for _, item := range allItems {
+			var tmplName string
+			switch item.Type {
+			case "ircLink":
+				tmplName = "tumble_item_ircLink.html"
+			case "quote":
+				tmplName = "tumble_item_quote.html"
+			}
+
+			if item.FullDate != lastDate {
+				if sectionOpen {
+					containerHTML += "</div>"
+				}
+				containerHTML += fmt.Sprintf(`<div class="date-section" data-date="%s">`, item.FullDate)
+				sectionOpen = true
+
+				dateData := map[string]string{
+					"Date":  item.DateRawDay,
+					"Day":   item.DateDay,
+					"Month": item.DateMonth,
+					"Year":  item.DateYear,
+				}
+				dateHTML, err := h.Renderer.RenderToString("tumble_date.html", dateData)
+				if err == nil {
+					containerHTML += dateHTML
+				}
+				lastDate = item.FullDate
+			}
+
+			s, err := h.Renderer.RenderToString(tmplName, item)
+			if err != nil {
+				slog.Debug("Render Error", "type", item.Type, "id", item.ID, "error", err)
+				continue
+			}
 			containerHTML += s
+		}
+		if sectionOpen {
+			containerHTML += "</div>"
 		}
 	} else {
 		// Use the new no_search_results template
