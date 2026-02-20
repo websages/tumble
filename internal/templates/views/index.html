@@ -510,6 +510,22 @@
                     return;
                 }
 
+                // YouTube embeds: use direct iframe with responsive wrapper
+                // to avoid iframe-in-iframe sizing issues from oEmbed fixed dimensions
+                var ytSrcMatch = embedHtml.match(/src="(https:\/\/www\.youtube\.com\/embed\/[^"]+)"/);
+                if (ytSrcMatch) {
+                    var ytSrc = ytSrcMatch[1];
+                    // Add autoplay param if not present
+                    if (ytSrc.indexOf('autoplay') === -1) {
+                        ytSrc += (ytSrc.indexOf('?') !== -1 ? '&' : '?') + 'autoplay=1';
+                    }
+                    container.innerHTML = '<div class="youtube-embed-wrapper"><iframe width="100%" height="100%" src="' + ytSrc + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+                    container.onclick = null;
+                    container.classList.remove('is-video');
+                    container.style.cursor = 'default';
+                    return;
+                }
+
                 // Security: Use sandboxed iframe to isolate external embed content
                 // This prevents embedded content from accessing the parent page
                 var iframe = document.createElement('iframe');
