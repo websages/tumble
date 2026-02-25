@@ -32,7 +32,7 @@ clean: ## Clean build directory
 
 
 test: ## Run unit tests
-	go test -v ./...
+	CGO_ENABLED=0 go test -v ./...
 
 test-mysql: ## Run MySQL-specific tests (requires MySQL)
 	go test -v -tags mysql ./internal/data/
