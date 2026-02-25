@@ -36,7 +36,16 @@ func (s *GormStore) Close() error {
 }
 
 func (s *GormStore) Bootstrap(ctx context.Context) error {
-	return s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{})
+	if err := s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{}); err != nil {
+		return err
+	}
+
+	if s.db.Dialector.Name() == "sqlite" {
+		if err := s.bootstrapFTS(ctx); err != nil {
+			return fmt.Errorf("FTS5 bootstrap failed: %w", err)
+		}
+	}
+	return nil
 }
 
 func applyClientFilter(query *gorm.DB, filter ClientFilter) *gorm.DB {
@@ -132,14 +141,11 @@ func (s *GormStore) GetRecentQuotes(ctx context.Context, startDays int, endDays 
 
 func (s *GormStore) SearchIRCLinks(ctx context.Context, query string, filter ClientFilter) ([]IRCLink, error) {
 	var links []IRCLink
-	// Simple LIKE search for cross-db compatibility
-	term := "%" + escapeLike(query) + "%"
+	tagTerm := "%" + escapeLike(query) + "%"
+
 	// Exclude links with cached error previews using tiered TTLs:
 	// - Recent links (< 10 days old): error cache expires after 24h
 	// - Old links (>= 10 days old): error cache expires after 60 days
-	// CAST is required because glebarez/sqlite stores []byte as BLOB,
-	// and SQLite's LIKE doesn't match text patterns against BLOBs.
-	// MySQL doesn't support CAST(... AS TEXT), so use CHAR instead.
 	castType := "TEXT"
 	if s.db.Dialector.Name() == "mysql" {
 		castType = "CHAR"
@@ -147,17 +153,35 @@ func (s *GormStore) SearchIRCLinks(ctx context.Context, query string, filter Cli
 	recentCutoff := time.Now().Add(-24 * time.Hour)
 	oldCutoff := time.Now().Add(-60 * 24 * time.Hour)
 	linkAgeCutoff := time.Now().Add(-10 * 24 * time.Hour)
-	q := s.db.WithContext(ctx).
-		Where(`(title LIKE ? OR url LIKE ? OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?))
-AND url NOT IN (
+
+	errorExclusion := `AND url NOT IN (
   SELECT lp.url FROM link_previews lp
-  WHERE CAST(lp.data AS `+castType+`) LIKE '%"error":%'
+  WHERE CAST(lp.data AS ` + castType + `) LIKE '%"error":%'
   AND (
     (EXISTS (SELECT 1 FROM ircLink il WHERE il.url = lp.url AND il.timestamp > ?) AND lp.updated_at > ?)
     OR
     (NOT EXISTS (SELECT 1 FROM ircLink il WHERE il.url = lp.url AND il.timestamp > ?) AND lp.updated_at > ?)
   )
-)`, term, term, term, linkAgeCutoff, recentCutoff, linkAgeCutoff, oldCutoff)
+)`
+
+	var q *gorm.DB
+	if s.db.Dialector.Name() == "sqlite" {
+		ftsQuery := buildFTSQuery(query)
+		q = s.db.WithContext(ctx).
+			Where(`(ircLinkID IN (SELECT rowid FROM ircLink_fts WHERE ircLink_fts MATCH ?)
+			OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?))
+			`+errorExclusion,
+				ftsQuery, tagTerm,
+				linkAgeCutoff, recentCutoff, linkAgeCutoff, oldCutoff)
+	} else {
+		term := "%" + escapeLike(query) + "%"
+		q = s.db.WithContext(ctx).
+			Where(`(title LIKE ? OR url LIKE ? OR ircLinkID IN (SELECT resource_id FROM tags WHERE resource_type = 'link' AND tag LIKE ?))
+			`+errorExclusion,
+				term, term, tagTerm,
+				linkAgeCutoff, recentCutoff, linkAgeCutoff, oldCutoff)
+	}
+
 	q = applyClientFilter(q, filter)
 	err := q.Order("clicks DESC").
 		Limit(50).
@@ -167,10 +191,22 @@ AND url NOT IN (
 
 func (s *GormStore) SearchQuotes(ctx context.Context, query string, filter ClientFilter) ([]Quote, error) {
 	var quotes []Quote
-	// Simple LIKE search for cross-db compatibility
-	term := "%" + escapeLike(query) + "%"
-	q := s.db.WithContext(ctx).
-		Where("quote LIKE ? OR author LIKE ? OR quoteID IN (SELECT resource_id FROM tags WHERE resource_type = 'quote' AND tag LIKE ?)", term, term, term)
+	tagTerm := "%" + escapeLike(query) + "%"
+
+	var q *gorm.DB
+	if s.db.Dialector.Name() == "sqlite" {
+		ftsQuery := buildFTSQuery(query)
+		q = s.db.WithContext(ctx).
+			Where(`quoteID IN (SELECT rowid FROM quote_fts WHERE quote_fts MATCH ?)
+			OR quoteID IN (SELECT resource_id FROM tags WHERE resource_type = 'quote' AND tag LIKE ?)`,
+				ftsQuery, tagTerm)
+	} else {
+		term := "%" + escapeLike(query) + "%"
+		q = s.db.WithContext(ctx).
+			Where("quote LIKE ? OR author LIKE ? OR quoteID IN (SELECT resource_id FROM tags WHERE resource_type = 'quote' AND tag LIKE ?)",
+				term, term, tagTerm)
+	}
+
 	q = applyClientFilter(q, filter)
 	err := q.Order("timestamp DESC").
 		Limit(50).
