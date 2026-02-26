@@ -158,6 +158,17 @@ func (ArchiveLookup) TableName() string {
 	return "archive_lookups"
 }
 
+// RelatedLink is a candidate link returned by the resurfacing query.
+// It contains the raw link data; scoring happens in the service layer.
+type RelatedLink struct {
+	ID        int       `json:"id"`
+	Title     string    `json:"title"`
+	URL       string    `json:"url"`
+	User      string    `json:"user"`
+	Clicks    int       `json:"clicks"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 type Store interface {
 	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]IRCLink, error)
 	GetRecentImages(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Image, error)
@@ -204,6 +215,9 @@ type Store interface {
 	GetTagByID(ctx context.Context, id int) (*Tag, error)
 	DeleteTag(ctx context.Context, id int) error
 	DeleteTagsByResource(ctx context.Context, resourceType string, resourceID int) error
+
+	// Resurfacing
+	FindRelatedLinks(ctx context.Context, title string, url string, excludeID int, limit int) ([]RelatedLink, error)
 
 	// Image operations
 	InsertImage(ctx context.Context, image *Image) (int, error)
