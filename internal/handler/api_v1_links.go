@@ -42,6 +42,22 @@ func (h *Handler) APIv1LinksHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Check if this is a related sub-resource (e.g., "5/related")
+		if strings.HasSuffix(path, "/related") {
+			idStr := strings.TrimSuffix(path, "/related")
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				writeAPIError(w, http.StatusBadRequest, "invalid_id", "Invalid link ID")
+				return
+			}
+			if r.Method != http.MethodGet {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Method not allowed")
+				return
+			}
+			h.apiV1GetRelatedLinks(w, r, id)
+			return
+		}
+
 		// Individual resource endpoints: GET or DELETE
 		// Path should be the ID
 		id, err := strconv.Atoi(path)

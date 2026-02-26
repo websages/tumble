@@ -154,6 +154,22 @@ type APITagsResponse struct {
 	Data []APITagResponse `json:"data"`
 }
 
+// APIRelatedLinkResponse represents a single related link in API responses.
+type APIRelatedLinkResponse struct {
+	ID        int       `json:"id"`
+	Title     string    `json:"title"`
+	URL       string    `json:"url"`
+	User      string    `json:"user"`
+	Clicks    int       `json:"clicks"`
+	CreatedAt time.Time `json:"created_at"`
+	Score     float64   `json:"score"`
+}
+
+// APIRelatedResponse is the response for related links.
+type APIRelatedResponse struct {
+	Data []APIRelatedLinkResponse `json:"data"`
+}
+
 // APITagCreateRequest is the request body for creating tags.
 type APITagCreateRequest struct {
 	Tags []string `json:"tags"`
