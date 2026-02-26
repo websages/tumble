@@ -51,8 +51,9 @@ type APIPreviousSubmission struct {
 // APILinkCreateResponse extends APILinkResponse with duplicate detection info.
 type APILinkCreateResponse struct {
 	APILinkResponse
-	IsDuplicate         bool                    `json:"is_duplicate"`
-	PreviousSubmissions []APIPreviousSubmission `json:"previous_submissions,omitempty"`
+	IsDuplicate         bool                     `json:"is_duplicate"`
+	PreviousSubmissions []APIPreviousSubmission   `json:"previous_submissions,omitempty"`
+	Related             []APIRelatedLinkResponse  `json:"related,omitempty"`
 }
 
 // APILinksResponse is the paginated response for a list of links.

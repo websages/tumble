@@ -271,6 +271,24 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		PreviousSubmissions: previousSubmissions,
 	}
 
+	// Find related links from the archive (best-effort)
+	candidates, relErr := h.Store.FindRelatedLinks(ctx, req.URL, req.URL, linkID, maxRelatedLinks*10)
+	if relErr == nil && len(candidates) > 0 {
+		tagMap := h.buildTagMap(ctx, candidates)
+		scored := scoreRelatedLinks(candidates, req.URL, req.URL, tagMap)
+		for _, s := range scored {
+			resp.Related = append(resp.Related, APIRelatedLinkResponse{
+				ID:        s.ID,
+				Title:     s.Title,
+				URL:       s.URL,
+				User:      s.User,
+				Clicks:    s.Clicks,
+				CreatedAt: s.Timestamp,
+				Score:     s.Score,
+			})
+		}
+	}
+
 	writeJSON(w, http.StatusCreated, resp)
 }
 
