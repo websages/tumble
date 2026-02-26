@@ -161,6 +161,13 @@
                 "items": {
                   "$ref": "#/components/schemas/APIPreviousSubmission"
                 }
+              },
+              "related": {
+                "type": "array",
+                "description": "Related links from the archive, scored by relevance (best-effort, may be empty)",
+                "items": {
+                  "$ref": "#/components/schemas/APIRelatedLinkResponse"
+                }
               }
             }
           }
@@ -205,6 +212,67 @@
           }
         },
         "required": ["id", "user", "created_at"]
+      },
+      "APIRelatedLinkResponse": {
+        "type": "object",
+        "description": "A related link surfaced by the resurfacing engine, scored by relevance.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique link ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the related link"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the related link"
+          },
+          "user": {
+            "type": "string",
+            "description": "Username who submitted the related link"
+          },
+          "clicks": {
+            "type": "integer",
+            "description": "Number of verified clicks"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the related link was submitted"
+          },
+          "score": {
+            "type": "number",
+            "format": "double",
+            "description": "Relevance score between 0.0 and 1.0",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": ["id", "title", "url", "user", "clicks", "created_at", "score"],
+        "example": {
+          "id": 99,
+          "title": "Related Article",
+          "url": "https://example.com/related",
+          "user": "alice",
+          "clicks": 5,
+          "created_at": "2026-01-10T08:00:00Z",
+          "score": 0.65
+        }
+      },
+      "APIRelatedResponse": {
+        "type": "object",
+        "description": "Response containing related links for a given link.",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/APIRelatedLinkResponse"
+            }
+          }
+        },
+        "required": ["data"]
       },
       "APILinksListResponse": {
         "type": "object",
@@ -976,6 +1044,90 @@
           },
           "404": {
             "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/links/{id}/related": {
+      "get": {
+        "summary": "Get Related Links",
+        "description": "Returns links related to the given link, scored by relevance. The resurfacing engine uses domain matching, title word overlap (Jaccard similarity), shared tags, click popularity, and age to rank candidates. Results are sorted by score descending and filtered to a minimum threshold.",
+        "tags": ["Links"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The link ID to find related links for",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of related links to return (default: 5, max: 20)",
+            "schema": {
+              "type": "integer",
+              "default": 5,
+              "minimum": 1,
+              "maximum": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Related links sorted by relevance score",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIRelatedResponse"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": 99,
+                      "title": "Related Article",
+                      "url": "https://example.com/related",
+                      "user": "alice",
+                      "clicks": 5,
+                      "created_at": "2026-01-10T08:00:00Z",
+                      "score": 0.65
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid link ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
             "content": {
               "application/json": {
                 "schema": {
