@@ -142,6 +142,10 @@ func (m *integrationMockStore) SearchQuotes(ctx context.Context, query string, f
 	return m.searchQuotes, nil
 }
 
+func (m *integrationMockStore) FindRelatedLinks(ctx context.Context, title string, url string, excludeID int, limit int) ([]data.RelatedLink, error) {
+	return nil, nil
+}
+
 func (m *integrationMockStore) CreateTag(ctx context.Context, tag data.Tag) (*data.Tag, error) {
 	if m.err != nil {
 		return nil, m.err

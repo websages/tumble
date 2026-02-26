@@ -86,6 +86,10 @@ func (m *mockAPIStore) DeleteIRCLink(ctx context.Context, id int) error {
 	return nil
 }
 
+func (m *mockAPIStore) FindRelatedLinks(ctx context.Context, title string, url string, excludeID int, limit int) ([]data.RelatedLink, error) {
+	return nil, nil
+}
+
 func (m *mockAPIStore) GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]data.Tag, error) {
 	return nil, nil
 }
