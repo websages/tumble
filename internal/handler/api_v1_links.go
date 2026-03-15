@@ -195,7 +195,8 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		Build()
 	client := safeurl.Client(config)
 
-	fetchResp, fetchErr := client.Get(req.URL)
+	fetchReq, _ := http.NewRequestWithContext(ctx, "GET", req.URL, nil)
+	fetchResp, fetchErr := client.Do(fetchReq)
 	if fetchErr == nil {
 		defer fetchResp.Body.Close()
 		if fetchResp.StatusCode >= 400 {
