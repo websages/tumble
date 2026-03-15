@@ -240,7 +240,7 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		}
 		if strings.HasSuffix(lower, ".png") || strings.HasSuffix(lower, ".jpg") ||
 			strings.HasSuffix(lower, ".jpeg") || strings.HasSuffix(lower, ".gif") ||
-			strings.HasSuffix(lower, ".webp") || strings.HasSuffix(lower, ".svg") {
+			strings.HasSuffix(lower, ".webp") {
 			d.EmbedType = EmbedTypeImage
 			d.MediaURL = item.URL
 			d.MediaType = "image"
