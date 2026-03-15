@@ -198,7 +198,9 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 	fetchResp, fetchErr := client.Get(req.URL)
 	if fetchErr == nil {
 		defer fetchResp.Body.Close()
-		if strings.Contains(fetchResp.Header.Get("Content-Type"), "image") {
+		if fetchResp.StatusCode >= 400 {
+			log.Printf("URL fetch returned status %d for %s", fetchResp.StatusCode, req.URL)
+		} else if strings.Contains(fetchResp.Header.Get("Content-Type"), "image") {
 			contentType = "image"
 		} else {
 			limitedBody := io.LimitReader(fetchResp.Body, 1024*1024)
