@@ -292,6 +292,131 @@ func TestProcessIRCLink_Twitter(t *testing.T) {
 	}
 }
 
+func TestProcessIRCLink_ExtensionFallback(t *testing.T) {
+	cfg := &config.Config{BaseURL: "http://tumble.test"}
+	svc := NewContentService(cfg, nil)
+
+	tests := []struct {
+		name          string
+		item          data.IRCLink
+		wantEmbedType EmbedType
+		wantMediaURL  string
+	}{
+		{
+			name: "PNG extension with empty ContentType",
+			item: data.IRCLink{
+				ID:    1,
+				Title: "Screenshot",
+				URL:   "https://example.com/image.png",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/image.png",
+		},
+		{
+			name: "JPG extension with query string",
+			item: data.IRCLink{
+				ID:    2,
+				Title: "Photo",
+				URL:   "https://example.com/photo.jpg?width=100",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/photo.jpg?width=100",
+		},
+		{
+			name: "JPEG extension with fragment",
+			item: data.IRCLink{
+				ID:    3,
+				Title: "Photo",
+				URL:   "https://example.com/photo.jpeg#section",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/photo.jpeg#section",
+		},
+		{
+			name: "GIF extension",
+			item: data.IRCLink{
+				ID:    4,
+				Title: "Animation",
+				URL:   "https://example.com/funny.gif",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/funny.gif",
+		},
+		{
+			name: "WEBP extension",
+			item: data.IRCLink{
+				ID:    5,
+				Title: "Modern image",
+				URL:   "https://example.com/pic.webp",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/pic.webp",
+		},
+		{
+			name: "Non-image URL with empty ContentType",
+			item: data.IRCLink{
+				ID:    6,
+				Title: "A webpage",
+				URL:   "https://example.com/article",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeGeneric,
+		},
+		{
+			name: "Image extension but NSFW user",
+			item: data.IRCLink{
+				ID:    7,
+				Title: "NSFW image",
+				URL:   "https://example.com/image.png",
+				User:  "nsfw_poster",
+			},
+			wantEmbedType: EmbedTypeGeneric,
+		},
+		{
+			name: "Mixed case extension",
+			item: data.IRCLink{
+				ID:    8,
+				Title: "Screenshot",
+				URL:   "https://example.com/image.PNG",
+				User:  "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/image.PNG",
+		},
+		{
+			name: "ContentType set takes priority over extension fallback",
+			item: data.IRCLink{
+				ID:          9,
+				Title:       "Has content type",
+				URL:         "https://example.com/image.png",
+				ContentType: "image/png",
+				User:        "user",
+			},
+			wantEmbedType: EmbedTypeImage,
+			wantMediaURL:  "https://example.com/image.png",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := svc.ProcessIRCLink(tt.item)
+
+			if got.EmbedType != tt.wantEmbedType {
+				t.Errorf("ProcessIRCLink() EmbedType = %v, want %v", got.EmbedType, tt.wantEmbedType)
+			}
+
+			if tt.wantMediaURL != "" && got.MediaURL != tt.wantMediaURL {
+				t.Errorf("ProcessIRCLink() MediaURL = %v, want %v", got.MediaURL, tt.wantMediaURL)
+			}
+		})
+	}
+}
+
 func TestProcessQuote(t *testing.T) {
 	cfg := &config.Config{BaseURL: "http://tumble.test"}
 	svc := NewContentService(cfg, nil)
