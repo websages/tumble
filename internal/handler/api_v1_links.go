@@ -200,14 +200,18 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		defer fetchResp.Body.Close()
 		if strings.Contains(fetchResp.Header.Get("Content-Type"), "image") {
 			contentType = "image"
-		}
-		limitedBody := io.LimitReader(fetchResp.Body, 1024*1024)
-		body, _ := io.ReadAll(limitedBody)
-		if idx := strings.Index(string(body), "<title>"); idx != -1 {
-			end := strings.Index(string(body)[idx:], "</title>")
-			if end != -1 {
-				title = string(body)[idx+7 : idx+end]
-				title = html.UnescapeString(title)
+		} else {
+			limitedBody := io.LimitReader(fetchResp.Body, 1024*1024)
+			body, _ := io.ReadAll(limitedBody)
+			bodyStr := string(body)
+			if idx := strings.Index(bodyStr, "<title>"); idx != -1 {
+				end := strings.Index(bodyStr[idx:], "</title>")
+				if end != -1 {
+					extracted := bodyStr[idx+7 : idx+end]
+					if extracted != "" {
+						title = html.UnescapeString(extracted)
+					}
+				}
 			}
 		}
 	} else {
