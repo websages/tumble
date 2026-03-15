@@ -107,7 +107,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Fetch title using SSRF-safe client
 		title := url // Default to URL
-		contentType := "0"
+		contentType := ""
 
 		// Configure safeurl to block private/internal IPs and restrict schemes
 		config := safeurl.GetConfigBuilder().
