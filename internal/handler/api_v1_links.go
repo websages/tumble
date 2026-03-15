@@ -3,12 +3,17 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"html"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"tumble/internal/data"
+
+	"github.com/doyensec/safeurl"
 )
 
 // APIv1LinksHandler routes requests to /api/v1/links endpoints.
@@ -181,12 +186,39 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Insert the link (use URL as title for now; existing code fetches title async)
+	// Fetch title and content type from URL
+	title := req.URL
+	contentType := ""
+
+	config := safeurl.GetConfigBuilder().
+		SetTimeout(10 * time.Second).
+		Build()
+	client := safeurl.Client(config)
+
+	fetchResp, fetchErr := client.Get(req.URL)
+	if fetchErr == nil {
+		defer fetchResp.Body.Close()
+		if strings.Contains(fetchResp.Header.Get("Content-Type"), "image") {
+			contentType = "image"
+		}
+		limitedBody := io.LimitReader(fetchResp.Body, 1024*1024)
+		body, _ := io.ReadAll(limitedBody)
+		if idx := strings.Index(string(body), "<title>"); idx != -1 {
+			end := strings.Index(string(body)[idx:], "</title>")
+			if end != -1 {
+				title = string(body)[idx+7 : idx+end]
+				title = html.UnescapeString(title)
+			}
+		}
+	} else {
+		log.Printf("URL fetch blocked or failed for %s: %v", req.URL, fetchErr)
+	}
+
 	linkID, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{
 		User:           req.User,
-		Title:          req.URL,
+		Title:          title,
 		URL:            req.URL,
-		ContentType:    "",
+		ContentType:    contentType,
 		ClientType:     req.ClientType,
 		ClientNetwork:  req.ClientNetwork,
 		ClientChannel:  req.ClientChannel,
@@ -240,7 +272,7 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		APILinkResponse: APILinkResponse{
 			ID:             linkID,
 			URL:            req.URL,
-			Title:          req.URL,
+			Title:          title,
 			User:           req.User,
 			Clicks:         0,
 			CreatedAt:      time.Now(),

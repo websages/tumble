@@ -231,6 +231,23 @@ func (s *ContentService) ProcessIRCLink(item data.IRCLink) DisplayItem {
 		return d
 	}
 
+	// Fallback: check URL file extension when ContentType is missing
+	if !d.IsNSFW {
+		lower := strings.ToLower(item.URL)
+		// Strip query string and fragment before checking extension
+		if idx := strings.IndexAny(lower, "?#"); idx != -1 {
+			lower = lower[:idx]
+		}
+		if strings.HasSuffix(lower, ".png") || strings.HasSuffix(lower, ".jpg") ||
+			strings.HasSuffix(lower, ".jpeg") || strings.HasSuffix(lower, ".gif") ||
+			strings.HasSuffix(lower, ".webp") || strings.HasSuffix(lower, ".svg") {
+			d.EmbedType = EmbedTypeImage
+			d.MediaURL = item.URL
+			d.MediaType = "image"
+			return d
+		}
+	}
+
 	// Default: generic link
 	d.EmbedType = EmbedTypeGeneric
 	return d
