@@ -103,6 +103,11 @@ type IndexPageData struct {
 	IsFallbackContent bool
 	CanonicalURL      string
 	DevMode           bool
+	SiteTitle         string
+	SiteDescription   string
+	ManagingEditor    string
+	WebMaster         string
+	Copyright         string
 }
 
 // NavigationData holds pagination navigation info
@@ -434,6 +439,11 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		IsFallbackContent: isFallback,
 		CanonicalURL:      canonicalURL,
 		DevMode:           h.Config.Mode == "development",
+		SiteTitle:         h.Config.SiteTitle,
+		SiteDescription:   h.Config.SiteDescription,
+		ManagingEditor:    h.Config.ManagingEditor,
+		WebMaster:         h.Config.WebMaster,
+		Copyright:         h.Config.Copyright,
 	}
 
 	templateName := "index.html"

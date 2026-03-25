@@ -23,6 +23,11 @@ type Config struct {
 	Logging         Logging       `yaml:"logging" mapstructure:"logging"`
 	Caching         Caching       `yaml:"caching" mapstructure:"caching"`
 	RequestTimeout  time.Duration `yaml:"request_timeout" mapstructure:"request_timeout"`
+	SiteTitle       string        `yaml:"site_title" mapstructure:"site_title"`
+	SiteDescription string        `yaml:"site_description" mapstructure:"site_description"`
+	ManagingEditor  string        `yaml:"managing_editor" mapstructure:"managing_editor"`
+	WebMaster       string        `yaml:"webmaster" mapstructure:"webmaster"`
+	Copyright       string        `yaml:"copyright" mapstructure:"copyright"`
 }
 
 type Caching struct {

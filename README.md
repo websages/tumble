@@ -59,6 +59,18 @@ port: 8080
 baseurl: your.domain.com
 ```
 
+### RSS Feed Settings
+
+These optional fields customize the RSS feed metadata. If omitted, the feed title and description default to "tumble", and the other fields are omitted from the feed entirely.
+
+```yaml
+site_title: "My Tumble Site"
+site_description: "A collection of interesting links and quotes"
+managing_editor: "admin@example.com (Your Name)"
+webmaster: "admin@example.com (Your Name)"
+copyright: "http://creativecommons.org/licenses/by-sa/4.0"
+```
+
 ### Environment Variables
 
 Override any config value with the `TUMBLE_` prefix. Use underscores for nested keys.
@@ -74,6 +86,11 @@ Override any config value with the `TUMBLE_` prefix. Use underscores for nested 
 | `TUMBLE_REQUEST_TIMEOUT` | HTTP request timeout | `2s` |
 | `TUMBLE_ADMIN_SECRET` | Secret for admin API operations | |
 | `TUMBLE_CLICK_SIGNING_KEY` | Secret for signed click tracking | |
+| `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
+| `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
+| `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
+| `TUMBLE_WEBMASTER` | RSS webMaster field | omitted |
+| `TUMBLE_COPYRIGHT` | RSS copyright field | omitted |
 
 ### Environment Modes (`TUMBLE_MODE`)
 

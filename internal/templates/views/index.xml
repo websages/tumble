@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
-        <title>tumblefish.</title>
+        <title>{{if .SiteTitle}}{{.SiteTitle}}{{else}}tumble{{end}}</title>
         <link>{{.BaseURL}}</link>
         <atom:link href="{{.BaseURL}}/index.xml" rel="self" type="application/rss+xml" />
-        <description>tumblefish.</description>
+        <description>{{if .SiteDescription}}{{.SiteDescription}}{{else if .SiteTitle}}{{.SiteTitle}}{{else}}tumble{{end}}</description>
         <language>en-us</language>
         <generator>lsrfsh v2.00</generator>
-
-        <managingEditor>scott@loserfish.org (Scott)</managingEditor>
-        <copyright>http://creativecommons.org/licenses/by-sa/1.0</copyright>
-        <webMaster>scott@loserfish.org (Scott)</webMaster>
+{{- if .ManagingEditor}}
+        <managingEditor>{{.ManagingEditor}}</managingEditor>
+{{- end}}
+{{- if .Copyright}}
+        <copyright>{{.Copyright}}</copyright>
+{{- end}}
+{{- if .WebMaster}}
+        <webMaster>{{.WebMaster}}</webMaster>
+{{- end}}
         <ttl>15</ttl>
 {{.Container}}
     </channel>
