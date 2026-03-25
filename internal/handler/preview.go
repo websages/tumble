@@ -182,6 +182,13 @@ func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// If not a single photo, fall through to normal OEmbed
+	} else if strings.Contains(urlParam, "google.com/maps") || strings.Contains(urlParam, "maps.google.com") || strings.Contains(urlParam, "maps.app.goo.gl") || strings.Contains(urlParam, "goo.gl/maps") {
+		meta, err := h.GetGoogleMapsPreview(urlParam)
+		if err == nil {
+			h.cacheAndRespond(w, r, urlParam, meta)
+			return
+		}
+		// Fall through to generic scraping
 	} else if strings.Contains(urlParam, "youtube.com") || strings.Contains(urlParam, "youtu.be") {
 		meta, err := h.GetYouTubePreview(urlParam)
 		if err == nil {
