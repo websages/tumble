@@ -428,6 +428,11 @@ body {
   border-color: var(--card-border-hover);
 }
 
+.kitten-card {
+  border: 1px solid var(--border-default);
+  margin-bottom: var(--space-4);
+}
+
 .kitten-header {
   padding: var(--space-3) var(--space-4);
   background: var(--card-bg);
@@ -435,6 +440,28 @@ body {
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-base);
   color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.kitten-header:hover {
+  background-color: var(--card-bg-hover, var(--card-bg));
+  opacity: 0.8;
+}
+
+.kitten-header:focus {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+
+/* Hide the default marker */
+.kitten-header::marker {
+  display: none;
 }
 
 .kitten-image {
@@ -1508,6 +1535,11 @@ html.fonts-loaded .material-symbols-rounded {
 .compact-mode .flickr-media,
 .compact-mode .direct-image-wrapper {
   display: none !important;
+}
+
+/* Allow kitten image to show when details is open, even in compact mode */
+.compact-mode .kitten-card[open] .kitten-image {
+  display: block !important;
 }
 
 /* Compact placeholders - shown only in compact mode */

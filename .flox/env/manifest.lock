@@ -1,30 +1,48 @@
 {
   "lockfile-version": 1,
   "manifest": {
-    "version": 1,
+    "schema-version": "1.10.0",
     "install": {
       "gnumake": {
-        "pkg-path": "gnumake"
+        "pkg-path": "gnumake",
+        "outputs": "all"
       },
       "go": {
         "pkg-path": "go"
       },
+      "gum": {
+        "pkg-path": "gum"
+      },
       "imagemagick": {
-        "pkg-path": "imagemagick"
+        "pkg-path": "imagemagick",
+        "outputs": "all"
       },
       "jq": {
-        "pkg-path": "jq"
+        "pkg-path": "jq",
+        "outputs": "all"
       },
       "libxml2": {
-        "pkg-path": "libxml2"
+        "pkg-path": "libxml2",
+        "outputs": "all"
       },
       "sqlite-interactive": {
-        "pkg-path": "sqlite-interactive"
+        "pkg-path": "sqlite-interactive",
+        "outputs": "all"
       }
     },
+    "vars": {
+      "INTRO_MESSAGE": "Local dev:\n    flox services start dev\n    http://localhost:8080\n"
+    },
     "hook": {},
-    "profile": {},
-    "options": {}
+    "profile": {
+      "common": "  gum style \\\n  --foreground 212 --border-foreground 212 --border double \\\n  --width 40 --margin \"1 1\" --padding \"1 1\" \\\n    $INTRO_MESSAGE\n"
+    },
+    "options": {},
+    "services": {
+      "dev": {
+        "command": "go run ./cmd/tumble"
+      }
+    }
   },
   "packages": [
     {
@@ -48,6 +66,12 @@
       "version": "4.4.1",
       "outputs_to_install": [
         "man",
+        "man",
+        "man",
+        "man",
+        "out",
+        "out",
+        "out",
         "out"
       ],
       "outputs": {
@@ -81,6 +105,8 @@
       "version": "4.4.1",
       "outputs_to_install": [
         "man",
+        "man",
+        "out",
         "out"
       ],
       "outputs": {
@@ -272,10 +298,135 @@
         "out",
         "out",
         "out",
+        "out",
         "out"
       ],
       "outputs": {
         "out": "/nix/store/zzvsjgylnphvhms3lgr2qlwdxmc68z66-go-1.25.5"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gum",
+      "broken": false,
+      "derivation": "/nix/store/a1l884a7ihsnpbbsv7dgyhrhxr0dy88g-gum-0.17.0.drv",
+      "description": "Tasty Bubble Gum for your shell",
+      "install_id": "gum",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=a82ccc39b39b621151d6732718e3e250109076fa",
+      "name": "gum-0.17.0",
+      "pname": "gum",
+      "rev": "a82ccc39b39b621151d6732718e3e250109076fa",
+      "rev_count": 945868,
+      "rev_date": "2026-02-13T18:55:12Z",
+      "scrape_date": "2026-02-15T04:39:03.648173Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.17.0",
+      "outputs_to_install": [
+        "out",
+        "out",
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/pjh70r1gc4ylrc925kp6k74223n2r0hb-gum-0.17.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gum",
+      "broken": false,
+      "derivation": "/nix/store/lx61h7w2incwsb6ijqi26qw14q47l7iv-gum-0.17.0.drv",
+      "description": "Tasty Bubble Gum for your shell",
+      "install_id": "gum",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=a82ccc39b39b621151d6732718e3e250109076fa",
+      "name": "gum-0.17.0",
+      "pname": "gum",
+      "rev": "a82ccc39b39b621151d6732718e3e250109076fa",
+      "rev_count": 945868,
+      "rev_date": "2026-02-13T18:55:12Z",
+      "scrape_date": "2026-02-15T05:11:40.710242Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.17.0",
+      "outputs_to_install": [
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/7c6164p77vlzpbj5npz4nrn0gvylks50-gum-0.17.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gum",
+      "broken": false,
+      "derivation": "/nix/store/wd6qk0640rnnxi361ry2x2fb7bxsdixv-gum-0.17.0.drv",
+      "description": "Tasty Bubble Gum for your shell",
+      "install_id": "gum",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=a82ccc39b39b621151d6732718e3e250109076fa",
+      "name": "gum-0.17.0",
+      "pname": "gum",
+      "rev": "a82ccc39b39b621151d6732718e3e250109076fa",
+      "rev_count": 945868,
+      "rev_date": "2026-02-13T18:55:12Z",
+      "scrape_date": "2026-02-15T05:45:47.202099Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.17.0",
+      "outputs_to_install": [
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/xff8di1nlgqx2k7q5z6ma7jc02k5ravf-gum-0.17.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "gum",
+      "broken": false,
+      "derivation": "/nix/store/wkbcrdfhd3cifqw3gllsz2bsmik82c7v-gum-0.17.0.drv",
+      "description": "Tasty Bubble Gum for your shell",
+      "install_id": "gum",
+      "license": "MIT",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=a82ccc39b39b621151d6732718e3e250109076fa",
+      "name": "gum-0.17.0",
+      "pname": "gum",
+      "rev": "a82ccc39b39b621151d6732718e3e250109076fa",
+      "rev_count": 945868,
+      "rev_date": "2026-02-13T18:55:12Z",
+      "scrape_date": "2026-02-15T06:21:11.170622Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.17.0",
+      "outputs_to_install": [
+        "out",
+        "out",
+        "out",
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/99an674pwfn3fnhl050kkng9v8a3l1qb-gum-0.17.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
