@@ -348,10 +348,25 @@
         }
     }
 
+    function closeOpenDetails() {
+        var openDetails = document.querySelectorAll("details[open]");
+        openDetails.forEach(function (detail) {
+            detail.removeAttribute("open");
+        });
+    }
+
+    function openAllDetails() {
+        var details = document.querySelectorAll("details");
+        details.forEach(function (detail) {
+            detail.setAttribute("open", "open");
+        });
+    }
+
     // Init Icon
     var isCompact = html.classList.contains("compact-mode") || localStorage.getItem("compact") === "true";
     if (isCompact) {
         html.classList.add("compact-mode");
+        closeOpenDetails();
         updateCompactIcon(true);
     } else {
         updateCompactIcon(false);
@@ -363,10 +378,12 @@
             if (wasCompact) {
                 html.classList.remove("compact-mode");
                 localStorage.setItem("compact", "false");
+                openAllDetails();
                 updateCompactIcon(false);
             } else {
                 html.classList.add("compact-mode");
                 localStorage.setItem("compact", "true");
+                closeOpenDetails();
                 updateCompactIcon(true);
             }
         });

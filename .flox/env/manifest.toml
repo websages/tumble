@@ -1,12 +1,4 @@
-## Flox Environment Manifest -----------------------------------------
-##
-##   _Everything_ you need to know about the _manifest_ is here:
-##
-##   https://flox.dev/docs/reference/command-reference/manifest.toml/
-##
-## -------------------------------------------------------------------
-# Flox manifest version managed by Flox CLI
-version = 1
+schema-version = "1.10.0"
 
 
 ## Install Packages --------------------------------------------------
@@ -16,13 +8,17 @@ version = 1
 ## -------------------------------------------------------------------
 [install]
 gnumake.pkg-path = "gnumake"
+gnumake.outputs = "all"
 jq.pkg-path = "jq"
+jq.outputs = "all"
 go.pkg-path = "go"
 imagemagick.pkg-path = "imagemagick"
+imagemagick.outputs = "all"
 libxml2.pkg-path = "libxml2"
+libxml2.outputs = "all"
 sqlite-interactive.pkg-path = "sqlite-interactive"
-# gum.pkg-path = "gum"
-# gum.version = "^0.14.5"
+sqlite-interactive.outputs = "all"
+gum.pkg-path = "gum"
 
 
 ## Environment Variables ---------------------------------------------
@@ -30,7 +26,11 @@ sqlite-interactive.pkg-path = "sqlite-interactive"
 ##      as well as [hook], [profile] scripts and [services] below.
 ## -------------------------------------------------------------------
 [vars]
-# INTRO_MESSAGE = "It's gettin' Flox in here"
+INTRO_MESSAGE = """
+Local dev:
+    flox services start dev
+    http://localhost:8080
+"""
 
 
 ## Activation Hook ---------------------------------------------------
@@ -51,12 +51,12 @@ sqlite-interactive.pkg-path = "sqlite-interactive"
 ## ... sourced by _your shell_ when you run 'flox activate'.
 ## -------------------------------------------------------------------
 [profile]
-# common = '''
-#   gum style \
-#   --foreground 212 --border-foreground 212 --border double \
-#   --align center --width 50 --margin "1 2" --padding "2 4" \
-#     $INTRO_MESSAGE
-# '''
+common = '''
+  gum style \
+  --foreground 212 --border-foreground 212 --border double \
+  --width 40 --margin "1 1" --padding "1 1" \
+    $INTRO_MESSAGE
+'''
 ## Shell-specific customizations such as setting aliases go here:
 # bash = ...
 # zsh  = ...
@@ -69,8 +69,7 @@ sqlite-interactive.pkg-path = "sqlite-interactive"
 ##  $ flox activate --start-services  <- Activates & starts all
 ## ------------------------------------------------------------------
 [services]
-# myservice.command = "python3 -m http.server"
-
+dev.command = "go run ./cmd/tumble"
 
 ## Include ----------------------------------------------------------
 ## ... environments to create a composed environment
