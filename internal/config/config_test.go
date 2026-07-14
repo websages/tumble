@@ -22,7 +22,7 @@ func TestLoad_DevAlias(t *testing.T) {
 
 // TestLoad_EnvOnly verifies that the app can be configured entirely from
 // environment variables with no config file present. This is required for
-// container platforms (e.g. Fly.io buildpacks) that provide config via env.
+// container deployments (e.g. Fly.io) that provide config via env.
 // Keys without a SetDefault must still be populated from TUMBLE_* vars.
 func TestLoad_EnvOnly(t *testing.T) {
 	env := map[string]string{
