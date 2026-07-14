@@ -187,6 +187,7 @@ Then configure `conf/config.yaml` with your MySQL credentials.
 | `make restore` | Restore the SQLite database from backup |
 | `make fmt` | Run `go fmt` and clean up whitespace |
 | `make build-linux` | Cross-compile for Linux amd64 |
+| `make deploy` | Deploy to Fly.io (see below) |
 | `make help` | Show all available targets |
 
 ### Testing
@@ -218,6 +219,50 @@ The recommended approach:
 With `embed_assets: true` (the default), only the binary and config file are needed on the server.
 
 The production systemd units in `contrib/` use Flox to manage the MySQL service (`tumble-db.service` runs `flox activate --start-services`). See `contrib/README` for details.
+
+### Fly.io
+
+Tumble ships with a `fly.toml` and `Dockerfile` for deploying to
+[Fly.io](https://fly.io). The image bundles the tumble binary and the
+[Litestream](https://litestream.io) binary: SQLite lives on a persistent
+volume and is continuously replicated to object storage
+([Tigris](https://fly.io/docs/tigris/)) for disaster recovery. All non-secret
+configuration is supplied through `TUMBLE_*` environment variables (the
+`[env]` block of `fly.toml`); secrets are set separately.
+
+**One-time setup:**
+
+```bash
+fly auth login
+fly apps create tumble2                              # pick your own app name
+fly volumes create tumble_data --region iad --size 1 # persistent SQLite storage
+fly storage create                                   # Tigris bucket; sets BUCKET_NAME + AWS_* secrets
+
+# App secrets (never stored in fly.toml)
+fly secrets set TUMBLE_ADMIN_SECRET="$(openssl rand -hex 32)"
+fly secrets set TUMBLE_CLICK_SIGNING_KEY="$(openssl rand -hex 32)"  # optional
+```
+
+**Deploy** (stamps the current git commit into the version banner):
+
+```bash
+make deploy
+```
+
+**Custom domain:**
+
+```bash
+fly certs create tumble2.wcyd.org   # then add the DNS record Fly prints
+```
+
+Notes:
+
+- Because SQLite is backed by a single volume, run exactly one machine — do
+  not scale the count above 1.
+- Litestream replicates continuously; on a fresh machine the entrypoint
+  restores the database from the bucket before starting tumble. If no bucket
+  is configured (`BUCKET_NAME` unset), the app runs without replication.
+- Litestream's replica settings live in `conf/litestream.yml`.
 
 ## API
 

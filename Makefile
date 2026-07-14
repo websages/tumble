@@ -3,7 +3,7 @@ VERSION=$(shell git describe --tags --always | sed -e 's/-/\./g')
 BINARY_NAME=tumble
 BUILD_DIR=bin
 
-.PHONY: all build clean test test-mysql deps docs kill restart reset-db load-fixtures build-linux help fmt
+.PHONY: all build clean test test-mysql deps docs kill restart reset-db load-fixtures build-linux help fmt deploy
 
 all: build ## Build the binary (default)
 
@@ -72,6 +72,9 @@ run-test: kill build ## Run the application with the test database
 
 test-db: kill build ## Create a fresh test database with fixtures
 	./tests/setup_test_db.sh
+
+deploy: ## Deploy to Fly.io (Docker build, stamps git commit)
+	fly deploy --build-arg GIT_COMMIT="$(GIT_COMMIT)"
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

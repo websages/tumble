@@ -1,0 +1,43 @@
+# fly.toml — Tumble deployment
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "tumble2"
+primary_region = "iad"
+
+# Built from the Dockerfile, which bundles tumble + the Litestream binary.
+# Pass the commit hash for the version banner at deploy time:
+#   fly deploy --build-arg GIT_COMMIT="$(git rev-parse --short HEAD)"
+[build]
+
+# All non-secret configuration is supplied via TUMBLE_* env vars.
+# Object-storage credentials for Litestream (BUCKET_NAME, AWS_*) are
+# provisioned as secrets by `fly storage create`; do not put them here.
+[env]
+  TUMBLE_DRIVER = "sqlite"
+  TUMBLE_DATABASE = "/data/tumble.sqlite"
+  TUMBLE_BASEURL = "https://tumble2.wcyd.org"
+  TUMBLE_PORT = "8080"
+  TUMBLE_MODE = "production"
+  TUMBLE_LOGGING_LEVEL = "info"
+  TUMBLE_LOGGING_OUTPUT = "stdout"
+  TUMBLE_CACHING_ENABLED = "true"
+  TUMBLE_REQUEST_TIMEOUT = "10s"
+
+# Persistent volume for the SQLite database. Create it once with:
+#   fly volumes create tumble_data --region iad --size 1
+[[mounts]]
+  source = "tumble_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # The scheduler runs daily background jobs, so keep one machine alive
+  # rather than scaling to zero.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
