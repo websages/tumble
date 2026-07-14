@@ -59,6 +59,19 @@ func Load(path string) (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
+	// AutomaticEnv only feeds Unmarshal for keys that also have a default or
+	// appear in a config file. Bind the remaining keys explicitly so the app
+	// can be configured entirely from TUMBLE_* env vars with no config file
+	// (required for container platforms like Fly.io).
+	for _, key := range []string{
+		"host", "database", "username", "password",
+		"baseurl", "admin_secret", "click_signing_key",
+		"site_title", "site_description",
+		"managing_editor", "webmaster", "copyright",
+	} {
+		_ = v.BindEnv(key)
+	}
+
 	// Config File
 	if path != "" {
 		v.SetConfigFile(path)

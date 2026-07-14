@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	_ "time/tzdata" // embed the tz database so America/Chicago works without OS tzdata
 	"tumble/internal/assets"
 	"tumble/internal/config"
 	"tumble/internal/data"

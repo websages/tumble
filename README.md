@@ -82,20 +82,53 @@ copyright: "http://creativecommons.org/licenses/by-sa/4.0"
 
 ### Environment Variables
 
-Override any config value with the `TUMBLE_` prefix. Use underscores for nested keys.
+Any configuration value can be set with a `TUMBLE_`-prefixed environment
+variable (use underscores for nested keys, e.g. `TUMBLE_LOGGING_LEVEL`).
+Environment variables take precedence over the config file, and the
+application can run **entirely from environment variables with no config file
+present** — useful for container platforms.
+
+**Server**
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TUMBLE_PORT` | Listen port | `8080` |
-| `TUMBLE_DRIVER` | Database driver (`sqlite`, `mysql`) | `mysql` |
-| `TUMBLE_DATABASE` | Database name or file path | |
+| `TUMBLE_BASEURL` | Public base URL (used for RSS links and click tracking) | |
 | `TUMBLE_MODE` | `development` or `production` | `production` |
-| `TUMBLE_EMBED_ASSETS` | Load assets from binary or filesystem | `true` |
+| `TUMBLE_EMBED_ASSETS` | Load assets from binary (`true`) or filesystem (`false`) | `true` |
+| `TUMBLE_REQUEST_TIMEOUT` | Outbound HTTP request timeout | `2s` |
+
+**Database**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TUMBLE_DRIVER` | Database driver (`sqlite`, `mysql`) | `mysql` |
+| `TUMBLE_DATABASE` | Database name (MySQL) or file path (SQLite) | |
+| `TUMBLE_HOST` | MySQL host | |
+| `TUMBLE_USERNAME` | MySQL username | |
+| `TUMBLE_PASSWORD` | MySQL password | |
+
+**Logging & caching**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_LOGGING_LEVEL` | Log level (`debug`, `info`, `warn`, `error`) | `info` |
-| `TUMBLE_REQUEST_TIMEOUT` | HTTP request timeout | `2s` |
+| `TUMBLE_LOGGING_OUTPUT` | `stdout`, `stderr`, or a file path | `stdout` |
+| `TUMBLE_CACHING_ENABLED` | Cache link previews in the database | `true` |
+
+**Secrets**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_ADMIN_SECRET` | Secret for admin API operations | |
 | `TUMBLE_CLICK_SIGNING_KEY` | Secret for signed click tracking | |
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
+=======
+
+**RSS feed metadata**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
