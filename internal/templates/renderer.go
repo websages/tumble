@@ -85,12 +85,28 @@ func NewRenderer(cfg *config.Config) (*Renderer, error) {
 	return r, nil
 }
 
+// htmlFuncMap returns the HTML template funcs plus config-backed helpers that
+// need to close over the renderer's config (e.g. siteName).
+func (r *Renderer) htmlFuncMap() template.FuncMap {
+	fm := template.FuncMap{}
+	for k, v := range templateFuncs {
+		fm[k] = v
+	}
+	// siteName is the configurable wordmark shown in page titles and the
+	// masthead. Defaults to "tumblefish" via config.
+	fm["siteName"] = func() string {
+		return r.cfg.SiteName
+	}
+	return fm
+}
+
 func (r *Renderer) parseTemplates() error {
 	var err error
+	htmlFuncs := r.htmlFuncMap()
 	// Determine source: Embed or Filesystem based on embed_assets config
 	if r.cfg.EmbedAssets {
 		// Use embedded FS (default for production deployments)
-		r.htmlTmpls, err = template.New("").Funcs(templateFuncs).ParseFS(viewsFS, "views/*.html")
+		r.htmlTmpls, err = template.New("").Funcs(htmlFuncs).ParseFS(viewsFS, "views/*.html")
 		if err != nil {
 			return err
 		}
@@ -101,7 +117,7 @@ func (r *Renderer) parseTemplates() error {
 	} else {
 		// Parse from local filesystem for hot-reload during development
 		// Assumes running from project root
-		r.htmlTmpls, err = template.New("").Funcs(templateFuncs).ParseGlob("internal/templates/views/*.html")
+		r.htmlTmpls, err = template.New("").Funcs(htmlFuncs).ParseGlob("internal/templates/views/*.html")
 		if err != nil {
 			return err
 		}
