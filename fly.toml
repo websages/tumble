@@ -15,7 +15,7 @@ primary_region = "iad"
 [env]
   TUMBLE_DRIVER = "sqlite"
   TUMBLE_DATABASE = "/data/tumble.sqlite"
-  TUMBLE_BASEURL = "https://tumble2.wcyd.org"
+  TUMBLE_BASEURL = "https://feed.stahnma.us"
   TUMBLE_PORT = "8080"
   TUMBLE_MODE = "production"
   TUMBLE_LOGGING_LEVEL = "info"
