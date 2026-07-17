@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
   <head>
-    <title>tumblefish.{{.PageTitle}}</title>
+    <title>{{siteName}}.{{.PageTitle}}</title>
     <link
       rel="stylesheet"
       href="/css/screen.css"
@@ -53,7 +53,7 @@
 {{template "header" .}}
     <div id="page">
       <div id="masthead">
-        <a href="/" onclick="event.preventDefault(); window.location = window.location.origin + '/';">tumblefish.</a>
+        <a href="/" onclick="event.preventDefault(); window.location = window.location.origin + '/';">{{siteName}}.</a>
       </div>
 
       <div id="content" style="max-width: 600px; margin: 40px auto;">

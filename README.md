@@ -59,6 +59,15 @@ port: 8080
 baseurl: your.domain.com
 ```
 
+### Site Branding
+
+`site_name` sets the wordmark shown in the masthead and page titles (e.g.
+`tumblefish.stats`). It is independent of the RSS `site_title` below.
+
+```yaml
+site_name: "tumblefish"
+```
+
 ### RSS Feed Settings
 
 These optional fields customize the RSS feed metadata. If omitted, the feed title and description default to "tumble", and the other fields are omitted from the feed entirely.
@@ -86,6 +95,7 @@ Override any config value with the `TUMBLE_` prefix. Use underscores for nested 
 | `TUMBLE_REQUEST_TIMEOUT` | HTTP request timeout | `2s` |
 | `TUMBLE_ADMIN_SECRET` | Secret for admin API operations | |
 | `TUMBLE_CLICK_SIGNING_KEY` | Secret for signed click tracking | |
+| `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
