@@ -80,6 +80,18 @@ webmaster: "admin@example.com (Your Name)"
 copyright: "http://creativecommons.org/licenses/by-sa/4.0"
 ```
 
+### ActivityPub Federation
+
+Tumble can publish new links, quotes, and images to Mastodon-like clients that follow the site. This is publish-only: the site can be followed, but doesn't follow, like, or reply to anything. All posts are federated under a single site-wide actor (there's no per-user identity).
+
+```yaml
+activitypub:
+  enabled: true
+  actor_name: "tumble"
+```
+
+With this enabled, the actor becomes discoverable as `@tumble@your.domain.com` (substituting `actor_name` and the host from `baseurl`). `site_title`/`site_name` and `site_description` are reused as the actor's display name and summary.
+
 ### Environment Variables
 
 Override any config value with the `TUMBLE_` prefix. Use underscores for nested keys.
@@ -101,6 +113,8 @@ Override any config value with the `TUMBLE_` prefix. Use underscores for nested 
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
 | `TUMBLE_WEBMASTER` | RSS webMaster field | omitted |
 | `TUMBLE_COPYRIGHT` | RSS copyright field | omitted |
+| `TUMBLE_ACTIVITYPUB_ENABLED` | Enable ActivityPub federation | `false` |
+| `TUMBLE_ACTIVITYPUB_ACTOR_NAME` | Site actor's `preferredUsername` | `tumble` |
 
 ### Environment Modes (`TUMBLE_MODE`)
 

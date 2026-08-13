@@ -139,10 +139,14 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Insert the link (always insert, even if duplicate)
-		id, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{User: user, Title: title, URL: url, ContentType: contentType})
+		newLink := &data.IRCLink{User: user, Title: title, URL: url, ContentType: contentType}
+		id, err := h.Store.InsertIRCLink(ctx, newLink)
 		if err != nil {
 			h.ServerError(w, r, err)
 			return
+		}
+		if !isDuplicate && h.ActivityPub.Enabled() {
+			h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForLink(newLink))
 		}
 
 		source := r.URL.Query().Get("source")
@@ -244,6 +248,22 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	accept := r.Header.Get("Accept")
+	if h.ActivityPub.Enabled() && (strings.Contains(accept, "application/activity+json") || strings.Contains(accept, "application/ld+json")) {
+		link, err := h.Store.GetIRCLinkByID(ctx, id)
+		if err != nil || link == nil {
+			http.NotFound(w, r)
+			return
+		}
+		note := h.ActivityPub.NoteForLink(link)
+		note.Context = "https://www.w3.org/ns/activitystreams"
+		w.Header().Set("Content-Type", "application/activity+json")
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		enc.Encode(note)
 		return
 	}
 

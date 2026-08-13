@@ -29,6 +29,12 @@ type Config struct {
 	ManagingEditor  string        `yaml:"managing_editor" mapstructure:"managing_editor"`
 	WebMaster       string        `yaml:"webmaster" mapstructure:"webmaster"`
 	Copyright       string        `yaml:"copyright" mapstructure:"copyright"`
+	ActivityPub     ActivityPub   `yaml:"activitypub" mapstructure:"activitypub"`
+}
+
+type ActivityPub struct {
+	Enabled   bool   `yaml:"enabled" mapstructure:"enabled"`
+	ActorName string `yaml:"actor_name" mapstructure:"actor_name"`
 }
 
 type Caching struct {
@@ -53,6 +59,8 @@ func Load(path string) (*Config, error) {
 	v.SetDefault("caching.enabled", true)
 	v.SetDefault("request_timeout", "2s")
 	v.SetDefault("site_name", "tumblefish")
+	v.SetDefault("activitypub.enabled", false)
+	v.SetDefault("activitypub.actor_name", "tumble")
 
 	// Environment Variables
 	v.SetEnvPrefix("TUMBLE")

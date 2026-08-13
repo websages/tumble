@@ -30,7 +30,14 @@
               "code": {
                 "type": "string",
                 "description": "Machine-readable error code",
-                "enum": ["bad_request", "unauthorized", "forbidden", "not_found", "validation_error", "internal_error"]
+                "enum": [
+                  "bad_request",
+                  "unauthorized",
+                  "forbidden",
+                  "not_found",
+                  "validation_error",
+                  "internal_error"
+                ]
               },
               "message": {
                 "type": "string",
@@ -44,10 +51,15 @@
                 "description": "Field-level validation errors (for validation_error code)"
               }
             },
-            "required": ["code", "message"]
+            "required": [
+              "code",
+              "message"
+            ]
           }
         },
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "example": {
           "error": {
             "code": "not_found",
@@ -71,7 +83,11 @@
             "description": "Number of items skipped"
           }
         },
-        "required": ["total", "limit", "offset"]
+        "required": [
+          "total",
+          "limit",
+          "offset"
+        ]
       },
       "APILinkResponse": {
         "type": "object",
@@ -134,7 +150,12 @@
             "example": "stahnma"
           }
         },
-        "required": ["id", "url", "user", "created_at"],
+        "required": [
+          "id",
+          "url",
+          "user",
+          "created_at"
+        ],
         "example": {
           "id": 42,
           "url": "https://example.com/article",
@@ -142,12 +163,17 @@
           "user": "alice",
           "clicks": 15,
           "created_at": "2026-01-15T10:30:00Z",
-          "tags": ["golang", "tutorial"]
+          "tags": [
+            "golang",
+            "tutorial"
+          ]
         }
       },
       "APILinkCreateResponse": {
         "allOf": [
-          { "$ref": "#/components/schemas/APILinkResponse" },
+          {
+            "$ref": "#/components/schemas/APILinkResponse"
+          },
           {
             "type": "object",
             "properties": {
@@ -204,7 +230,11 @@
             "description": "Title of the previous submission"
           }
         },
-        "required": ["id", "user", "created_at"]
+        "required": [
+          "id",
+          "user",
+          "created_at"
+        ]
       },
       "APILinksListResponse": {
         "type": "object",
@@ -219,7 +249,10 @@
             "$ref": "#/components/schemas/APIMeta"
           }
         },
-        "required": ["data", "meta"]
+        "required": [
+          "data",
+          "meta"
+        ]
       },
       "APIQuoteResponse": {
         "type": "object",
@@ -278,14 +311,21 @@
             "example": "stahnma"
           }
         },
-        "required": ["id", "quote", "created_at"],
+        "required": [
+          "id",
+          "quote",
+          "created_at"
+        ],
         "example": {
           "id": 42,
           "quote": "The only way to do great work is to love what you do.",
           "author": "Steve Jobs",
           "poster": "alice",
           "created_at": "2026-01-15T10:30:00Z",
-          "tags": ["inspiration", "tech"]
+          "tags": [
+            "inspiration",
+            "tech"
+          ]
         }
       },
       "APIQuotesListResponse": {
@@ -301,7 +341,10 @@
             "$ref": "#/components/schemas/APIMeta"
           }
         },
-        "required": ["data", "meta"]
+        "required": [
+          "data",
+          "meta"
+        ]
       },
       "APISearchResponse": {
         "type": "object",
@@ -338,7 +381,11 @@
             }
           }
         },
-        "required": ["links", "quotes", "meta"]
+        "required": [
+          "links",
+          "quotes",
+          "meta"
+        ]
       },
       "APIStatsResponse": {
         "type": "object",
@@ -359,7 +406,11 @@
                 "description": "Total unique users"
               }
             },
-            "required": ["total_links", "total_quotes", "total_users"]
+            "required": [
+              "total_links",
+              "total_quotes",
+              "total_users"
+            ]
           },
           "leaderboard": {
             "type": "array",
@@ -371,7 +422,11 @@
             "$ref": "#/components/schemas/APIMeta"
           }
         },
-        "required": ["site", "leaderboard", "meta"],
+        "required": [
+          "site",
+          "leaderboard",
+          "meta"
+        ],
         "example": {
           "site": {
             "total_links": 15000,
@@ -379,8 +434,16 @@
             "total_users": 47
           },
           "leaderboard": [
-            { "user": "alice", "link_count": 500, "quote_count": 120 },
-            { "user": "bob", "link_count": 450, "quote_count": 85 }
+            {
+              "user": "alice",
+              "link_count": 500,
+              "quote_count": 120
+            },
+            {
+              "user": "bob",
+              "link_count": 450,
+              "quote_count": 85
+            }
           ],
           "meta": {
             "total": 47,
@@ -405,7 +468,11 @@
             "description": "Number of quotes submitted"
           }
         },
-        "required": ["user", "link_count", "quote_count"]
+        "required": [
+          "user",
+          "link_count",
+          "quote_count"
+        ]
       },
       "APIUserStatsResponse": {
         "type": "object",
@@ -423,7 +490,11 @@
             "description": "Number of quotes submitted"
           }
         },
-        "required": ["user", "link_count", "quote_count"],
+        "required": [
+          "user",
+          "link_count",
+          "quote_count"
+        ],
         "example": {
           "user": "alice",
           "link_count": 500,
@@ -449,7 +520,11 @@
             "description": "Whether the preview was successfully cached (false if an error occurred during fetch)"
           }
         },
-        "required": ["url", "preview", "cached"],
+        "required": [
+          "url",
+          "preview",
+          "cached"
+        ],
         "example": {
           "url": "https://example.com/article",
           "preview": {
@@ -472,7 +547,9 @@
             "description": "Number of entries cleared (only for 'all')"
           }
         },
-        "required": ["cleared"],
+        "required": [
+          "cleared"
+        ],
         "example": {
           "cleared": "all",
           "count": 47
@@ -495,7 +572,10 @@
             "description": "Whether a new kitten was fetched (PUT only)"
           }
         },
-        "required": ["url", "date"],
+        "required": [
+          "url",
+          "date"
+        ],
         "example": {
           "url": "https://cataas.com/cat/abc123",
           "date": "2026-02-08"
@@ -545,11 +625,17 @@
             "example": "stahnma"
           }
         },
-        "required": ["url", "user"],
+        "required": [
+          "url",
+          "user"
+        ],
         "example": {
           "url": "https://example.com/article",
           "user": "alice",
-          "tags": ["golang", "tutorial"]
+          "tags": [
+            "golang",
+            "tutorial"
+          ]
         }
       },
       "APITagResponse": {
@@ -565,7 +651,10 @@
           },
           "resource_type": {
             "type": "string",
-            "enum": ["link", "quote"],
+            "enum": [
+              "link",
+              "quote"
+            ],
             "description": "Type of resource this tag is attached to"
           },
           "resource_id": {
@@ -582,7 +671,13 @@
             "description": "When the tag was created"
           }
         },
-        "required": ["id", "tag", "resource_type", "resource_id", "created_at"],
+        "required": [
+          "id",
+          "tag",
+          "resource_type",
+          "resource_id",
+          "created_at"
+        ],
         "example": {
           "id": 1,
           "tag": "golang",
@@ -602,7 +697,9 @@
             }
           }
         },
-        "required": ["data"]
+        "required": [
+          "data"
+        ]
       },
       "TagCreateRequest": {
         "type": "object",
@@ -619,9 +716,15 @@
             "description": "Username creating the tags (required for authorization if not using API key)"
           }
         },
-        "required": ["tags"],
+        "required": [
+          "tags"
+        ],
         "example": {
-          "tags": ["golang", "web-dev", "tutorial"],
+          "tags": [
+            "golang",
+            "web-dev",
+            "tutorial"
+          ],
           "user": "alice"
         }
       },
@@ -673,12 +776,16 @@
             "example": "stahnma"
           }
         },
-        "required": ["quote"],
+        "required": [
+          "quote"
+        ],
         "example": {
           "quote": "The only way to do great work is to love what you do.",
           "author": "Steve Jobs",
           "poster": "alice",
-          "tags": ["inspiration"]
+          "tags": [
+            "inspiration"
+          ]
         }
       }
     }
@@ -688,7 +795,9 @@
       "get": {
         "summary": "Redirect to Link URL",
         "description": "Redirects to the URL associated with the given link ID. This is the public shortlink endpoint.",
-        "tags": ["Shortlinks"],
+        "tags": [
+          "Shortlinks"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -730,7 +839,9 @@
       "get": {
         "summary": "List Links",
         "description": "Returns a paginated list of links. Can be filtered by user.",
-        "tags": ["Links"],
+        "tags": [
+          "Links"
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -765,21 +876,27 @@
             "name": "client_type",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client platform (e.g., irc, slack, discord)"
           },
           {
             "name": "client_network",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
           },
           {
             "name": "client_channel",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
@@ -825,7 +942,9 @@
       "post": {
         "summary": "Create Link",
         "description": "Submits a new link. Links are always created even if the URL was previously submitted. Duplicate information is included in the response. When client fields (client_type, client_network, client_channel) are provided, duplicate detection is scoped per client: a URL is only considered a duplicate if it was previously submitted from the same client.",
-        "tags": ["Links"],
+        "tags": [
+          "Links"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -891,7 +1010,9 @@
       "get": {
         "summary": "Get Link",
         "description": "Returns a single link by ID.",
-        "tags": ["Links"],
+        "tags": [
+          "Links"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -935,9 +1056,13 @@
       "delete": {
         "summary": "Delete Link",
         "description": "Deletes a link by ID. Requires API key authentication.",
-        "tags": ["Links"],
+        "tags": [
+          "Links"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "parameters": [
           {
@@ -991,7 +1116,9 @@
       "get": {
         "summary": "List Quotes",
         "description": "Returns a paginated list of quotes.",
-        "tags": ["Quotes"],
+        "tags": [
+          "Quotes"
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1018,21 +1145,27 @@
             "name": "client_type",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client platform (e.g., irc, slack, discord)"
           },
           {
             "name": "client_network",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
           },
           {
             "name": "client_channel",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
@@ -1078,7 +1211,9 @@
       "post": {
         "summary": "Create Quote",
         "description": "Submits a new quote. Only the quote text is required.",
-        "tags": ["Quotes"],
+        "tags": [
+          "Quotes"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1144,7 +1279,9 @@
       "get": {
         "summary": "Get Quote",
         "description": "Returns a single quote by ID.",
-        "tags": ["Quotes"],
+        "tags": [
+          "Quotes"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1188,9 +1325,13 @@
       "delete": {
         "summary": "Delete Quote",
         "description": "Deletes a quote by ID. Requires API key authentication.",
-        "tags": ["Quotes"],
+        "tags": [
+          "Quotes"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "parameters": [
           {
@@ -1244,7 +1385,9 @@
       "get": {
         "summary": "List Tags for Link",
         "description": "Returns all tags associated with a link.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1282,7 +1425,9 @@
       "post": {
         "summary": "Add Tags to Link",
         "description": "Adds tags to a link. Authorized if admin API key is present, or if within 10 minutes of link creation and username matches the original poster.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1360,7 +1505,9 @@
       "put": {
         "summary": "Replace Tags on Link",
         "description": "Replaces all tags on a link. Same authorization rules as POST.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1420,9 +1567,13 @@
       "delete": {
         "summary": "Remove Tag from Link",
         "description": "Removes a specific tag from a link. Requires admin API key.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "parameters": [
           {
@@ -1475,7 +1626,9 @@
       "get": {
         "summary": "List Tags for Quote",
         "description": "Returns all tags associated with a quote.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1513,7 +1666,9 @@
       "post": {
         "summary": "Add Tags to Quote",
         "description": "Adds tags to a quote. Authorized if admin API key is present, or if within 10 minutes of quote creation and username matches the original author.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1581,7 +1736,9 @@
       "put": {
         "summary": "Replace Tags on Quote",
         "description": "Replaces all tags on a quote. Same authorization rules as POST.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1641,9 +1798,13 @@
       "delete": {
         "summary": "Remove Tag from Quote",
         "description": "Removes a specific tag from a quote. Requires admin API key.",
-        "tags": ["Tags"],
+        "tags": [
+          "Tags"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "parameters": [
           {
@@ -1696,7 +1857,9 @@
       "get": {
         "summary": "Get Site Statistics",
         "description": "Returns site-wide statistics and a leaderboard of users by activity.",
-        "tags": ["Statistics"],
+        "tags": [
+          "Statistics"
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1754,7 +1917,9 @@
       "get": {
         "summary": "Get User Statistics",
         "description": "Returns statistics for a specific user.",
-        "tags": ["Statistics"],
+        "tags": [
+          "Statistics"
+        ],
         "parameters": [
           {
             "name": "user",
@@ -1810,7 +1975,9 @@
       "get": {
         "summary": "Search Content",
         "description": "Search links and quotes by keyword. Minimum 4 characters required.",
-        "tags": ["Search"],
+        "tags": [
+          "Search"
+        ],
         "parameters": [
           {
             "name": "q",
@@ -1855,21 +2022,27 @@
             "name": "client_type",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client platform (e.g., irc, slack, discord)"
           },
           {
             "name": "client_network",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client network (requires client_type). Returns 400 if client_type is not also provided."
           },
           {
             "name": "client_channel",
             "in": "query",
             "required": false,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Filter by client channel (requires client_type and client_network). Returns 400 if dependencies are missing."
           }
         ],
@@ -1927,9 +2100,13 @@
       "put": {
         "summary": "Refresh Cached Preview",
         "description": "Deletes the existing cached preview for a URL and re-fetches it. Specify the link by ID or URL.",
-        "tags": ["Cache"],
+        "tags": [
+          "Cache"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "parameters": [
           {
@@ -2005,9 +2182,13 @@
       "delete": {
         "summary": "Clear Preview Cache",
         "description": "Clears the link preview cache. Can clear all entries or a specific URL.",
-        "tags": ["Cache"],
+        "tags": [
+          "Cache"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "parameters": [
           {
@@ -2067,7 +2248,9 @@
       "get": {
         "summary": "Get Daily Kitten",
         "description": "Returns today's kitten without triggering a fetch.",
-        "tags": ["Kittens"],
+        "tags": [
+          "Kittens"
+        ],
         "responses": {
           "200": {
             "description": "Today's kitten",
@@ -2110,9 +2293,13 @@
       "put": {
         "summary": "Ensure Daily Kitten",
         "description": "Fetches a new kitten if one doesn't exist for today. Returns the existing kitten if one already exists.",
-        "tags": ["Kittens"],
+        "tags": [
+          "Kittens"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "responses": {
           "200": {
@@ -2121,7 +2308,9 @@
               "application/json": {
                 "schema": {
                   "allOf": [
-                    { "$ref": "#/components/schemas/APIDailyKittenResponse" },
+                    {
+                      "$ref": "#/components/schemas/APIDailyKittenResponse"
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -2176,9 +2365,13 @@
       "delete": {
         "summary": "Remove Daily Kitten",
         "description": "Removes today's kitten. Use this to remove an undesirable kitten, then PUT to fetch a new one.",
-        "tags": ["Kittens"],
+        "tags": [
+          "Kittens"
+        ],
         "security": [
-          { "apiKey": [] }
+          {
+            "apiKey": []
+          }
         ],
         "responses": {
           "204": {
@@ -2221,7 +2414,9 @@
       "get": {
         "summary": "Get OpenGraph Preview",
         "description": "Fetches OpenGraph metadata for a URL. Returns cached data if available, otherwise fetches fresh metadata. Supports special handling for YouTube, Reddit, Twitter, Flickr, and OEmbed providers.",
-        "tags": ["Preview"],
+        "tags": [
+          "Preview"
+        ],
         "parameters": [
           {
             "name": "url",
@@ -2288,6 +2483,142 @@
           }
         }
       }
+    },
+    "/.well-known/webfinger": {
+      "get": {
+        "summary": "WebFinger lookup",
+        "description": "Resolves `acct:{actor_name}@{host}` to the site's ActivityPub actor URL, so Mastodon-like clients can discover and follow the site.",
+        "tags": [
+          "ActivityPub"
+        ],
+        "parameters": [
+          {
+            "name": "resource",
+            "in": "query",
+            "description": "The acct: URI being resolved, e.g. acct:tumble@example.com",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JRD document pointing at the actor",
+            "content": {
+              "application/jrd+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource does not match the site actor"
+          }
+        }
+      }
+    },
+    "/activitypub/actor": {
+      "get": {
+        "summary": "Site ActivityPub actor",
+        "description": "Returns the site-wide ActivityPub actor document (all federated posts are attributed to this single actor).",
+        "tags": [
+          "ActivityPub"
+        ],
+        "responses": {
+          "200": {
+            "description": "ActivityPub document",
+            "content": {
+              "application/activity+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activitypub/followers": {
+      "get": {
+        "summary": "Followers collection",
+        "description": "Returns the OrderedCollection of remote actors following the site. Paginated via `?page=N`.",
+        "tags": [
+          "ActivityPub"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for the OrderedCollectionPage",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ActivityPub document",
+            "content": {
+              "application/activity+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activitypub/outbox": {
+      "get": {
+        "summary": "Outbox collection",
+        "description": "Returns the site actor's OrderedCollection summary (total published items). Followers receive posts via inbox delivery.",
+        "tags": [
+          "ActivityPub"
+        ],
+        "responses": {
+          "200": {
+            "description": "ActivityPub document",
+            "content": {
+              "application/activity+json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activitypub/inbox": {
+      "post": {
+        "summary": "Actor inbox",
+        "description": "Accepts inbound activities from remote servers. Only `Follow` (adds a follower and replies with `Accept`) and `Undo` of a `Follow` (removes a follower) are handled; all other activity types are acknowledged and ignored, since the site only publishes. Requests must carry a valid HTTP Signature.",
+        "tags": [
+          "ActivityPub"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/activity+json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Activity accepted"
+          },
+          "403": {
+            "description": "Missing or invalid HTTP Signature"
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -2326,6 +2657,10 @@
     {
       "name": "Preview",
       "description": "OpenGraph link preview fetching"
+    },
+    {
+      "name": "ActivityPub",
+      "description": "Publish-only ActivityPub federation endpoints"
     }
   ]
 }

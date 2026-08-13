@@ -85,7 +85,7 @@ func (h *Handler) handlePutKittenDaily(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch a new kitten
-	fetched, err := scheduler.FetchAndStoreDailyCat(ctx, h.Store)
+	fetched, err := scheduler.FetchAndStoreDailyCat(ctx, h.Store, h.ActivityPub)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to fetch kitten")
 		return
