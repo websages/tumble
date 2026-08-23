@@ -86,6 +86,7 @@ func FetchAndStoreDailyCat(ctx context.Context, store data.Store, ap *activitypu
 	}
 
 	slog.Info("Daily kitten fetched and stored", "imageID", id, "url", catURL)
+	image.ID = id
 	publishImageNote(ctx, ap, image)
 	return true, nil
 }
@@ -112,6 +113,7 @@ func ForceFetchDailyCat(ctx context.Context, store data.Store, ap *activitypub.S
 	}
 
 	slog.Info("Daily kitten force-fetched and stored", "imageID", id, "url", catURL)
+	image.ID = id
 	publishImageNote(ctx, ap, image)
 	return catURL, nil
 }

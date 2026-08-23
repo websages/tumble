@@ -63,5 +63,5 @@ func (h *Handler) ImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>%s</title></head><body><img src="%s" alt="%s"><p><a href="%s">%s</a></p></body></html>`,
-		html.EscapeString(image.Title), html.EscapeString(image.URL), html.EscapeString(image.Title), html.EscapeString(image.Link), html.EscapeString(image.Title))
+		html.EscapeString(image.Title), html.EscapeString(image.URL), html.EscapeString(image.Title), html.EscapeString(image.URL), html.EscapeString(image.Title))
 }

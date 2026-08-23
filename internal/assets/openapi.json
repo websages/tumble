@@ -2484,6 +2484,34 @@
         }
       }
     },
+    "/image/{id}": {
+      "get": {
+        "summary": "Image permalink",
+        "description": "Returns the image post identified by id. Supports content negotiation: `Accept: application/activity+json` or `application/ld+json` returns an ActivityPub Note (when ActivityPub is enabled), `.json` suffix or `Accept: application/json` returns the raw Image record, otherwise a minimal HTML page.",
+        "tags": [
+          "Images"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The image ID (accepts an optional `.json` suffix)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image post, in HTML, JSON, or ActivityPub Note form depending on Accept header"
+          },
+          "404": {
+            "description": "Image not found"
+          }
+        }
+      }
+    },
     "/.well-known/webfinger": {
       "get": {
         "summary": "WebFinger lookup",
@@ -2657,6 +2685,10 @@
     {
       "name": "Preview",
       "description": "OpenGraph link preview fetching"
+    },
+    {
+      "name": "Images",
+      "description": "Image permalink endpoint"
     },
     {
       "name": "ActivityPub",

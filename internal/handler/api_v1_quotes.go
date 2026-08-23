@@ -165,7 +165,7 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert the quote
-	quoteID, err := h.Store.InsertQuote(ctx, &data.Quote{
+	newQuote := &data.Quote{
 		Quote:          req.Quote,
 		Author:         req.Author,
 		Poster:         req.Poster,
@@ -174,10 +174,15 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 		ClientChannel:  req.ClientChannel,
 		ClientUserID:   req.ClientUserID,
 		ClientUserName: req.ClientUserName,
-	})
+	}
+	quoteID, err := h.Store.InsertQuote(ctx, newQuote)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create quote")
 		return
+	}
+	if h.ActivityPub.Enabled() {
+		newQuote.ID = quoteID
+		h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForQuote(newQuote))
 	}
 
 	// Check content negotiation for plain text

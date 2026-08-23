@@ -92,7 +92,12 @@ func (s *Service) OutboxHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	col := s.BuildOutboxCollection(r.Context(), int(linkCount+quoteCount))
+	imageCount, err := s.Store.CountImages(r.Context())
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	col := s.BuildOutboxCollection(r.Context(), int(linkCount+quoteCount+imageCount))
 	writeJSON(w, activityContentType, col)
 }
 

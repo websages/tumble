@@ -124,6 +124,7 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if h.ActivityPub.Enabled() {
+		newQuote.ID = id
 		h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForQuote(newQuote))
 	}
 

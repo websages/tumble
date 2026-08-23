@@ -225,6 +225,7 @@ type Store interface {
 	// Stats
 	CountIRCLinks(ctx context.Context) (int64, error)
 	CountQuotes(ctx context.Context) (int64, error)
+	CountImages(ctx context.Context) (int64, error)
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)

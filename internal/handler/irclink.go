@@ -146,6 +146,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !isDuplicate && h.ActivityPub.Enabled() {
+			newLink.ID = id
 			h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForLink(newLink))
 		}
 

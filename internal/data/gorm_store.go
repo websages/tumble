@@ -347,6 +347,12 @@ func (s *GormStore) CountQuotes(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+func (s *GormStore) CountImages(ctx context.Context) (int64, error) {
+	var count int64
+	err := s.db.WithContext(ctx).Model(&Image{}).Count(&count).Error
+	return count, err
+}
+
 func (s *GormStore) GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error) {
 	var stats []UserStat
 
