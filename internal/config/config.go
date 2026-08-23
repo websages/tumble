@@ -35,6 +35,7 @@ type Config struct {
 type ActivityPub struct {
 	Enabled   bool   `yaml:"enabled" mapstructure:"enabled"`
 	ActorName string `yaml:"actor_name" mapstructure:"actor_name"`
+	AvatarURL string `yaml:"avatar_url" mapstructure:"avatar_url"`
 }
 
 type Caching struct {
@@ -61,6 +62,7 @@ func Load(path string) (*Config, error) {
 	v.SetDefault("site_name", "tumblefish")
 	v.SetDefault("activitypub.enabled", false)
 	v.SetDefault("activitypub.actor_name", "tumble")
+	v.SetDefault("activitypub.avatar_url", "https://github.com/websages.png")
 
 	// Environment Variables
 	v.SetEnvPrefix("TUMBLE")

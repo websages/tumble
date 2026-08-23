@@ -12,18 +12,27 @@ const PublicCollection = "https://www.w3.org/ns/activitystreams#Public"
 // Actor represents the site-wide ActivityPub actor (a Service, since the
 // site has no per-user accounts).
 type Actor struct {
-	Context           []string   `json:"@context"`
-	ID                string     `json:"id"`
-	Type              string     `json:"type"`
-	PreferredUsername string     `json:"preferredUsername"`
-	Name              string     `json:"name,omitempty"`
-	Summary           string     `json:"summary,omitempty"`
-	Inbox             string     `json:"inbox"`
-	Outbox            string     `json:"outbox"`
-	Followers         string     `json:"followers"`
-	URL               string     `json:"url,omitempty"`
-	PublicKey         PublicKey  `json:"publicKey"`
-	Endpoints         *Endpoints `json:"endpoints,omitempty"`
+	Context                   []string   `json:"@context"`
+	ID                        string     `json:"id"`
+	Type                      string     `json:"type"`
+	PreferredUsername         string     `json:"preferredUsername"`
+	Name                      string     `json:"name,omitempty"`
+	Summary                   string     `json:"summary,omitempty"`
+	Inbox                     string     `json:"inbox"`
+	Outbox                    string     `json:"outbox"`
+	Followers                 string     `json:"followers"`
+	URL                       string     `json:"url,omitempty"`
+	ManuallyApprovesFollowers bool       `json:"manuallyApprovesFollowers"`
+	Icon                      *Image     `json:"icon,omitempty"`
+	PublicKey                 PublicKey  `json:"publicKey"`
+	Endpoints                 *Endpoints `json:"endpoints,omitempty"`
+}
+
+// Image is an ActivityStreams image object, used for the actor's icon.
+type Image struct {
+	Type      string `json:"type"`
+	MediaType string `json:"mediaType,omitempty"`
+	URL       string `json:"url"`
 }
 
 // Endpoints advertises a shared inbox, if the remote actor's server supports

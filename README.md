@@ -88,9 +88,10 @@ Tumble can publish new links, quotes, and images to Mastodon-like clients that f
 activitypub:
   enabled: true
   actor_name: "tumble"
+  avatar_url: "https://github.com/websages.png"
 ```
 
-With this enabled, the actor becomes discoverable as `@tumble@your.domain.com` (substituting `actor_name` and the host from `baseurl`). `site_title`/`site_name` and `site_description` are reused as the actor's display name and summary.
+With this enabled, the actor becomes discoverable as `@tumble@your.domain.com` (substituting `actor_name` and the host from `baseurl`). `site_title`/`site_name` and `site_description` are reused as the actor's display name and summary, and `avatar_url` (if set) becomes the actor's `icon`.
 
 ### Environment Variables
 
@@ -115,6 +116,7 @@ Override any config value with the `TUMBLE_` prefix. Use underscores for nested 
 | `TUMBLE_COPYRIGHT` | RSS copyright field | omitted |
 | `TUMBLE_ACTIVITYPUB_ENABLED` | Enable ActivityPub federation | `false` |
 | `TUMBLE_ACTIVITYPUB_ACTOR_NAME` | Site actor's `preferredUsername` | `tumble` |
+| `TUMBLE_ACTIVITYPUB_AVATAR_URL` | Site actor's `icon` (avatar) image URL | `https://github.com/websages.png` |
 
 ### Environment Modes (`TUMBLE_MODE`)
 

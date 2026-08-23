@@ -17,23 +17,34 @@ func (s *Service) BuildActor(ctx context.Context) (*Actor, error) {
 		name = s.Config.SiteName
 	}
 
-	return &Actor{
-		Context:           []string{ContextURL, SecurityContextURL},
-		ID:                s.actorID(),
-		Type:              "Service",
-		PreferredUsername: s.Config.ActivityPub.ActorName,
-		Name:              name,
-		Summary:           s.Config.SiteDescription,
-		Inbox:             s.inboxURL(),
-		Outbox:            s.outboxURL(),
-		Followers:         s.followersURL(),
-		URL:               s.Config.BaseURL,
+	actor := &Actor{
+		Context:                   []string{ContextURL, SecurityContextURL},
+		ID:                        s.actorID(),
+		Type:                      "Service",
+		PreferredUsername:         s.Config.ActivityPub.ActorName,
+		Name:                      name,
+		Summary:                   s.Config.SiteDescription,
+		Inbox:                     s.inboxURL(),
+		Outbox:                    s.outboxURL(),
+		Followers:                 s.followersURL(),
+		URL:                       s.Config.BaseURL,
+		ManuallyApprovesFollowers: false,
 		PublicKey: PublicKey{
 			ID:           s.publicKeyID(),
 			Owner:        s.actorID(),
 			PublicKeyPem: key.PublicKey,
 		},
-	}, nil
+	}
+
+	if avatar := s.Config.ActivityPub.AvatarURL; avatar != "" {
+		actor.Icon = &Image{
+			Type:      "Image",
+			MediaType: guessImageMediaType(avatar),
+			URL:       avatar,
+		}
+	}
+
+	return actor, nil
 }
 
 // BuildWebfinger constructs the JRD document for a webfinger lookup of the
