@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"tumble/internal/activitypub"
 	"tumble/internal/data"
 )
 
@@ -59,7 +60,8 @@ func fetchCatURL(apiURL string) (string, error) {
 
 // FetchAndStoreDailyCat fetches a cat image and stores it in the database.
 // Returns true if a new cat was stored, false if today's cat already exists.
-func FetchAndStoreDailyCat(ctx context.Context, store data.Store) (bool, error) {
+// If ap is non-nil, a Create(Note) activity is federated to followers.
+func FetchAndStoreDailyCat(ctx context.Context, store data.Store, ap *activitypub.Service) (bool, error) {
 	// Check if today's cat already exists
 	existing, err := store.GetTodayImageByLink(ctx, catAASUser)
 	if err != nil {
@@ -77,18 +79,21 @@ func FetchAndStoreDailyCat(ctx context.Context, store data.Store) (bool, error) 
 	}
 
 	// Store the image
-	id, err := store.InsertImage(ctx, &data.Image{Title: kittenTitle, Link: catAASUser, URL: catURL})
+	image := &data.Image{Title: kittenTitle, Link: catAASUser, URL: catURL}
+	id, err := store.InsertImage(ctx, image)
 	if err != nil {
 		return false, fmt.Errorf("failed to insert cat image: %w", err)
 	}
 
 	slog.Info("Daily kitten fetched and stored", "imageID", id, "url", catURL)
+	image.ID = id
+	publishImageNote(ctx, ap, image)
 	return true, nil
 }
 
 // ForceFetchDailyCat deletes today's cat (if any) and fetches a new one.
 // Returns the new cat's URL or an error.
-func ForceFetchDailyCat(ctx context.Context, store data.Store) (string, error) {
+func ForceFetchDailyCat(ctx context.Context, store data.Store, ap *activitypub.Service) (string, error) {
 	// Delete today's cat if it exists
 	if err := store.DeleteTodayImageByLink(ctx, catAASUser); err != nil {
 		return "", fmt.Errorf("failed to delete existing cat: %w", err)
@@ -101,11 +106,21 @@ func ForceFetchDailyCat(ctx context.Context, store data.Store) (string, error) {
 	}
 
 	// Store the image
-	id, err := store.InsertImage(ctx, &data.Image{Title: kittenTitle, Link: catAASUser, URL: catURL})
+	image := &data.Image{Title: kittenTitle, Link: catAASUser, URL: catURL}
+	id, err := store.InsertImage(ctx, image)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert cat image: %w", err)
 	}
 
 	slog.Info("Daily kitten force-fetched and stored", "imageID", id, "url", catURL)
+	image.ID = id
+	publishImageNote(ctx, ap, image)
 	return catURL, nil
+}
+
+func publishImageNote(ctx context.Context, ap *activitypub.Service, image *data.Image) {
+	if ap == nil {
+		return
+	}
+	ap.PublishNote(ctx, ap.NoteForImage(image))
 }

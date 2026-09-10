@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"tumble/internal/activitypub"
 	"tumble/internal/assets"
 	"tumble/internal/config"
 	"tumble/internal/data"
@@ -263,8 +264,11 @@ func main() {
 	}
 	defer store.Close()
 
+	// Init ActivityPub
+	ap := activitypub.NewService(cfg, store)
+
 	// Init Scheduler
-	sched := scheduler.New(store)
+	sched := scheduler.New(store, ap)
 	if err := sched.Start(context.Background()); err != nil {
 		slog.Error("Failed to start scheduler", "error", err)
 		os.Exit(1)
@@ -300,6 +304,10 @@ func main() {
 	mux.HandleFunc("/search", h.Search)
 	mux.HandleFunc("/link/", h.IRCLinkHandler)
 	mux.HandleFunc("/quote/", h.QuoteHandler)
+	mux.HandleFunc("/image/", h.ImageHandler)
+
+	// ActivityPub Routes (webfinger, actor, followers, outbox, inbox)
+	ap.RegisterRoutes(mux)
 
 	// SEO Routes
 	mux.HandleFunc("/sitemap.xml", h.SitemapHandler)

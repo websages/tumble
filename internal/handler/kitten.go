@@ -29,7 +29,7 @@ func (h *Handler) FetchKittenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	catURL, err := scheduler.ForceFetchDailyCat(r.Context(), h.Store)
+	catURL, err := scheduler.ForceFetchDailyCat(r.Context(), h.Store, h.ActivityPub)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(KittenFetchResponse{

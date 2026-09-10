@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
+	"tumble/internal/activitypub"
 	"tumble/internal/archive"
 	"tumble/internal/data"
 )
@@ -21,13 +22,16 @@ type Scheduler struct {
 	cron          *cron.Cron
 	store         data.Store
 	archiveClient *archive.Client
+	activityPub   *activitypub.Service
 	retryCount    int
 	retryMu       sync.Mutex
 	stopRetry     chan struct{}
+	stopDelivery  chan struct{}
 }
 
-// New creates a new Scheduler with the given store.
-func New(store data.Store) *Scheduler {
+// New creates a new Scheduler with the given store. ap may be nil if
+// ActivityPub federation is disabled.
+func New(store data.Store, ap *activitypub.Service) *Scheduler {
 	// Use America/Chicago for Central Time
 	loc, err := time.LoadLocation("America/Chicago")
 	if err != nil {
@@ -39,7 +43,9 @@ func New(store data.Store) *Scheduler {
 		cron:          cron.New(cron.WithLocation(loc)),
 		store:         store,
 		archiveClient: archive.NewClient(5),
+		activityPub:   ap,
 		stopRetry:     make(chan struct{}),
+		stopDelivery:  make(chan struct{}),
 	}
 }
 
@@ -70,15 +76,37 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	// Run archive batch on startup (in background)
 	go runArchiveBatch(ctx, s.store, s.archiveClient)
 
+	// Sweep due ActivityPub deliveries periodically
+	if s.activityPub != nil && s.activityPub.Enabled() {
+		go s.runActivityPubDeliveryLoop(ctx)
+	}
+
 	return nil
 }
 
 // Stop gracefully stops the scheduler.
 func (s *Scheduler) Stop() {
 	close(s.stopRetry)
+	close(s.stopDelivery)
 	ctx := s.cron.Stop()
 	<-ctx.Done()
 	slog.Info("Scheduler stopped")
+}
+
+// runActivityPubDeliveryLoop periodically sends any due ActivityPub
+// deliveries (new posts to followers, retries of failed deliveries).
+func (s *Scheduler) runActivityPubDeliveryLoop(ctx context.Context) {
+	ticker := time.NewTicker(20 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			s.activityPub.ProcessDueDeliveries(ctx)
+		case <-s.stopDelivery:
+			return
+		}
+	}
 }
 
 // checkStartupKitten checks if today's kitten needs to be fetched on startup.
@@ -124,7 +152,7 @@ func (s *Scheduler) fetchDailyCatWithRetry(ctx context.Context) {
 }
 
 func (s *Scheduler) attemptFetch(ctx context.Context) {
-	stored, err := FetchAndStoreDailyCat(ctx, s.store)
+	stored, err := FetchAndStoreDailyCat(ctx, s.store, s.activityPub)
 	if err != nil {
 		s.retryMu.Lock()
 		s.retryCount++

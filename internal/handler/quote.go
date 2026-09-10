@@ -117,10 +117,15 @@ func (h *Handler) QuoteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Quote provided -> Insert Quote (author is optional)
-	id, err := h.Store.InsertQuote(ctx, &data.Quote{Quote: quote, Author: author, Poster: poster})
+	newQuote := &data.Quote{Quote: quote, Author: author, Poster: poster}
+	id, err := h.Store.InsertQuote(ctx, newQuote)
 	if err != nil {
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
+	}
+	if h.ActivityPub.Enabled() {
+		newQuote.ID = id
+		h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForQuote(newQuote))
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
@@ -142,8 +147,18 @@ func (h *Handler) handleQuotePermalink(w http.ResponseWriter, r *http.Request, i
 		return
 	}
 
-	// Check if JSON response is requested
 	accept := r.Header.Get("Accept")
+	if h.ActivityPub.Enabled() && (strings.Contains(accept, "application/activity+json") || strings.Contains(accept, "application/ld+json")) {
+		note := h.ActivityPub.NoteForQuote(quote)
+		note.Context = "https://www.w3.org/ns/activitystreams"
+		w.Header().Set("Content-Type", "application/activity+json")
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		enc.Encode(note)
+		return
+	}
+
+	// Check if JSON response is requested
 	if returnJSON || strings.Contains(accept, "application/json") {
 		w.Header().Set("Content-Type", "application/json")
 		enc := json.NewEncoder(w)

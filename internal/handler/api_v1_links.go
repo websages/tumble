@@ -221,7 +221,7 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		log.Printf("URL fetch blocked or failed for %s: %v", req.URL, fetchErr)
 	}
 
-	linkID, err := h.Store.InsertIRCLink(ctx, &data.IRCLink{
+	newLink := &data.IRCLink{
 		User:           req.User,
 		Title:          title,
 		URL:            req.URL,
@@ -231,7 +231,8 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		ClientChannel:  req.ClientChannel,
 		ClientUserID:   req.ClientUserID,
 		ClientUserName: req.ClientUserName,
-	})
+	}
+	linkID, err := h.Store.InsertIRCLink(ctx, newLink)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create link")
 		return
@@ -239,6 +240,10 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 
 	// Build response
 	isDuplicate := len(existingLinks) > 0
+	if !isDuplicate && h.ActivityPub.Enabled() {
+		newLink.ID = linkID
+		h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForLink(newLink))
+	}
 	var previousSubmissions []APIPreviousSubmission
 	if isDuplicate {
 		previousSubmissions = make([]APIPreviousSubmission, 0, len(existingLinks))

@@ -36,7 +36,7 @@ func (s *GormStore) Close() error {
 }
 
 func (s *GormStore) Bootstrap(ctx context.Context) error {
-	if err := s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{}); err != nil {
+	if err := s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{}, &ActivityPubKey{}, &ActivityPubFollower{}, &ActivityPubDelivery{}); err != nil {
 		return err
 	}
 
@@ -95,6 +95,18 @@ func (s *GormStore) InsertImage(ctx context.Context, image *Image) (int, error) 
 	image.Timestamp = time.Now()
 	err := s.db.WithContext(ctx).Create(image).Error
 	return image.ID, err
+}
+
+func (s *GormStore) GetImageByID(ctx context.Context, id int) (*Image, error) {
+	var img Image
+	err := s.db.WithContext(ctx).First(&img, id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &img, nil
 }
 
 func (s *GormStore) GetTodayImageByLink(ctx context.Context, link string) (*Image, error) {
@@ -332,6 +344,12 @@ func (s *GormStore) CountIRCLinks(ctx context.Context) (int64, error) {
 func (s *GormStore) CountQuotes(ctx context.Context) (int64, error) {
 	var count int64
 	err := s.db.WithContext(ctx).Model(&Quote{}).Count(&count).Error
+	return count, err
+}
+
+func (s *GormStore) CountImages(ctx context.Context) (int64, error) {
+	var count int64
+	err := s.db.WithContext(ctx).Model(&Image{}).Count(&count).Error
 	return count, err
 }
 
@@ -597,4 +615,106 @@ func (s *GormStore) GetStaleArchiveLookups(ctx context.Context, status string, r
 		Where("status = ? AND checked_at < ?", status, cutoff).
 		Pluck("url", &urls).Error
 	return urls, err
+}
+
+// GetActivityPubKey returns the site's ActivityPub signing keypair, or nil if
+// one hasn't been generated yet.
+func (s *GormStore) GetActivityPubKey(ctx context.Context) (*ActivityPubKey, error) {
+	var key ActivityPubKey
+	err := s.db.WithContext(ctx).Order("id ASC").First(&key).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &key, nil
+}
+
+func (s *GormStore) InsertActivityPubKey(ctx context.Context, key *ActivityPubKey) error {
+	return s.db.WithContext(ctx).Create(key).Error
+}
+
+func (s *GormStore) UpsertActivityPubFollower(ctx context.Context, follower *ActivityPubFollower) error {
+	return s.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "actor_uri"}},
+		DoUpdates: clause.AssignmentColumns([]string{"inbox_url", "shared_inbox"}),
+	}).Create(follower).Error
+}
+
+func (s *GormStore) DeleteActivityPubFollowerByActorURI(ctx context.Context, actorURI string) error {
+	return s.db.WithContext(ctx).Where("actor_uri = ?", actorURI).Delete(&ActivityPubFollower{}).Error
+}
+
+func (s *GormStore) ListActivityPubFollowers(ctx context.Context, limit int, offset int) ([]ActivityPubFollower, error) {
+	var followers []ActivityPubFollower
+	err := s.db.WithContext(ctx).Order("created_at ASC").Limit(limit).Offset(offset).Find(&followers).Error
+	return followers, err
+}
+
+func (s *GormStore) CountActivityPubFollowers(ctx context.Context) (int64, error) {
+	var count int64
+	err := s.db.WithContext(ctx).Model(&ActivityPubFollower{}).Count(&count).Error
+	return count, err
+}
+
+// ListActivityPubFollowerInboxes returns the set of distinct inbox URLs to
+// deliver to, preferring each follower's shared inbox (if advertised) to
+// avoid sending duplicate deliveries to servers with multiple followers.
+func (s *GormStore) ListActivityPubFollowerInboxes(ctx context.Context) ([]string, error) {
+	var followers []ActivityPubFollower
+	if err := s.db.WithContext(ctx).Find(&followers).Error; err != nil {
+		return nil, err
+	}
+	seen := make(map[string]bool)
+	inboxes := make([]string, 0, len(followers))
+	for _, f := range followers {
+		target := f.InboxURL
+		if f.SharedInbox != nil && *f.SharedInbox != "" {
+			target = *f.SharedInbox
+		}
+		if !seen[target] {
+			seen[target] = true
+			inboxes = append(inboxes, target)
+		}
+	}
+	return inboxes, nil
+}
+
+func (s *GormStore) EnqueueActivityPubDelivery(ctx context.Context, inboxURL string, payload string) error {
+	return s.db.WithContext(ctx).Create(&ActivityPubDelivery{
+		InboxURL:    inboxURL,
+		Payload:     payload,
+		Status:      "pending",
+		NextAttempt: time.Now(),
+	}).Error
+}
+
+func (s *GormStore) GetDueActivityPubDeliveries(ctx context.Context, limit int) ([]ActivityPubDelivery, error) {
+	var deliveries []ActivityPubDelivery
+	err := s.db.WithContext(ctx).
+		Where("status = ? AND next_attempt <= ?", "pending", time.Now()).
+		Order("id ASC").
+		Limit(limit).
+		Find(&deliveries).Error
+	return deliveries, err
+}
+
+func (s *GormStore) MarkActivityPubDeliverySucceeded(ctx context.Context, id int) error {
+	return s.db.WithContext(ctx).Model(&ActivityPubDelivery{}).Where("id = ?", id).
+		Updates(map[string]interface{}{"status": "sent", "attempts": gorm.Expr("attempts + 1")}).Error
+}
+
+func (s *GormStore) MarkActivityPubDeliveryFailed(ctx context.Context, id int, errMsg string, nextAttempt time.Time, giveUp bool) error {
+	status := "pending"
+	if giveUp {
+		status = "failed"
+	}
+	return s.db.WithContext(ctx).Model(&ActivityPubDelivery{}).Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"status":       status,
+			"attempts":     gorm.Expr("attempts + 1"),
+			"next_attempt": nextAttempt,
+			"last_error":   errMsg,
+		}).Error
 }

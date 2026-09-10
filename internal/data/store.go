@@ -158,6 +158,51 @@ func (ArchiveLookup) TableName() string {
 	return "archive_lookups"
 }
 
+// ActivityPubKey stores the RSA keypair used to sign outgoing ActivityPub
+// activities on behalf of the site-wide actor. Only one row is ever used.
+type ActivityPubKey struct {
+	ID         int       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	PrivateKey string    `json:"-" gorm:"column:private_key;type:text"`
+	PublicKey  string    `json:"public_key" gorm:"column:public_key;type:text"`
+	CreatedAt  time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+}
+
+// TableName overrides the table name to `activitypub_key`
+func (ActivityPubKey) TableName() string {
+	return "activitypub_key"
+}
+
+// ActivityPubFollower represents a remote actor following the site.
+type ActivityPubFollower struct {
+	ID          int       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	ActorURI    string    `json:"actor_uri" gorm:"column:actor_uri;type:varchar(500);uniqueIndex"`
+	InboxURL    string    `json:"inbox_url" gorm:"column:inbox_url;type:varchar(500)"`
+	SharedInbox *string   `json:"shared_inbox,omitempty" gorm:"column:shared_inbox;type:varchar(500)"`
+	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+}
+
+// TableName overrides the table name to `activitypub_follower`
+func (ActivityPubFollower) TableName() string {
+	return "activitypub_follower"
+}
+
+// ActivityPubDelivery is a queued outbound activity delivery to a single inbox.
+type ActivityPubDelivery struct {
+	ID          int       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	InboxURL    string    `json:"inbox_url" gorm:"column:inbox_url;type:varchar(500);index"`
+	Payload     string    `json:"payload" gorm:"column:payload;type:text"`
+	Status      string    `json:"status" gorm:"column:status;type:varchar(20);index;default:pending"` // pending, sent, failed
+	Attempts    int       `json:"attempts" gorm:"column:attempts;default:0"`
+	NextAttempt time.Time `json:"next_attempt" gorm:"column:next_attempt;index"`
+	LastError   *string   `json:"last_error,omitempty" gorm:"column:last_error;type:text"`
+	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+}
+
+// TableName overrides the table name to `activitypub_delivery`
+func (ActivityPubDelivery) TableName() string {
+	return "activitypub_delivery"
+}
+
 type Store interface {
 	GetRecentIRCLinks(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]IRCLink, error)
 	GetRecentImages(ctx context.Context, days int, offsetDays int, filter ClientFilter) ([]Image, error)
@@ -180,6 +225,7 @@ type Store interface {
 	// Stats
 	CountIRCLinks(ctx context.Context) (int64, error)
 	CountQuotes(ctx context.Context) (int64, error)
+	CountImages(ctx context.Context) (int64, error)
 	GetUserStats(ctx context.Context, sortBy string, limit int, offset int) ([]UserStat, error)
 	GetLinksByUser(ctx context.Context, user string, limit int, offset int) ([]IRCLink, error)
 	GetUserTimeline(ctx context.Context, user string, filterType string, limit int, offset int) ([]TimelineItem, error)
@@ -207,8 +253,22 @@ type Store interface {
 
 	// Image operations
 	InsertImage(ctx context.Context, image *Image) (int, error)
+	GetImageByID(ctx context.Context, id int) (*Image, error)
 	GetTodayImageByLink(ctx context.Context, link string) (*Image, error)
 	DeleteTodayImageByLink(ctx context.Context, link string) error
+
+	// ActivityPub
+	GetActivityPubKey(ctx context.Context) (*ActivityPubKey, error)
+	InsertActivityPubKey(ctx context.Context, key *ActivityPubKey) error
+	UpsertActivityPubFollower(ctx context.Context, follower *ActivityPubFollower) error
+	DeleteActivityPubFollowerByActorURI(ctx context.Context, actorURI string) error
+	ListActivityPubFollowers(ctx context.Context, limit int, offset int) ([]ActivityPubFollower, error)
+	CountActivityPubFollowers(ctx context.Context) (int64, error)
+	ListActivityPubFollowerInboxes(ctx context.Context) ([]string, error)
+	EnqueueActivityPubDelivery(ctx context.Context, inboxURL string, payload string) error
+	GetDueActivityPubDeliveries(ctx context.Context, limit int) ([]ActivityPubDelivery, error)
+	MarkActivityPubDeliverySucceeded(ctx context.Context, id int) error
+	MarkActivityPubDeliveryFailed(ctx context.Context, id int, errMsg string, nextAttempt time.Time, giveUp bool) error
 
 	Bootstrap(ctx context.Context) error
 

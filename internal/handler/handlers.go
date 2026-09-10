@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"tumble/internal/activitypub"
 	"tumble/internal/archive"
 	"tumble/internal/config"
 	"tumble/internal/data"
@@ -27,6 +28,7 @@ type Handler struct {
 	Renderer      *templates.Renderer
 	Config        *config.Config
 	ArchiveClient *archive.Client
+	ActivityPub   *activitypub.Service
 }
 
 func NewHandler(cfg *config.Config, store data.Store, svc *service.ContentService, renderer *templates.Renderer) *Handler {
@@ -36,6 +38,7 @@ func NewHandler(cfg *config.Config, store data.Store, svc *service.ContentServic
 		Service:       svc,
 		Renderer:      renderer,
 		ArchiveClient: archive.NewClient(5),
+		ActivityPub:   activitypub.NewService(cfg, store),
 	}
 }
 

@@ -80,6 +80,26 @@ webmaster: "admin@example.com (Your Name)"
 copyright: "http://creativecommons.org/licenses/by-sa/4.0"
 ```
 
+### ActivityPub Federation
+
+Tumble can publish new links, quotes, and images to Mastodon-like clients that follow the site. This is publish-only: the site can be followed, but doesn't follow, like, or reply to anything. All posts are federated under a single site-wide actor (there's no per-user identity).
+
+**To enable:**
+
+1. Set `baseurl` (or `TUMBLE_BASEURL`) to the site's real, public **HTTPS** URL. Remote servers fetch the actor and verify signatures against this URL, and most implementations (including Mastodon) refuse to federate with non-HTTPS/non-public hosts, so this won't work against `localhost` without a tunnel (e.g. ngrok/cloudflared).
+2. Set `activitypub.enabled: true` (or `TUMBLE_ACTIVITYPUB_ENABLED=true`):
+
+   ```yaml
+   activitypub:
+     enabled: true
+     actor_name: "tumble"
+     avatar_url: "https://github.com/websages.png"
+   ```
+3. Restart the app. On first request to the actor endpoint, an RSA keypair is generated and persisted automatically — no manual key setup needed.
+4. The actor is now discoverable as `@tumble@your.domain.com` (substituting `actor_name` and the host from `baseurl`) — search for that handle from any Mastodon-like client to follow it. New links, quotes, and the daily kitten are federated to followers automatically going forward; nothing needs to be republished manually.
+
+`site_title`/`site_name` and `site_description` are reused as the actor's display name and summary, and `avatar_url` (if set) becomes the actor's `icon`.
+
 ### Environment Variables
 
 Override any config value with the `TUMBLE_` prefix. Use underscores for nested keys.
@@ -101,6 +121,9 @@ Override any config value with the `TUMBLE_` prefix. Use underscores for nested 
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
 | `TUMBLE_WEBMASTER` | RSS webMaster field | omitted |
 | `TUMBLE_COPYRIGHT` | RSS copyright field | omitted |
+| `TUMBLE_ACTIVITYPUB_ENABLED` | Enable ActivityPub federation | `false` |
+| `TUMBLE_ACTIVITYPUB_ACTOR_NAME` | Site actor's `preferredUsername` | `tumble` |
+| `TUMBLE_ACTIVITYPUB_AVATAR_URL` | Site actor's `icon` (avatar) image URL | `https://github.com/websages.png` |
 
 ### Environment Modes (`TUMBLE_MODE`)
 
