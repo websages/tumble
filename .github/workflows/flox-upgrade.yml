@@ -1,0 +1,36 @@
+name: Upgrade Flox Environment
+
+on:
+  schedule:
+    # 1st and 15th of each month (roughly every 2 weeks)
+    - cron: '0 9 1,15 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Flox
+      uses: flox/install-flox-action@v2
+
+    - name: Upgrade Flox environment
+      run: flox upgrade
+
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        branch: chore/flox-upgrade
+        delete-branch: true
+        commit-message: 'chore: upgrade flox environment'
+        title: 'chore: upgrade flox environment'
+        body: |
+          Automated upgrade of `.flox/env/manifest.lock` via
+          `flox upgrade`.
+        add-paths: .flox/env/manifest.lock
