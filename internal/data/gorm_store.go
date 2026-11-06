@@ -113,7 +113,7 @@ func (s *GormStore) GetTodayImageByLink(ctx context.Context, link string) (*Imag
 	var img Image
 	now := time.Now()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	endOfDay := startOfDay.Add(24 * time.Hour)
+	endOfDay := startOfDay.AddDate(0, 0, 1)
 
 	err := s.db.WithContext(ctx).
 		Where("link = ? AND timestamp >= ? AND timestamp < ?", link, startOfDay, endOfDay).
@@ -130,7 +130,7 @@ func (s *GormStore) GetTodayImageByLink(ctx context.Context, link string) (*Imag
 func (s *GormStore) DeleteTodayImageByLink(ctx context.Context, link string) error {
 	now := time.Now()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	endOfDay := startOfDay.Add(24 * time.Hour)
+	endOfDay := startOfDay.AddDate(0, 0, 1)
 
 	return s.db.WithContext(ctx).
 		Where("link = ? AND timestamp >= ? AND timestamp < ?", link, startOfDay, endOfDay).
