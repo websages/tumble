@@ -160,12 +160,15 @@ body::before {
   display: contents;
 }
 
+/* Pins and tape stick up above each card. Keep them inside the item's
+ * box (padding-top) or multi-column layout paints the overhang at the
+ * bottom of the previous column. */
 .item[data-item-type] {
   --tilt: -1.4deg;
   position: relative;
   break-inside: avoid;
-  margin: 0 0 40px;
-  padding: 0;
+  margin: 0 0 26px;
+  padding: 14px 0 0;
   font-size: 16px;
   line-height: 1.4;
   letter-spacing: 0;
@@ -186,7 +189,7 @@ body::before {
 .item[data-item-type="link"]::before {
   content: "";
   position: absolute;
-  top: -9px;
+  top: 5px;
   left: 50%;
   z-index: 3;
   width: 20px;
@@ -405,20 +408,20 @@ body::before {
 }
 
 .item[data-item-type="quote"]::before {
-  top: -12px;
+  top: 2px;
   left: 50%;
   margin-left: -46px;
   transform: rotate(-4deg);
 }
 
 .item[data-item-type="image"]::before {
-  top: -6px;
+  top: 8px;
   left: -26px;
   transform: rotate(-38deg);
 }
 
 .item[data-item-type="image"]::after {
-  top: -6px;
+  top: 8px;
   right: -26px;
   transform: rotate(38deg);
 }
