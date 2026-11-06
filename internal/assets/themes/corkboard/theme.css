@@ -615,14 +615,62 @@ body::before {
 #navigation,
 #navigation-top {
   column-span: all;
-  font-family: var(--font-marker);
-  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 0 24px;
 }
 
-#navigation a,
-#navigation-top a {
+/* Page links are label-maker tags: "< OLDER" and "NEWER >" */
+#navigation .nav-link,
+#navigation-top .nav-link {
+  gap: 6px;
+  padding: 8px 18px 8px 10px;
+  border-radius: 5px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.16), transparent 45%, rgba(0, 0, 0, 0.25)),
+    #1f1f1f;
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  font-family: var(--font-label);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3),
+    0 -1px 0 rgba(0, 0, 0, 0.6);
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.45);
+  transform: rotate(-1.5deg);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+#navigation .nav-link[data-dir="newer"],
+#navigation-top .nav-link[data-dir="newer"] {
+  margin-left: auto;
+  padding: 8px 10px 8px 18px;
+  transform: rotate(1.5deg);
+}
+
+#navigation .nav-link:hover,
+#navigation-top .nav-link:hover {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.16), transparent 45%, rgba(0, 0, 0, 0.25)),
+    #b3162a;
+  color: #fff;
+  transform: rotate(0deg) scale(1.05);
+}
+
+#navigation .nav-icon,
+#navigation-top .nav-icon {
+  font-size: 30px;
+}
+
+.nav-link[data-dir="older"]::after {
+  content: "Older";
+}
+
+.nav-link[data-dir="newer"]::before {
+  content: "Newer";
 }
 
 #footer {

@@ -479,10 +479,10 @@ func (h *Handler) buildNavigation(page int, poster, filterType string) navResult
 	var prevHTML, nextHTML string
 
 	if page > 1 {
-		prevHTML = fmt.Sprintf(`<a href="?i=%d%s" class="nav-link"><span class="material-symbols-rounded nav-icon">chevron_left</span></a>`, page+1, posterParam)
-		nextHTML = fmt.Sprintf(`<a href="?i=%d%s" class="nav-link"><span class="material-symbols-rounded nav-icon">chevron_right</span></a>`, page-1, posterParam)
+		prevHTML = fmt.Sprintf(`<a href="?i=%d%s" class="nav-link" data-dir="older" aria-label="Older posts"><span class="material-symbols-rounded nav-icon">chevron_left</span></a>`, page+1, posterParam)
+		nextHTML = fmt.Sprintf(`<a href="?i=%d%s" class="nav-link" data-dir="newer" aria-label="Newer posts"><span class="material-symbols-rounded nav-icon">chevron_right</span></a>`, page-1, posterParam)
 	} else {
-		prevHTML = fmt.Sprintf(`<a href="?i=2%s" class="nav-link"><span class="material-symbols-rounded nav-icon">chevron_left</span></a>`, posterParam)
+		prevHTML = fmt.Sprintf(`<a href="?i=2%s" class="nav-link" data-dir="older" aria-label="Older posts"><span class="material-symbols-rounded nav-icon">chevron_left</span></a>`, posterParam)
 		nextHTML = ""
 	}
 
