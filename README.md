@@ -68,6 +68,31 @@ baseurl: your.domain.com
 site_name: "tumblefish"
 ```
 
+### Themes
+
+`theme` picks a visual theme. Leave it unset for the default look.
+
+```yaml
+theme: "aurora"   # or "paper", "terminal"
+```
+
+| Theme | Look |
+|-------|------|
+| `aurora` | Violet-to-coral gradients, soft glows, glassy cards |
+| `paper` | Cream paper, serif headlines, terracotta accent |
+| `terminal` | Monospace, square corners, phosphor green |
+
+Every theme supports the dark mode toggle and leaves Scott Mode alone. An
+unknown theme name logs a warning and falls back to the default look.
+
+To add a theme, drop a CSS file into `internal/assets/css/themes/` and set
+`theme` to its file name (without `.css`); no Go changes are needed. The file
+is loaded after `screen.css` and overrides its CSS variables (colors, fonts,
+radii, shadows). Scope every rule to
+`:root:not([data-scott-mode="true"])` so Scott Mode keeps its own look, and
+add `[data-theme="dark"]` to that selector for dark mode. See the existing
+themes for examples.
+
 ### RSS Feed Settings
 
 These optional fields customize the RSS feed metadata. If omitted, the feed title and description default to "tumble", and the other fields are omitted from the feed entirely.
@@ -148,6 +173,7 @@ present** — useful for container platforms.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
+| `TUMBLE_THEME` | Visual theme (`aurora`, `paper`, `terminal`) | default look |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |

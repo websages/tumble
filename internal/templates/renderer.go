@@ -97,6 +97,14 @@ func (r *Renderer) htmlFuncMap() template.FuncMap {
 	fm["siteName"] = func() string {
 		return r.cfg.SiteName
 	}
+	// themeStylesheet is the URL of the configured theme's CSS, loaded after
+	// screen.css. Empty when no theme is set, so the default look is used.
+	fm["themeStylesheet"] = func() string {
+		if r.cfg.Theme == "" {
+			return ""
+		}
+		return "/css/themes/" + r.cfg.Theme + ".css"
+	}
 	return fm
 }
 

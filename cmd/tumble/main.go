@@ -257,6 +257,12 @@ func main() {
 	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
 
+	// Fall back to the default look if the configured theme doesn't exist
+	if cfg.Theme != "" && !assets.ThemeExists(cfg.Theme) {
+		slog.Warn("Unknown theme, using default", "theme", cfg.Theme, "available", assets.Themes())
+		cfg.Theme = ""
+	}
+
 	// Init DB
 	store, err := data.NewStore(cfg)
 	if err != nil {

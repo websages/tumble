@@ -1,0 +1,150 @@
+/*
+ * Theme: aurora
+ * Vivid violet-to-coral gradients, soft glows, and glassy cards.
+ *
+ * Theme contract: a theme is one file in css/themes/, loaded after
+ * screen.css. Scope every rule to :root:not([data-scott-mode="true"])
+ * so Scott Mode keeps its own look, and add [data-theme="dark"] to the
+ * same root selector for dark mode overrides.
+ */
+
+:root:not([data-scott-mode="true"]) {
+  --gray-0: #ffffff;
+  --gray-1: #f7f5ff;
+  --gray-2: #ede9fe;
+  --gray-3: #ddd6fe;
+  --gray-4: #a39dc2;
+  --gray-5: #5b5675;
+  --gray-6: #1e1b2e;
+  --gray-7: #120f1f;
+
+  --bg-body: #faf8ff;
+  --card-bg: rgba(255, 255, 255, 0.78);
+  --card-border: rgba(124, 58, 237, 0.14);
+  --card-border-hover: rgba(124, 58, 237, 0.35);
+  --border-default: rgba(124, 58, 237, 0.18);
+
+  --accent-primary: #7c3aed;
+  --accent-hover: #db2777;
+  --link-color: #6d28d9;
+  --quote-color: #db2777;
+
+  --aurora-gradient: linear-gradient(120deg, #7c3aed 0%, #db2777 55%, #f97316 100%);
+  --aurora-glow-1: rgba(167, 139, 250, 0.35);
+  --aurora-glow-2: rgba(244, 114, 182, 0.25);
+  --aurora-glow-3: rgba(45, 212, 191, 0.18);
+
+  --radius-lg: 20px;
+  --shadow-sm: 0 2px 8px rgba(76, 29, 149, 0.06);
+  --shadow-md: 0 10px 30px rgba(76, 29, 149, 0.12);
+  --shadow-lg: 0 14px 40px rgba(76, 29, 149, 0.16);
+  --shadow-xl: 0 20px 50px rgba(76, 29, 149, 0.22);
+
+  --footer-bg: rgba(250, 248, 255, 0.92);
+  --footer-border: rgba(124, 58, 237, 0.14);
+  --footer-text: var(--gray-5);
+  --footer-link: var(--accent-primary);
+}
+
+:root:not([data-scott-mode="true"])[data-theme="dark"] {
+  --gray-0: #0b0a16;
+  --gray-1: #14122a;
+  --gray-2: #1f1b3a;
+  --gray-3: #2e2852;
+  --gray-4: #4a4370;
+  --gray-5: #a9a3c9;
+  --gray-6: #e7e3ff;
+  --gray-7: #ffffff;
+
+  --bg-body: #0b0a16;
+  --card-bg: rgba(30, 27, 58, 0.55);
+  --card-border: rgba(167, 139, 250, 0.16);
+  --card-border-hover: rgba(167, 139, 250, 0.4);
+  --border-default: rgba(167, 139, 250, 0.2);
+
+  --accent-primary: #a78bfa;
+  --accent-hover: #f472b6;
+  --link-color: #c4b5fd;
+  --quote-color: #f472b6;
+
+  --aurora-gradient: linear-gradient(120deg, #a78bfa 0%, #f472b6 55%, #fb923c 100%);
+  --aurora-glow-1: rgba(124, 58, 237, 0.35);
+  --aurora-glow-2: rgba(219, 39, 119, 0.2);
+  --aurora-glow-3: rgba(20, 184, 166, 0.15);
+
+  --footer-bg: rgba(11, 10, 22, 0.92);
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+:root:not([data-scott-mode="true"]) body {
+  background:
+    radial-gradient(60vw 50vh at 0% 0%, var(--aurora-glow-1), transparent 70%),
+    radial-gradient(50vw 50vh at 100% 10%, var(--aurora-glow-2), transparent 70%),
+    radial-gradient(60vw 60vh at 50% 100%, var(--aurora-glow-3), transparent 70%),
+    var(--bg-body);
+  background-attachment: fixed;
+}
+
+:root:not([data-scott-mode="true"]) .nav-header {
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom-color: var(--border-default);
+}
+
+:root:not([data-scott-mode="true"])[data-theme="dark"] .nav-header {
+  background: rgba(11, 10, 22, 0.6);
+}
+
+:root:not([data-scott-mode="true"]) #masthead {
+  border-bottom: none;
+  padding-bottom: var(--space-2);
+  background: var(--aurora-gradient) bottom / 100% 3px no-repeat;
+}
+
+:root:not([data-scott-mode="true"]) #masthead a {
+  background: var(--aurora-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+:root:not([data-scott-mode="true"]) .link-card-wrapper,
+:root:not([data-scott-mode="true"]) .quote-card,
+:root:not([data-scott-mode="true"]) .date-widget {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+:root:not([data-scott-mode="true"]) .link-card-wrapper:hover {
+  transform: translateY(-1px);
+}
+
+:root:not([data-scott-mode="true"]) .date-widget {
+  border: none;
+  background: var(--aurora-gradient);
+}
+
+:root:not([data-scott-mode="true"]) .date-number,
+:root:not([data-scott-mode="true"]) .date-day,
+:root:not([data-scott-mode="true"]) .date-month,
+:root:not([data-scott-mode="true"]) .date-year {
+  color: #ffffff;
+}
+
+:root:not([data-scott-mode="true"]) .quote-card {
+  border-left: 4px solid transparent;
+  border-image: var(--aurora-gradient) 1;
+  border-image-width: 0 0 0 4px;
+}
+
+:root:not([data-scott-mode="true"]) .quote-card::before {
+  color: var(--quote-color);
+  opacity: 0.2;
+}
+
+:root:not([data-scott-mode="true"]) .quote-author {
+  color: var(--quote-color);
+}
