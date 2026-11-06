@@ -142,18 +142,22 @@ present** — useful for container platforms.
 |----------|-------------|---------|
 | `TUMBLE_ADMIN_SECRET` | Secret for admin API operations | |
 | `TUMBLE_CLICK_SIGNING_KEY` | Secret for signed click tracking | |
-| `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
-=======
 
-**RSS feed metadata**
+**Site & RSS feed metadata**
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
 | `TUMBLE_WEBMASTER` | RSS webMaster field | omitted |
 | `TUMBLE_COPYRIGHT` | RSS copyright field | omitted |
+
+**ActivityPub**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_ACTIVITYPUB_ENABLED` | Enable ActivityPub federation | `false` |
 | `TUMBLE_ACTIVITYPUB_ACTOR_NAME` | Site actor's `preferredUsername` | `tumble` |
 | `TUMBLE_ACTIVITYPUB_AVATAR_URL` | Site actor's `icon` (avatar) image URL | `https://github.com/websages.png` |
