@@ -7,7 +7,7 @@ import (
 
 func TestThemes(t *testing.T) {
 	themes := Themes()
-	for _, want := range []string{"aurora", "paper", "terminal"} {
+	for _, want := range []string{"broadsheet", "corkboard", "irc"} {
 		if !slices.Contains(themes, want) {
 			t.Errorf("expected theme %q in %v", want, themes)
 		}
@@ -19,18 +19,28 @@ func TestThemeExists(t *testing.T) {
 		name string
 		want bool
 	}{
-		{"aurora", true},
-		{"paper", true},
-		{"terminal", true},
+		{"broadsheet", true},
+		{"corkboard", true},
+		{"irc", true},
 		{"", false},
 		{"nope", false},
-		{"../screen", false},
-		{"themes/aurora", false},
-		{"aurora.css", false},
+		{"..", false},
+		{"../css", false},
+		{"irc/views", false},
+		{"irc.css", false},
 	}
 	for _, tt := range tests {
 		if got := ThemeExists(tt.name); got != tt.want {
 			t.Errorf("ThemeExists(%q) = %v, want %v", tt.name, got, tt.want)
 		}
+	}
+}
+
+func TestThemeHasFile(t *testing.T) {
+	if !ThemeHasFile("irc", "theme.js") {
+		t.Error("expected irc to ship theme.js")
+	}
+	if ThemeHasFile("irc", "nope.js") {
+		t.Error("expected nope.js to be missing")
 	}
 }

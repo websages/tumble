@@ -70,28 +70,50 @@ site_name: "tumblefish"
 
 ### Themes
 
-`theme` picks a visual theme. Leave it unset for the default look.
+`theme` picks a site-wide visual theme. Leave it unset for the default look.
 
 ```yaml
-theme: "aurora"   # or "paper", "terminal"
+theme: "broadsheet"   # or "irc", "corkboard"
 ```
 
 | Theme | Look |
 |-------|------|
-| `aurora` | Violet-to-coral gradients, soft glows, glassy cards |
-| `paper` | Cream paper, serif headlines, terracotta accent |
-| `terminal` | Monospace, square corners, phosphor green |
+| `broadsheet` | A newspaper front page: blackletter nameplate and dateline, three ruled columns, a lead story each day, halftone photos, pull quotes |
+| `irc` | An IRC client: channel sidebar, topic bar, timestamped log lines with colored nicks, a Hot Shit panel, and an input line that searches |
+| `corkboard` | A pinboard: label-maker masthead, pinned index cards, sticky-note quotes, taped polaroids, tear-off calendar dates |
 
-Every theme supports the dark mode toggle and leaves Scott Mode alone. An
-unknown theme name logs a warning and falls back to the default look.
+Every theme supports the dark mode toggle. Scott Mode is only available on
+the default look; its buttons are hidden when a theme is set. An unknown
+theme name logs a warning and falls back to the default look.
 
-To add a theme, drop a CSS file into `internal/assets/css/themes/` and set
-`theme` to its file name (without `.css`); no Go changes are needed. The file
-is loaded after `screen.css` and overrides its CSS variables (colors, fonts,
-radii, shadows). Scope every rule to
-`:root:not([data-scott-mode="true"])` so Scott Mode keeps its own look, and
-add `[data-theme="dark"]` to that selector for dark mode. See the existing
-themes for examples.
+#### Writing a theme
+
+A theme is a directory in `internal/assets/themes/<name>/`, served at
+`/themes/<name>/`. Adding one needs no Go changes, but it is embedded in the
+binary, so rebuild to pick it up.
+
+| File | Purpose |
+|------|---------|
+| `theme.css` | Required. Loaded after `screen.css`; override its CSS variables or restyle anything |
+| `theme.js` | Optional. Loaded with `defer` on every page |
+| `views/*.html` | Optional. Replaces the base template with the same file name in `internal/templates/views/` |
+| anything else | Images, fonts, etc., served alongside |
+
+Useful hooks in the base markup:
+
+- The `masthead` partial (`views/masthead.html`) can be overridden on its own.
+- Feed items carry `data-item-type` (`link`, `quote`, `image`) and links carry
+  `data-user`. Scope feed styling to `.item[data-item-type]` so other `.item`
+  boxes, like the stats table, aren't affected.
+- Each item has a hidden `<time class="item-time">` (`15:04`) you can show.
+- The header's styles are inline in `<body>`, after `theme.css`, so header
+  rules need a `:root` prefix to win.
+
+When overriding item templates, keep the `.item[data-url]`, `.og-preview`,
+`.link-header .link`, `.date-section` and `.date-widget` hooks if you want link
+previews and date grouping to keep working. See the bundled themes for
+examples: `corkboard` is CSS only, `broadsheet` overrides the masthead, and
+`irc` overrides the masthead and adds `theme.js`.
 
 ### RSS Feed Settings
 
@@ -173,7 +195,7 @@ present** — useful for container platforms.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
-| `TUMBLE_THEME` | Visual theme (`aurora`, `paper`, `terminal`) | default look |
+| `TUMBLE_THEME` | Visual theme (`broadsheet`, `irc`, `corkboard`) | default look |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |

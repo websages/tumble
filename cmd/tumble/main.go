@@ -326,6 +326,7 @@ func main() {
 	fileServer := http.FileServer(http.FS(assets.StaticFS))
 	mux.Handle("/css/", fileServer)
 	mux.Handle("/img/", fileServer)
+	mux.Handle("/themes/", fileServer)
 	mux.Handle("/favicon.ico", fileServer)
 	// Legacy static files
 	mux.Handle("/apple-touch-icon.png", fileServer)

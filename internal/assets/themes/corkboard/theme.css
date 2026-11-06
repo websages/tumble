@@ -1,0 +1,660 @@
+/*
+ * Theme: corkboard
+ * A pinboard in a wooden frame: a label-maker masthead, links on
+ * pinned index cards, quotes on sticky notes, kittens as taped-up
+ * polaroids, tear-off calendar pages for dates, and a MISSING stamp
+ * on dead links. Dark mode turns the lights off and leaves a desk lamp.
+ *
+ * No template overrides: this layout is CSS on the base markup.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Permanent+Marker&family=Special+Elite&family=Rubik+Mono+One&display=swap");
+
+:root {
+  --cork: #b98a5a;
+  --frame: #6b4423;
+  --frame-dark: #3f2612;
+  --card: #fffef8;
+  --card-rule: #b9d3ee;
+  --card-margin: #ef8f8f;
+  --ink: #23201c;
+  --pen: #1f3f8f;
+  --stamp: #c0151d;
+  --tape: rgba(255, 255, 240, 0.55);
+  --pin: #d62828;
+  --note: #fff59d;
+  --tilt: -1deg;
+
+  --font-hand: "Caveat", "Comic Sans MS", cursive;
+  --font-marker: "Permanent Marker", "Comic Sans MS", cursive;
+  --font-type: "Special Elite", "Courier New", monospace;
+  --font-label: "Rubik Mono One", "Arial Black", sans-serif;
+
+  --bg-body: var(--cork);
+  --card-bg: var(--card);
+  --text-primary: var(--ink);
+  --text-main: var(--ink);
+  --text-secondary: #5b5348;
+  --link-color: var(--ink);
+  --accent-primary: var(--stamp);
+}
+
+body {
+  background-color: var(--cork);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.19 0 0 0 0 0.07 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 30% 40%, rgba(255, 228, 185, 0.35) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 70% 70%, rgba(70, 38, 12, 0.4) 0 1.5px, transparent 2.5px);
+  background-size: 240px 240px, 23px 29px, 31px 37px;
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-type);
+}
+
+/* Wooden frame around the viewport */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 14px var(--frame),
+    inset 0 0 0 17px var(--frame-dark),
+    inset 0 0 50px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Top rail ----------
+ * header.html styles live in <body>, after this file, so header rules
+ * need :root to win. */
+
+:root .nav-header,
+:root[data-theme="dark"] .nav-header {
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 9px),
+    linear-gradient(var(--frame), var(--frame-dark));
+  backdrop-filter: none;
+  border-bottom: 3px solid var(--frame-dark);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+:root .nav-header a,
+:root .nav-header .dropdown-trigger {
+  font-family: var(--font-marker);
+  font-size: 16px;
+  color: #f6e7c8;
+}
+
+:root .nav-header a:hover,
+:root .nav-header .dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+:root .nav-header input[type="text"] {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  background: var(--card);
+  border: none;
+  border-radius: 2px;
+  transform: rotate(-1deg);
+}
+
+:root .nav-icon-btn {
+  color: #f6e7c8;
+}
+
+:root .nav-header .dropdown-content {
+  background: var(--note);
+  border: none;
+  border-radius: 0;
+  font-family: var(--font-hand);
+}
+
+:root .nav-header .dropdown-content .link a {
+  font-family: var(--font-hand);
+  font-size: 20px;
+  color: var(--ink);
+}
+
+/* ---------- Label-maker masthead ---------- */
+
+#page {
+  max-width: 1280px;
+  padding: 32px 48px 100px;
+}
+
+#masthead {
+  justify-content: center;
+  border: none;
+  margin: 18px 0 40px;
+}
+
+#masthead a {
+  display: inline-block;
+  padding: 10px 26px 12px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.18), transparent 45%, rgba(0, 0, 0, 0.2)),
+    #b3162a;
+  color: #fff;
+  font-family: var(--font-label);
+  font-size: clamp(26px, 4.4vw, 46px);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.55);
+  border-radius: 5px;
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.45);
+  transform: rotate(-2deg);
+}
+
+/* ---------- The board: a masonry of pinned things ---------- */
+
+#content:has(.date-section) {
+  column-count: 3;
+  column-gap: 44px;
+}
+
+.date-section {
+  display: contents;
+}
+
+.item[data-item-type] {
+  --tilt: -1.4deg;
+  position: relative;
+  break-inside: avoid;
+  margin: 0 0 40px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  transform: rotate(var(--tilt));
+  transition: transform 0.2s ease;
+}
+
+.item:nth-child(4n + 2) { --tilt: 1.2deg; --pin: #1d4ed8; --note: #ffc4dd; }
+.item:nth-child(4n + 3) { --tilt: -0.5deg; --pin: #15803d; --note: #c6f6a8; }
+.item:nth-child(4n) { --tilt: 1.9deg; --pin: #ca8a04; --note: #bfe3ff; }
+
+.item[data-item-type]:hover {
+  transform: rotate(0deg) scale(1.02);
+  z-index: 5;
+}
+
+/* Pushpin */
+.item[data-item-type="link"]::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  z-index: 3;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85) 0 2px, transparent 3px),
+    radial-gradient(circle at 40% 40%, var(--pin), color-mix(in srgb, var(--pin) 55%, #000) 75%);
+  box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Index cards ---------- */
+
+.link-card-wrapper,
+.link-card-wrapper:hover {
+  max-width: none;
+  border: none;
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0;
+  background-color: var(--card);
+  background-image:
+    linear-gradient(to bottom, transparent 46px, var(--card-margin) 46px, var(--card-margin) 48px, transparent 48px),
+    repeating-linear-gradient(to bottom, transparent 0 25px, var(--card-rule) 25px 26px);
+  background-position: 0 0, 0 22px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 12px 22px -8px rgba(0, 0, 0, 0.45);
+}
+
+.link-header {
+  padding: 18px 18px 12px;
+  background: none;
+  border: none;
+}
+
+.link a,
+.link-header .link a {
+  font-family: var(--font-type);
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 26px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.link a:hover {
+  color: var(--stamp);
+}
+
+.link-url {
+  font-family: var(--font-hand);
+  font-size: 17px;
+  color: var(--pen);
+}
+
+.link-header .author,
+.author {
+  font-family: var(--font-hand);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pen);
+  text-align: right;
+}
+
+.link-header .author::before {
+  content: "\2014 ";
+}
+
+/* Dead links get stamped */
+.http-error-badge {
+  display: inline-block;
+  font-size: 0;
+  padding: 0;
+  background: none;
+  vertical-align: middle;
+}
+
+.http-error-badge::after {
+  content: "Missing";
+  display: inline-block;
+  padding: 2px 10px;
+  border: 3px solid var(--stamp);
+  border-radius: 4px;
+  font-family: var(--font-label);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  opacity: 0.85;
+  transform: rotate(-9deg);
+}
+
+.missing-link,
+.link a.missing-link {
+  font-family: var(--font-type);
+  font-weight: 400;
+  font-size: 13px;
+  color: #8a8073;
+  text-decoration: line-through;
+}
+
+/* Previews: a snapshot clipped to the card */
+.og-preview,
+.og-card {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.og-card {
+  padding: 0 14px 14px;
+}
+
+.og-site-info {
+  padding: 0 0 4px;
+  font-family: var(--font-hand);
+  font-size: 16px;
+  color: var(--pen);
+}
+
+.og-title {
+  display: none;
+}
+
+.og-content {
+  padding: 0;
+}
+
+.og-description {
+  font-family: var(--font-type);
+  font-size: 13px;
+  line-height: 26px;
+  color: #4a443b;
+  padding: 0;
+}
+
+.og-image,
+.item .og-image {
+  border: 6px solid #fff;
+  border-bottom-width: 18px;
+  border-radius: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+  transform: rotate(1.5deg);
+  margin: 8px 6px 10px;
+}
+
+.embed-media iframe,
+.twitter-tweet {
+  max-width: 100% !important;
+}
+
+/* ---------- Sticky notes ---------- */
+
+.quote-link {
+  text-decoration: none;
+}
+
+.quote-card,
+.quote-card:hover,
+[data-theme="dark"] .quote-card {
+  margin: 0;
+  padding: 30px 22px 22px;
+  border: none;
+  border-radius: 0;
+  background:
+    linear-gradient(135deg, transparent 82%, rgba(0, 0, 0, 0.07) 82%),
+    var(--note);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.15),
+    0 14px 18px -8px rgba(0, 0, 0, 0.45);
+}
+
+.quote-card::before {
+  content: none;
+}
+
+.quote-text {
+  font-family: var(--font-hand);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1.1;
+  color: #2b2722;
+  padding: 0;
+}
+
+.quote-author,
+[data-theme="dark"] .quote-author {
+  margin-top: 14px;
+  padding: 0;
+  text-align: right;
+  font-family: var(--font-hand);
+  font-size: 22px;
+  font-weight: 700;
+  color: #2b2722;
+}
+
+.quote-author::before {
+  content: "\2014 ";
+}
+
+/* Tape */
+.item[data-item-type="quote"]::before,
+.item[data-item-type="image"]::before,
+.item[data-item-type="image"]::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  width: 92px;
+  height: 26px;
+  background: var(--tape);
+  border-left: 1px dashed rgba(0, 0, 0, 0.08);
+  border-right: 1px dashed rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.item[data-item-type="quote"]::before {
+  top: -12px;
+  left: 50%;
+  margin-left: -46px;
+  transform: rotate(-4deg);
+}
+
+.item[data-item-type="image"]::before {
+  top: -6px;
+  left: -26px;
+  transform: rotate(-38deg);
+}
+
+.item[data-item-type="image"]::after {
+  top: -6px;
+  right: -26px;
+  transform: rotate(38deg);
+}
+
+/* ---------- Polaroids ---------- */
+
+.kitten-card,
+.kitten-card:hover,
+.item[data-item-type="image"] > img,
+.item[data-item-type="image"] > a > img {
+  position: relative;
+  margin: 0;
+  padding: 12px 12px 52px;
+  border: none;
+  border-radius: 1px;
+  background: #fdfdfb;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 14px 24px -8px rgba(0, 0, 0, 0.5);
+}
+
+.kitten-header,
+.kitten-header:hover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: center;
+  font-family: var(--font-marker);
+  font-size: 20px;
+  font-weight: 400;
+  color: #2b2722;
+  opacity: 1;
+}
+
+.kitten-image,
+.item img {
+  max-width: 100%;
+  max-height: 420px;
+  padding: 0;
+  margin: 0 auto;
+  border-radius: 0;
+  filter: sepia(0.12) saturate(0.95) contrast(1.05);
+}
+
+/* ---------- Tear-off calendar pages ---------- */
+
+.date-widget,
+.date-widget.sticky,
+.date-widget.sticky.at-bottom,
+.date-widget:hover {
+  position: relative !important;
+  top: auto !important;
+  float: none;
+  break-inside: avoid;
+  width: 150px;
+  height: auto;
+  margin: 6px auto 44px;
+  padding: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  background: #fff;
+  border: none;
+  border-radius: 4px;
+  overflow: visible;
+  box-shadow:
+    0 2px 0 #e6e1d6,
+    0 4px 0 #d8d2c4,
+    0 16px 22px -8px rgba(0, 0, 0, 0.5) !important;
+  transform: rotate(-3deg) !important;
+}
+
+.date-widget::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  z-index: 3;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85) 0 2px, transparent 3px),
+    radial-gradient(circle at 40% 40%, #64748b, #1f2937 75%);
+  box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.4);
+}
+
+.date-meta {
+  display: contents;
+}
+
+.date-month {
+  order: 1;
+  align-self: stretch;
+  padding: 28px 0 6px;
+  border-radius: 4px 4px 0 0;
+  background: #b3162a;
+  color: #fff;
+  text-align: center;
+  font-family: var(--font-label);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+}
+
+.date-number {
+  order: 2;
+  margin: 6px 0 0;
+  font-family: var(--font-label);
+  font-size: 58px;
+  font-weight: 400;
+  line-height: 1;
+  color: #23201c;
+}
+
+.date-day {
+  order: 3;
+  font-family: var(--font-hand);
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--pen);
+}
+
+.date-year {
+  order: 4;
+  font-family: var(--font-type);
+  font-size: 11px;
+  color: #8a8073;
+}
+
+.item .text {
+  font-family: var(--font-hand);
+  font-size: 24px;
+}
+
+/* Anything else on the board (stats, notices) is a pinned sheet of paper */
+.item:not([data-item-type]) {
+  position: relative;
+  margin: 0 auto 32px;
+  padding: 30px 34px;
+  background: var(--card);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 14px 24px -8px rgba(0, 0, 0, 0.5);
+  transform: rotate(-0.4deg);
+}
+
+.item:not([data-item-type]) .author {
+  font-size: 20px;
+  text-align: left;
+}
+
+/* ---------- Pagination and footer ---------- */
+
+#navigation,
+#navigation-top {
+  column-span: all;
+  font-family: var(--font-marker);
+  font-size: 18px;
+}
+
+#navigation a,
+#navigation-top a {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+#footer {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: fit-content;
+  margin: 0 auto 40px;
+  padding: 6px 22px;
+  transform: rotate(-1deg);
+  background: rgba(244, 236, 210, 0.92);
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-hand);
+  font-size: 18px;
+  color: #3a342c;
+  white-space: nowrap;
+}
+
+#footer a {
+  color: var(--pen);
+}
+
+/* ---------- After hours: a desk lamp over the board ---------- */
+
+[data-theme="dark"] {
+  --cork: #6f5034;
+  --frame: #3f2612;
+  --frame-dark: #24150a;
+}
+
+[data-theme="dark"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 940;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 60% at 50% 38%, rgba(255, 196, 110, 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 65% at 50% 38%, transparent 35%, rgba(8, 5, 2, 0.6) 75%, rgba(8, 5, 2, 0.85) 100%);
+}
+
+/* ---------- Smaller screens ---------- */
+
+@media (max-width: 1050px) {
+  #content:has(.date-section) {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  #content:has(.date-section) {
+    column-count: 1;
+  }
+
+  #page {
+    padding: 20px 26px 60px;
+  }
+
+  body::before {
+    box-shadow:
+      inset 0 0 0 8px var(--frame),
+      inset 0 0 0 10px var(--frame-dark);
+  }
+}

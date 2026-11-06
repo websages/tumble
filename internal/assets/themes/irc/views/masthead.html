@@ -1,0 +1,18 @@
+{{define "masthead"}}
+      <div id="masthead" class="irc-topic">
+        <a href="/" onclick="event.preventDefault(); window.location = window.location.origin + '/';">#{{siteName}}</a>
+        <span class="irc-topic-text">links, quotes &amp; kittens &middot; be excellent to each other</span>
+      </div>
+      <div class="irc-bottom">
+        <div class="irc-status">
+          <span id="irc-clock">[--:--]</span>
+          <span>[you(+i)]</span>
+          <span>[2:#{{siteName}}(+nt)]</span>
+          <span id="irc-act"></span>
+        </div>
+        <form class="irc-input" action="/search" method="get">
+          <label for="irc-input-box">[#{{siteName}}]</label>
+          <input id="irc-input-box" type="text" name="search" placeholder="type to search the logs, enter to send" autocomplete="off" />
+        </form>
+      </div>
+{{end}}

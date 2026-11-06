@@ -1,0 +1,788 @@
+/*
+ * Theme: irc
+ * The site as an IRC client: channel sidebar, topic bar, timestamped log
+ * lines with colored nicks, day-change notices, a Hot Shit panel where
+ * the nicklist would be, and an input line that searches the logs.
+ * Light mode is classic mIRC; dark mode is a terminal client.
+ */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap");
+
+:root {
+  --irc-bg: #ffffff;
+  --irc-pane: #f0f0f0;
+  --irc-line-hover: #f5f7ff;
+  --irc-border: #c9c9c9;
+  --irc-text: #111111;
+  --irc-muted: #8a8a8a;
+  --irc-link: #0b3fd0;
+  --irc-notice: #009300;
+  --irc-action: #9c009c;
+  --irc-bar: #1f3b8f;
+  --irc-bar-text: #ffffff;
+  --irc-hl: #c1121f;
+
+  --nick-0: #c1121f;
+  --nick-1: #d35400;
+  --nick-2: #9a7d0a;
+  --nick-3: #1e8449;
+  --nick-4: #117a65;
+  --nick-5: #1f618d;
+  --nick-6: #5b2c6f;
+  --nick-7: #a93226;
+  --nick-8: #2e86c1;
+  --nick-9: #af601a;
+  --nick-10: #7d3c98;
+  --nick-11: #239b56;
+
+  --sidebar-w: 210px;
+  --panel-w: 240px;
+  --topic-h: 38px;
+  --bottom-h: 62px;
+
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --bg-body: var(--irc-bg);
+  --card-bg: var(--irc-bg);
+  --text-primary: var(--irc-text);
+  --text-main: var(--irc-text);
+  --text-secondary: var(--irc-muted);
+  --border-default: var(--irc-border);
+  --link-color: var(--irc-link);
+  --accent-primary: var(--irc-link);
+}
+
+[data-theme="dark"] {
+  --irc-bg: #0f1216;
+  --irc-pane: #0a0c0f;
+  --irc-line-hover: #161b22;
+  --irc-border: #232a33;
+  --irc-text: #c9d1d9;
+  --irc-muted: #5f6b7a;
+  --irc-link: #6cb6ff;
+  --irc-notice: #3fb950;
+  --irc-action: #d2a8ff;
+  --irc-bar: #161b22;
+  --irc-bar-text: #9da7b3;
+  --irc-hl: #ff7b72;
+
+  --nick-0: #ff7b72;
+  --nick-1: #ffa657;
+  --nick-2: #e3b341;
+  --nick-3: #7ee787;
+  --nick-4: #56d4dd;
+  --nick-5: #79c0ff;
+  --nick-6: #d2a8ff;
+  --nick-7: #ff9bce;
+  --nick-8: #a5d6ff;
+  --nick-9: #f2cc60;
+  --nick-10: #bc8cff;
+  --nick-11: #56d364;
+}
+
+body {
+  background: var(--irc-bg);
+  color: var(--irc-text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding-top: 0;
+}
+
+/* ---------- Channel sidebar (the site header, turned sideways) ----------
+ * header.html styles live in <body>, after this file, so header rules
+ * need :root to win. */
+
+:root .nav-header {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: auto;
+  width: var(--sidebar-w);
+  height: auto;
+  padding: 0;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: var(--irc-pane);
+  backdrop-filter: none;
+  border-bottom: none;
+  border-right: 1px solid var(--irc-border);
+  box-shadow: none;
+  font-family: var(--font-mono);
+}
+
+:root[data-theme="dark"] .nav-header {
+  background: var(--irc-pane);
+}
+
+:root .nav-header::before {
+  content: "irc.tumble.net";
+  display: block;
+  padding: 10px 14px;
+  height: var(--topic-h);
+  box-sizing: border-box;
+  background: var(--irc-bar);
+  color: var(--irc-bar-text);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+:root .nav-left {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 10px 0;
+}
+
+:root .nav-left::before {
+  content: "CHANNELS";
+  padding: 4px 14px 6px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--irc-muted);
+}
+
+:root .nav-header .nav-left a {
+  padding: 3px 14px;
+  border-radius: 0;
+  font-size: 13px;
+  color: var(--irc-text);
+}
+
+:root .nav-header .nav-left a::before {
+  content: "#";
+  color: var(--irc-muted);
+}
+
+:root .nav-header .nav-left a:first-child {
+  background: var(--irc-bar);
+  color: var(--irc-bar-text);
+}
+
+:root .nav-header .nav-left a:hover {
+  background: var(--irc-line-hover);
+  color: var(--irc-link);
+}
+
+:root .nav-right {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+  padding: 10px 10px 52px;
+  border-top: 1px solid var(--irc-border);
+}
+
+:root .nav-right form {
+  display: none;
+}
+
+:root .nav-icon-btn {
+  color: var(--irc-muted);
+  border-radius: 0;
+}
+
+:root .nav-icon-btn:hover {
+  color: var(--irc-text);
+  background: var(--irc-line-hover);
+}
+
+/* ---------- Hot Shit panel (where the nicklist goes) ---------- */
+
+:root .nav-header .dropdown {
+  display: block;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--panel-w);
+  background: var(--irc-pane);
+  border-left: 1px solid var(--irc-border);
+  overflow-y: auto;
+}
+
+:root .nav-header .dropdown-trigger {
+  display: block;
+  height: var(--topic-h);
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: 0;
+  background: var(--irc-bar);
+  color: var(--irc-bar-text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: default;
+}
+
+:root .nav-header .dropdown-trigger:hover {
+  background: var(--irc-bar);
+}
+
+:root .nav-header .dropdown-content,
+:root .nav-header .dropdown:hover .dropdown-content {
+  display: block;
+  position: static;
+  min-width: 0;
+  max-height: none;
+  margin: 0;
+  padding: 6px 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+:root .nav-header .dropdown-content .sm {
+  padding: 3px 14px;
+  border-radius: 0;
+  font-size: 12px;
+}
+
+:root .nav-header .dropdown-content .link a {
+  color: var(--irc-text);
+  font-size: 12px;
+}
+
+:root .nav-header .dropdown-content .link a::before {
+  content: "@";
+  color: var(--irc-notice);
+  margin-right: 2px;
+}
+
+/* ---------- Topic bar, status bar, input line ---------- */
+
+#page {
+  max-width: none;
+  margin: 0 var(--panel-w) 0 var(--sidebar-w);
+  padding: calc(var(--topic-h) + 8px) 0 calc(var(--bottom-h) + 16px);
+  width: auto;
+}
+
+#masthead.irc-topic {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w);
+  right: var(--panel-w);
+  z-index: 900;
+  height: var(--topic-h);
+  margin: 0;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  background: var(--irc-bar);
+  color: var(--irc-bar-text);
+  border: none;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#masthead.irc-topic a {
+  color: var(--irc-bar-text);
+  font-weight: 700;
+}
+
+.irc-topic-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.irc-bottom {
+  position: fixed;
+  left: var(--sidebar-w);
+  right: var(--panel-w);
+  bottom: 0;
+  z-index: 900;
+  height: var(--bottom-h);
+  background: var(--irc-bg);
+  border-top: 1px solid var(--irc-border);
+}
+
+.irc-status {
+  display: flex;
+  gap: 8px;
+  padding: 4px 14px;
+  background: var(--irc-bar);
+  color: var(--irc-bar-text);
+  font-size: 12px;
+}
+
+.irc-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  margin: 0;
+}
+
+.irc-input label {
+  color: var(--irc-muted);
+  white-space: nowrap;
+}
+
+.irc-input input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--irc-text);
+  font: inherit;
+  caret-color: var(--irc-notice);
+}
+
+/* ---------- Log lines ---------- */
+
+#content {
+  font-size: 14px;
+}
+
+.irc-notice,
+.item[data-item-type] {
+  display: grid;
+  grid-template-columns: 48px 150px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: start;
+  padding: 1px 14px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+.item[data-item-type]:hover {
+  background: var(--irc-line-hover);
+}
+
+.irc-notice {
+  display: block;
+  color: var(--irc-notice);
+}
+
+.irc-notice-mark {
+  color: var(--irc-muted);
+}
+
+.irc-hl {
+  color: var(--irc-hl);
+  font-weight: 700;
+}
+
+.item-time {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  color: var(--irc-muted);
+}
+
+.link-card-wrapper,
+.link-card-wrapper:hover,
+.link-header {
+  display: contents;
+}
+
+.author,
+.link-header .author {
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author::before {
+  content: "<";
+  color: var(--irc-muted);
+}
+
+.author::after {
+  content: ">";
+  color: var(--irc-muted);
+}
+
+.author a {
+  font-weight: 700;
+}
+
+.link,
+.link-header .link {
+  grid-column: 3;
+  grid-row: 1;
+  display: block;
+  margin: 0;
+  min-width: 0;
+}
+
+.link a,
+.link-header .link a {
+  display: inline;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--irc-text);
+}
+
+.link-url {
+  display: inline;
+  margin-left: 8px;
+  font-size: 14px;
+  color: var(--irc-link);
+  text-decoration: underline;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.http-error-badge {
+  background: none;
+  color: var(--irc-hl);
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.http-error-badge::before {
+  content: "[";
+}
+
+.http-error-badge::after {
+  content: "]";
+}
+
+.missing-link,
+.link a.missing-link {
+  color: var(--irc-muted);
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: line-through;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Link unfurls, indented under the message */
+.og-preview {
+  grid-column: 3;
+  grid-row: 2;
+  max-width: 520px;
+  margin: 4px 0 6px;
+}
+
+.og-card {
+  background: var(--irc-pane);
+  border: none;
+  border-left: 3px solid var(--irc-border);
+  border-radius: 0;
+  box-shadow: none;
+  font-family: var(--font-mono);
+}
+
+.og-site-info {
+  padding: 6px 10px 0;
+  font-size: 11px;
+  color: var(--irc-muted);
+}
+
+.og-content {
+  padding: 2px 10px 8px;
+}
+
+.og-title,
+.og-title a {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--irc-link);
+}
+
+.og-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--irc-text);
+  padding: 0;
+}
+
+.og-image,
+.item .og-image {
+  border-radius: 0;
+  max-height: 220px;
+}
+
+.og-image img {
+  max-height: 220px;
+  object-fit: cover;
+}
+
+.embed-media iframe,
+.twitter-tweet {
+  max-width: 460px !important;
+}
+
+/* Quotes are /me actions */
+.quote-link,
+.quote-card,
+.quote-card:hover,
+[data-theme="dark"] .quote-card {
+  display: contents;
+}
+
+.quote-card::before {
+  content: none;
+}
+
+.quote-author,
+[data-theme="dark"] .quote-author {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: right;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quote-author::before {
+  content: "* ";
+  color: var(--irc-action);
+}
+
+.quote-text {
+  grid-column: 3;
+  grid-row: 1;
+  padding: 0;
+  margin: 0;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--irc-action);
+}
+
+/* Images come from the kitten bot */
+.item[data-item-type="image"]::before {
+  content: "<catbot>";
+  grid-column: 2;
+  grid-row: 1;
+  text-align: right;
+  font-weight: 700;
+  color: var(--nick-6);
+}
+
+.item[data-item-type="image"] > :not(.item-time) {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.kitten-card,
+.kitten-card:hover {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  margin: 0;
+}
+
+.kitten-header,
+.kitten-header:hover {
+  padding: 0;
+  border: none;
+  background: none;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--irc-text);
+  opacity: 1;
+}
+
+.kitten-image,
+.item img {
+  max-height: 220px;
+  max-width: 100%;
+  margin: 4px 0;
+  padding: 0;
+  border-radius: 0;
+}
+
+.item .text {
+  grid-column: 3;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Day changes */
+.date-widget,
+.date-widget.sticky,
+.date-widget.sticky.at-bottom {
+  position: static !important;
+  float: none;
+  width: auto;
+  height: auto;
+  margin: 10px 0 4px;
+  padding: 1px 14px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 6px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none !important;
+  transform: none !important;
+  color: var(--irc-notice);
+  font-size: 14px;
+}
+
+.date-widget::before {
+  content: "-!- Day changed to";
+  color: var(--irc-muted);
+}
+
+.date-meta {
+  display: contents;
+}
+
+.date-day,
+.date-month,
+.date-number,
+.date-year {
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.55;
+  margin: 0;
+  opacity: 1;
+  color: var(--irc-notice);
+}
+
+.date-day { order: 1; }
+.date-month { order: 2; }
+.date-number { order: 3; }
+.date-year { order: 4; }
+
+/* Pagination and footer */
+#navigation,
+#navigation-top {
+  box-sizing: border-box;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--irc-muted);
+}
+
+#navigation::before {
+  content: "-!- more backlog: ";
+}
+
+#footer {
+  z-index: 1001;
+  left: 0;
+  right: auto;
+  bottom: 0;
+  width: var(--sidebar-w);
+  box-sizing: border-box;
+  padding: 8px 10px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.6;
+  background: var(--irc-pane);
+  border-top: 1px solid var(--irc-border);
+  border-right: 1px solid var(--irc-border);
+  color: var(--irc-muted);
+}
+
+#footer a {
+  color: var(--irc-link);
+}
+
+#footer svg {
+  fill: var(--irc-muted);
+}
+
+/* ---------- Narrow screens: just the buffer ---------- */
+
+@media (max-width: 1100px) {
+  :root .nav-header .dropdown {
+    display: none;
+  }
+
+  #page,
+  #masthead.irc-topic,
+  .irc-bottom {
+    margin-right: 0;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  :root .nav-header {
+    bottom: auto;
+    right: 0;
+    width: auto;
+    height: 48px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--irc-border);
+  }
+
+  :root .nav-header::before {
+    display: none;
+  }
+
+  #page {
+    margin: 0;
+    padding: calc(48px + var(--topic-h) + 8px) 0 calc(var(--bottom-h) + 16px);
+  }
+
+  #masthead.irc-topic {
+    display: flex;
+    top: 48px;
+    left: 0;
+  }
+
+  .irc-bottom {
+    left: 0;
+  }
+
+  /* Stack each line: time and nick, then the message full width */
+  .item[data-item-type] {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 8px;
+    padding: 4px 10px;
+    font-size: 13px;
+  }
+
+  .author,
+  .link-header .author,
+  .quote-author,
+  [data-theme="dark"] .quote-author,
+  .item[data-item-type="image"]::before {
+    text-align: left;
+  }
+
+  .link,
+  .link-header .link,
+  .quote-text,
+  .item[data-item-type="image"] > :not(.item-time),
+  .item .text {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .og-preview {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    max-width: 100%;
+  }
+}
