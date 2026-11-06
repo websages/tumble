@@ -304,6 +304,34 @@ func TestAPIv1_ListLinks(t *testing.T) {
 			},
 		},
 		{
+			name:   "filters by user parameter",
+			method: http.MethodGet,
+			path:   "/api/v1/links?user=user2",
+			links: []data.IRCLink{
+				{ID: 1, Timestamp: now, User: "user1", Title: "Link 1", URL: "https://example.com/1"},
+				{ID: 2, Timestamp: now, User: "user2", Title: "Link 2", URL: "https://example.com/2"},
+				{ID: 3, Timestamp: now, User: "user2", Title: "Link 3", URL: "https://example.com/3"},
+			},
+			expectedStatus: http.StatusOK,
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APILinksResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if len(resp.Data) != 2 {
+					t.Fatalf("expected 2 links, got %d", len(resp.Data))
+				}
+				if resp.Meta.Total != 2 {
+					t.Errorf("expected total 2, got %d", resp.Meta.Total)
+				}
+				for _, link := range resp.Data {
+					if link.User != "user2" {
+						t.Errorf("expected user user2, got %s", link.User)
+					}
+				}
+			},
+		},
+		{
 			name:           "method not allowed for PUT",
 			method:         http.MethodPut,
 			path:           "/api/v1/links",

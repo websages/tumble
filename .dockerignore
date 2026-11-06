@@ -1,0 +1,22 @@
+# VCS / tooling
+.git
+.github
+.flox
+.claude
+.agent
+
+# Build output
+bin/
+
+# Local databases, dumps, logs, and scratch data (never ship these)
+*.log
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.bak
+*.dmp
+*.dmp.*
+*.ldif
+quotes.sql
+foo
+code-review.md

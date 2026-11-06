@@ -90,6 +90,17 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Filter by submitter username if requested
+	if user := r.URL.Query().Get("user"); user != "" {
+		var filtered []data.IRCLink
+		for _, link := range links {
+			if link.User == user {
+				filtered = append(filtered, link)
+			}
+		}
+		links = filtered
+	}
+
 	total := len(links)
 
 	// Apply offset

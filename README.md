@@ -102,25 +102,62 @@ Tumble can publish new links, quotes, and images to Mastodon-like clients that f
 
 ### Environment Variables
 
-Override any config value with the `TUMBLE_` prefix. Use underscores for nested keys.
+Any configuration value can be set with a `TUMBLE_`-prefixed environment
+variable (use underscores for nested keys, e.g. `TUMBLE_LOGGING_LEVEL`).
+Environment variables take precedence over the config file, and the
+application can run **entirely from environment variables with no config file
+present** — useful for container platforms.
+
+**Server**
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TUMBLE_PORT` | Listen port | `8080` |
-| `TUMBLE_DRIVER` | Database driver (`sqlite`, `mysql`) | `mysql` |
-| `TUMBLE_DATABASE` | Database name or file path | |
+| `TUMBLE_BASEURL` | Public base URL (used for RSS links and click tracking) | |
 | `TUMBLE_MODE` | `development` or `production` | `production` |
-| `TUMBLE_EMBED_ASSETS` | Load assets from binary or filesystem | `true` |
+| `TUMBLE_EMBED_ASSETS` | Load assets from binary (`true`) or filesystem (`false`) | `true` |
+| `TUMBLE_REQUEST_TIMEOUT` | Outbound HTTP request timeout | `2s` |
+
+**Database**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TUMBLE_DRIVER` | Database driver (`sqlite`, `mysql`) | `mysql` |
+| `TUMBLE_DATABASE` | Database name (MySQL) or file path (SQLite) | |
+| `TUMBLE_HOST` | MySQL host | |
+| `TUMBLE_USERNAME` | MySQL username | |
+| `TUMBLE_PASSWORD` | MySQL password | |
+
+**Logging & caching**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_LOGGING_LEVEL` | Log level (`debug`, `info`, `warn`, `error`) | `info` |
-| `TUMBLE_REQUEST_TIMEOUT` | HTTP request timeout | `2s` |
+| `TUMBLE_LOGGING_OUTPUT` | `stdout`, `stderr`, or a file path | `stdout` |
+| `TUMBLE_CACHING_ENABLED` | Cache link previews in the database | `true` |
+
+**Secrets**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_ADMIN_SECRET` | Secret for admin API operations | |
 | `TUMBLE_CLICK_SIGNING_KEY` | Secret for signed click tracking | |
+
+**Site & RSS feed metadata**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |
 | `TUMBLE_WEBMASTER` | RSS webMaster field | omitted |
 | `TUMBLE_COPYRIGHT` | RSS copyright field | omitted |
+
+**ActivityPub**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
 | `TUMBLE_ACTIVITYPUB_ENABLED` | Enable ActivityPub federation | `false` |
 | `TUMBLE_ACTIVITYPUB_ACTOR_NAME` | Site actor's `preferredUsername` | `tumble` |
 | `TUMBLE_ACTIVITYPUB_AVATAR_URL` | Site actor's `icon` (avatar) image URL | `https://github.com/websages.png` |
@@ -177,6 +214,7 @@ Then configure `conf/config.yaml` with your MySQL credentials.
 | `make restore` | Restore the SQLite database from backup |
 | `make fmt` | Run `go fmt` and clean up whitespace |
 | `make build-linux` | Cross-compile for Linux amd64 |
+| `make deploy` | Deploy to Fly.io (see below) |
 | `make help` | Show all available targets |
 
 ### Testing
@@ -208,6 +246,50 @@ The recommended approach:
 With `embed_assets: true` (the default), only the binary and config file are needed on the server.
 
 The production systemd units in `contrib/` use Flox to manage the MySQL service (`tumble-db.service` runs `flox activate --start-services`). See `contrib/README` for details.
+
+### Fly.io
+
+Tumble ships with a `fly.toml` and `Dockerfile` for deploying to
+[Fly.io](https://fly.io). The image bundles the tumble binary and the
+[Litestream](https://litestream.io) binary: SQLite lives on a persistent
+volume and is continuously replicated to object storage
+([Tigris](https://fly.io/docs/tigris/)) for disaster recovery. All non-secret
+configuration is supplied through `TUMBLE_*` environment variables (the
+`[env]` block of `fly.toml`); secrets are set separately.
+
+**One-time setup:**
+
+```bash
+fly auth login
+fly apps create tumble2                              # pick your own app name
+fly volumes create tumble_data --region iad --size 1 # persistent SQLite storage
+fly storage create                                   # Tigris bucket; sets BUCKET_NAME + AWS_* secrets
+
+# App secrets (never stored in fly.toml)
+fly secrets set TUMBLE_ADMIN_SECRET="$(openssl rand -hex 32)"
+fly secrets set TUMBLE_CLICK_SIGNING_KEY="$(openssl rand -hex 32)"  # optional
+```
+
+**Deploy** (stamps the current git commit into the version banner):
+
+```bash
+make deploy
+```
+
+**Custom domain:**
+
+```bash
+fly certs create tumble2.wcyd.org   # then add the DNS record Fly prints
+```
+
+Notes:
+
+- Because SQLite is backed by a single volume, run exactly one machine — do
+  not scale the count above 1.
+- Litestream replicates continuously; on a fresh machine the entrypoint
+  restores the database from the bucket before starting tumble. If no bucket
+  is configured (`BUCKET_NAME` unset), the app runs without replication.
+- Litestream's replica settings live in `conf/litestream.yml`.
 
 ## API
 
