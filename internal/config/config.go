@@ -25,6 +25,7 @@ type Config struct {
 	RequestTimeout  time.Duration `yaml:"request_timeout" mapstructure:"request_timeout"`
 	SiteName        string        `yaml:"site_name" mapstructure:"site_name"`
 	Theme           string        `yaml:"theme" mapstructure:"theme"`
+	Favicon         string        `yaml:"favicon" mapstructure:"favicon"`
 	DailyKitten     bool          `yaml:"daily_kitten" mapstructure:"daily_kitten"`
 	SiteTitle       string        `yaml:"site_title" mapstructure:"site_title"`
 	SiteDescription string        `yaml:"site_description" mapstructure:"site_description"`
@@ -80,6 +81,7 @@ func Load(path string) (*Config, error) {
 	for _, key := range []string{
 		"host", "database", "username", "password",
 		"baseurl", "admin_secret", "click_signing_key",
+		"favicon",
 		"site_title", "site_description",
 		"managing_editor", "webmaster", "copyright",
 	} {

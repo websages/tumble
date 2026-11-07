@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -47,5 +48,40 @@ func TestThemeFiles(t *testing.T) {
 	r.cfg.Theme = "corkboard"
 	if got := r.themeFile("theme.js"); got != "" {
 		t.Errorf("corkboard has no theme.js, got %q", got)
+	}
+}
+
+func TestIconsPartial(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  config.Config
+		want []string
+	}{
+		{"default", config.Config{}, []string{`href="/favicon.ico"`, `href="/apple-touch-icon.png"`}},
+		{"theme icon", config.Config{Theme: "corkboard"}, []string{`href="/themes/corkboard/favicon.png"`}},
+		{"configured icon", config.Config{Theme: "corkboard", Favicon: "https://example.com/i.png"}, []string{`href="https://example.com/i.png"`}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := tt.cfg
+			cfg.EmbedAssets = true
+			r, err := NewRenderer(&cfg)
+			if err != nil {
+				t.Fatalf("NewRenderer: %v", err)
+			}
+			var buf bytes.Buffer
+			if err := r.htmlTmpls.ExecuteTemplate(&buf, "icons", nil); err != nil {
+				t.Fatalf("render icons: %v", err)
+			}
+			out := buf.String()
+			for _, w := range tt.want {
+				if !strings.Contains(out, w) {
+					t.Errorf("icons missing %s:\n%s", w, out)
+				}
+			}
+			if strings.Count(out, `rel="icon"`) != 1 || strings.Count(out, `rel="apple-touch-icon"`) != 1 {
+				t.Errorf("expected one icon and one apple-touch-icon link:\n%s", out)
+			}
+		})
 	}
 }

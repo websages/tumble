@@ -68,6 +68,18 @@ baseurl: your.domain.com
 site_name: "tumblefish"
 ```
 
+`favicon` replaces the site icon. It's used for both the browser icon and
+the Apple touch icon, and `/favicon.ico` and `/apple-touch-icon.png`
+redirect to it. Use a URL or a site path; a square PNG of 180x180 works
+everywhere.
+
+```yaml
+favicon: "https://example.com/icon.png"
+```
+
+If `favicon` is unset, the theme's icon is used when it ships one
+(`corkboard` does), otherwise the built-in icons.
+
 ### Themes
 
 `theme` picks a site-wide visual theme. Leave it unset for the default look.
@@ -97,6 +109,7 @@ binary, so rebuild to pick it up.
 | `theme.css` | Required. Loaded after `screen.css`; override its CSS variables or restyle anything |
 | `theme.js` | Optional. Loaded with `defer` on every page |
 | `views/*.html` | Optional. Replaces the base template with the same file name in `internal/templates/views/` |
+| `favicon.png` | Optional. Site icon and Apple touch icon (180x180), used unless `favicon` is configured |
 | anything else | Images, fonts, etc., served alongside |
 
 Useful hooks in the base markup:
@@ -209,6 +222,7 @@ present** — useful for container platforms.
 |----------|-------------|---------|
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
 | `TUMBLE_THEME` | Visual theme (`broadsheet`, `irc`, `corkboard`) | default look |
+| `TUMBLE_FAVICON` | Site icon and Apple touch icon (URL or path) | theme icon, else built-in |
 | `TUMBLE_DAILY_KITTEN` | Post a daily cataas.com kitten at 10 AM Central | `true` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
