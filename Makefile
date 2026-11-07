@@ -65,8 +65,14 @@ restore: ## Restore the database from backup
 load-fixtures: ## Load test fixtures
 	./tests/load_fixtures.sh
 
+# The server listens on all interfaces; point generated links at this
+# host's address so the test site works from other machines too.
+# Override with e.g. `make run-test DEV_HOST=localhost`.
+DEV_HOST ?= $(or $(shell hostname -I 2>/dev/null | awk '{print $$1}'),localhost)
+
 run-test: kill build ## Run the application with the test database
-	$(BUILD_DIR)/$(BINARY_NAME) conf/config-test.yaml
+	@echo "Serving on 0.0.0.0:8080 -> http://$(DEV_HOST):8080"
+	TUMBLE_BASEURL=http://$(DEV_HOST):8080 $(BUILD_DIR)/$(BINARY_NAME) conf/config-test.yaml
 
 
 
