@@ -24,6 +24,7 @@ primary_region = "iad"
   TUMBLE_REQUEST_TIMEOUT = "10s"
   TUMBLE_SITE_NAME = "stahnma slack"
   TUMBLE_SITE_TITLE = "stahnma slack feed"
+  TUMBLE_THEME = "corkboard"
 
 # Persistent volume for the SQLite database. Create it once with:
 #   fly volumes create tumble_data --region iad --size 1
