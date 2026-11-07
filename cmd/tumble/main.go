@@ -140,6 +140,18 @@ func clientIP(r *http.Request, mode string) string {
 	return hostFromAddr(r.RemoteAddr)
 }
 
+// siteIconHandler serves the built-in icon files, or redirects to iconURL
+// when a configured or theme icon replaces them.
+func siteIconHandler(iconURL string, builtin http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if iconURL == "" || iconURL == r.URL.Path {
+			builtin.ServeHTTP(w, r)
+			return
+		}
+		http.Redirect(w, r, iconURL, http.StatusFound)
+	})
+}
+
 func hostFromAddr(addr string) string {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -327,9 +339,11 @@ func main() {
 	mux.Handle("/css/", fileServer)
 	mux.Handle("/img/", fileServer)
 	mux.Handle("/themes/", fileServer)
-	mux.Handle("/favicon.ico", fileServer)
-	// Legacy static files
-	mux.Handle("/apple-touch-icon.png", fileServer)
+	// Browsers and feed readers fetch these paths directly, so send them to
+	// the configured or theme icon when there is one.
+	iconHandler := siteIconHandler(assets.IconURL(cfg.Favicon, cfg.Theme), fileServer)
+	mux.Handle("/favicon.ico", iconHandler)
+	mux.Handle("/apple-touch-icon.png", iconHandler)
 	subFS, _ := fs.Sub(assets.StaticFS, "2202")
 	mux.Handle("/2202/", http.StripPrefix("/2202/", http.FileServer(http.FS(subFS))))
 	mux.Handle("/roast/", fileServer)

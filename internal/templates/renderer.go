@@ -114,6 +114,20 @@ func (r *Renderer) htmlFuncMap() template.FuncMap {
 	fm["themeScript"] = func() string {
 		return r.themeFile("theme.js")
 	}
+	// faviconURL and touchIconURL are the site icons: the configured
+	// favicon, else the theme's favicon.png, else the built-in files.
+	fm["faviconURL"] = func() string {
+		if u := assets.IconURL(r.cfg.Favicon, r.cfg.Theme); u != "" {
+			return u
+		}
+		return "/favicon.ico"
+	}
+	fm["touchIconURL"] = func() string {
+		if u := assets.IconURL(r.cfg.Favicon, r.cfg.Theme); u != "" {
+			return u
+		}
+		return "/apple-touch-icon.png"
+	}
 	return fm
 }
 
