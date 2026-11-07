@@ -62,3 +62,24 @@ func TestLoad_EnvOnly(t *testing.T) {
 		}
 	}
 }
+
+// TestLoad_DailyKitten verifies the daily kitten is on by default and can
+// be turned off with TUMBLE_DAILY_KITTEN.
+func TestLoad_DailyKitten(t *testing.T) {
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
+	if !cfg.DailyKitten {
+		t.Error("expected DailyKitten to default to true")
+	}
+
+	t.Setenv("TUMBLE_DAILY_KITTEN", "false")
+	cfg, err = Load("")
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
+	if cfg.DailyKitten {
+		t.Error("expected TUMBLE_DAILY_KITTEN=false to disable DailyKitten")
+	}
+}

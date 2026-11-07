@@ -2292,7 +2292,7 @@
       },
       "put": {
         "summary": "Ensure Daily Kitten",
-        "description": "Fetches a new kitten if one doesn't exist for today. Returns the existing kitten if one already exists.",
+        "description": "Fetches a new kitten if one doesn't exist for today. Returns the existing kitten if one already exists. Returns 409 when the daily kitten is disabled (`daily_kitten: false`).",
         "tags": [
           "Kittens"
         ],
@@ -2346,6 +2346,22 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/APIError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Daily kitten is disabled in config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIError"
+                },
+                "example": {
+                  "error": {
+                    "code": "disabled",
+                    "message": "Daily kitten is disabled"
+                  }
                 }
               }
             }
