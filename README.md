@@ -115,6 +115,19 @@ previews and date grouping to keep working. See the bundled themes for
 examples: `corkboard` is CSS only, `broadsheet` overrides the masthead, and
 `irc` overrides the masthead and adds `theme.js`.
 
+### Daily Kitten
+
+By default tumble posts a cat from [cataas.com](https://cataas.com) every
+day at 10 AM Central (and on startup, if it's later than that and today's
+kitten is missing). To turn it off:
+
+```yaml
+daily_kitten: false
+```
+
+When disabled, nothing is fetched and `PUT /api/v1/kittens/daily` returns
+`409`. Past kittens stay in the feed and can still be read or deleted.
+
 ### RSS Feed Settings
 
 These optional fields customize the RSS feed metadata. If omitted, the feed title and description default to "tumble", and the other fields are omitted from the feed entirely.
@@ -196,6 +209,7 @@ present** — useful for container platforms.
 |----------|-------------|---------|
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
 | `TUMBLE_THEME` | Visual theme (`broadsheet`, `irc`, `corkboard`) | default look |
+| `TUMBLE_DAILY_KITTEN` | Post a daily cataas.com kitten at 10 AM Central | `true` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |

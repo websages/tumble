@@ -23,6 +23,7 @@ type Scheduler struct {
 	store         data.Store
 	archiveClient *archive.Client
 	activityPub   *activitypub.Service
+	dailyKitten   bool
 	retryCount    int
 	retryMu       sync.Mutex
 	stopRetry     chan struct{}
@@ -30,8 +31,9 @@ type Scheduler struct {
 }
 
 // New creates a new Scheduler with the given store. ap may be nil if
-// ActivityPub federation is disabled.
-func New(store data.Store, ap *activitypub.Service) *Scheduler {
+// ActivityPub federation is disabled. dailyKitten controls whether the
+// daily kitten is fetched at 10 AM Central and on startup.
+func New(store data.Store, ap *activitypub.Service, dailyKitten bool) *Scheduler {
 	// Use America/Chicago for Central Time
 	loc, err := time.LoadLocation("America/Chicago")
 	if err != nil {
@@ -44,6 +46,7 @@ func New(store data.Store, ap *activitypub.Service) *Scheduler {
 		store:         store,
 		archiveClient: archive.NewClient(5),
 		activityPub:   ap,
+		dailyKitten:   dailyKitten,
 		stopRetry:     make(chan struct{}),
 		stopDelivery:  make(chan struct{}),
 	}
@@ -51,19 +54,21 @@ func New(store data.Store, ap *activitypub.Service) *Scheduler {
 
 // Start begins the scheduler and runs any startup tasks.
 func (s *Scheduler) Start(ctx context.Context) error {
-	// Schedule daily cat at 10 AM Central
-	_, err := s.cron.AddFunc("0 10 * * *", func() {
-		s.fetchDailyCatWithRetry(ctx)
-	})
-	if err != nil {
-		return err
+	if s.dailyKitten {
+		// Schedule daily cat at 10 AM Central
+		if _, err := s.cron.AddFunc("0 10 * * *", func() {
+			s.fetchDailyCatWithRetry(ctx)
+		}); err != nil {
+			return err
+		}
+	} else {
+		slog.Info("Daily kitten disabled")
 	}
 
 	// Schedule archive batch at 3 AM Central
-	_, err = s.cron.AddFunc("0 3 * * *", func() {
+	if _, err := s.cron.AddFunc("0 3 * * *", func() {
 		runArchiveBatch(ctx, s.store, s.archiveClient)
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
@@ -71,7 +76,9 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	slog.Info("Scheduler started", "nextRun", s.cron.Entries()[0].Next)
 
 	// Check if we need to fetch today's kitten on startup
-	go s.checkStartupKitten(ctx)
+	if s.dailyKitten {
+		go s.checkStartupKitten(ctx)
+	}
 
 	// Run archive batch on startup (in background)
 	go runArchiveBatch(ctx, s.store, s.archiveClient)

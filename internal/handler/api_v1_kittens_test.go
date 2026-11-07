@@ -157,6 +157,7 @@ func TestAPIv1_PutKittenDaily(t *testing.T) {
 		remoteAddr     string
 		apiKey         string
 		adminSecret    string
+		disabled       bool
 		getTodayFn     func(ctx context.Context, link string) (*data.Image, error)
 		insertImageFn  func(ctx context.Context, image *data.Image) (int, error)
 		expectedStatus int
@@ -267,6 +268,39 @@ func TestAPIv1_PutKittenDaily(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 		},
+		{
+			name:        "disabled returns 409 without touching the store",
+			method:      http.MethodPut,
+			remoteAddr:  "192.168.1.100:12345",
+			apiKey:      "secret123",
+			adminSecret: "secret123",
+			disabled:    true,
+			getTodayFn: func(ctx context.Context, link string) (*data.Image, error) {
+				t.Error("store should not be queried when disabled")
+				return nil, nil
+			},
+			expectedStatus: http.StatusConflict,
+			checkBody: func(t *testing.T, body []byte) {
+				var resp APIErrorResponse
+				if err := json.Unmarshal(body, &resp); err != nil {
+					t.Fatalf("failed to unmarshal response: %v", err)
+				}
+				if resp.Error.Code != "disabled" {
+					t.Errorf("expected code 'disabled', got %s", resp.Error.Code)
+				}
+			},
+		},
+		{
+			name:        "disabled still requires authorization",
+			method:      http.MethodPut,
+			remoteAddr:  "192.168.1.100:12345",
+			adminSecret: "secret123",
+			disabled:    true,
+			getTodayFn: func(ctx context.Context, link string) (*data.Image, error) {
+				return nil, nil
+			},
+			expectedStatus: http.StatusForbidden,
+		},
 	}
 
 	for _, tt := range tests {
@@ -279,6 +313,7 @@ func TestAPIv1_PutKittenDaily(t *testing.T) {
 				Store: store,
 				Config: &config.Config{
 					AdminSecret: tt.adminSecret,
+					DailyKitten: !tt.disabled,
 				},
 			}
 

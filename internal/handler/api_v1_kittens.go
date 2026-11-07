@@ -11,7 +11,8 @@ const catAASUser = "cat AAS"
 
 // APIv1KittensDailyHandler handles the /api/v1/kittens/daily endpoint.
 // GET: Returns today's kitten (404 if none exists)
-// PUT: Ensures today's kitten exists (fetches if missing), requires auth
+// PUT: Ensures today's kitten exists (fetches if missing), requires auth;
+// 409 when the daily kitten is disabled in config
 // DELETE: Removes today's kitten, requires auth
 func (h *Handler) APIv1KittensDailyHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -21,6 +22,10 @@ func (h *Handler) APIv1KittensDailyHandler(w http.ResponseWriter, r *http.Reques
 	case http.MethodPut:
 		if !isAuthorizedAPIKey(r, h.Config.AdminSecret) {
 			writeAPIError(w, http.StatusForbidden, "forbidden", "Valid API key required")
+			return
+		}
+		if !h.Config.DailyKitten {
+			writeAPIError(w, http.StatusConflict, "disabled", "Daily kitten is disabled")
 			return
 		}
 		h.handlePutKittenDaily(w, r)

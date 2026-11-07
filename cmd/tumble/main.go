@@ -275,7 +275,7 @@ func main() {
 	ap := activitypub.NewService(cfg, store)
 
 	// Init Scheduler
-	sched := scheduler.New(store, ap)
+	sched := scheduler.New(store, ap, cfg.DailyKitten)
 	if err := sched.Start(context.Background()); err != nil {
 		slog.Error("Failed to start scheduler", "error", err)
 		os.Exit(1)
