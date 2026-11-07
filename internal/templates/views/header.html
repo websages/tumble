@@ -246,9 +246,11 @@
             <input type="text" name="search" placeholder="search..." />
         </form>
 
+        {{if not themeName}}
         <button id="scott-mode-toggle" class="nav-icon-btn" aria-label="Toggle Scott Mode" title="Scott Mode">
             <span class="material-symbols-rounded">history</span>
         </button>
+        {{end}}
 
         <button id="compact-toggle" class="nav-icon-btn" aria-label="Toggle Compact Mode" title="Toggle Compact Mode">
             <span class="material-symbols-rounded" id="compact-icon">view_headline</span>
@@ -300,10 +302,12 @@
             <span class="material-symbols-rounded">view_headline</span>
             Compact Mode
         </button>
+        {{if not themeName}}
         <button class="mobile-drawer-toggle-btn" id="mobile-scott-toggle">
             <span class="material-symbols-rounded">history</span>
             Scott Mode
         </button>
+        {{end}}
     </div>
     <div class="mobile-drawer-footer">
         <a href="/stats">Stats</a>

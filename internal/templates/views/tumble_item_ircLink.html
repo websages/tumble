@@ -1,6 +1,7 @@
-    <div class="item" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}" data-click-sig="{{.ClickSig}}">
+    <div class="item" data-item-type="link" data-user="{{.User}}" data-url="{{.URL}}" data-content-type="{{.ContentType}}" data-irc-link-id="{{.ID}}" data-click-sig="{{.ClickSig}}">
         <div class="link-card-wrapper">
             <div class="link-header">
+                <time class="item-time" datetime="{{.Timestamp.Format "2006-01-02T15:04:05Z07:00"}}">{{.Timestamp.Format "15:04"}}</time>
                 <span class="link">
                     {{if eq .EmbedType "twitter"}}
                         {{/* Twitter embed */}}

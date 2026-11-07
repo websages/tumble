@@ -1,0 +1,623 @@
+/*
+ * Theme: broadsheet
+ * A newspaper front page: blackletter nameplate, dateline, three ruled
+ * columns, a lead story for each day, halftone photos, pull quotes, and
+ * corrections for dead links. Dark mode is the night edition.
+ */
+@import url("https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Libre+Franklin:wght@500;700;800&display=swap");
+
+:root {
+  --paper: #f3efe4;
+  --ink: #151412;
+  --ink-soft: #4a463e;
+  --rule: #151412;
+  --kicker: #a3141e;
+  --halftone: rgba(0, 0, 0, 0.18);
+
+  --bg-body: var(--paper);
+  --bg-canvas: var(--paper);
+  --bg-surface: #e9e3d4;
+  --card-bg: var(--paper);
+  --text-primary: var(--ink);
+  --text-main: var(--ink);
+  --text-secondary: var(--ink-soft);
+  --border-default: var(--ink);
+  --link-color: var(--ink);
+  --accent-primary: var(--kicker);
+
+  --serif-display: "Playfair Display", Georgia, serif;
+  --serif-body: "Source Serif 4", Georgia, serif;
+  --sans-label: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+  --paper: #171614;
+  --ink: #ebe5d6;
+  --ink-soft: #b4ad9c;
+  --rule: #ebe5d6;
+  --kicker: #ff6b6b;
+  --halftone: rgba(0, 0, 0, 0.35);
+  --bg-surface: #23211d;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif-body);
+  padding-top: 45px;
+}
+
+/* ---------- Section nav ----------
+ * header.html styles live in <body>, after this file, so header rules
+ * need :root to win. */
+
+:root .nav-header {
+  height: 44px;
+  background: var(--paper);
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--rule);
+  box-shadow: none;
+  font-family: var(--sans-label);
+}
+
+:root[data-theme="dark"] .nav-header {
+  background: var(--paper);
+}
+
+:root .nav-header a,
+:root .nav-header .dropdown-trigger {
+  font-family: var(--sans-label);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-radius: 0;
+}
+
+:root .nav-header input[type="text"] {
+  border-radius: 0;
+  border-color: var(--ink);
+  background: transparent;
+  font-family: var(--serif-body);
+  font-style: italic;
+}
+
+:root .nav-icon-btn {
+  color: var(--ink);
+  border-radius: 0;
+}
+
+/* ---------- Page and nameplate ---------- */
+
+#page {
+  max-width: 1240px;
+  padding: 24px 40px 90px;
+}
+
+#masthead.bs-nameplate {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  margin: 8px 0 0;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--rule);
+  font-size: inherit;
+  letter-spacing: normal;
+  line-height: 1;
+}
+
+#masthead .bs-title {
+  font-family: "UnifrakturCook", "Old English Text MT", serif;
+  font-weight: 700;
+  font-size: clamp(44px, 7vw, 96px);
+  letter-spacing: 0;
+  color: var(--ink);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.bs-ear {
+  font-family: var(--sans-label);
+  font-size: 11px;
+  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  max-width: 190px;
+  color: var(--ink);
+}
+
+.bs-ear span {
+  display: block;
+  margin-top: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.bs-ear-right {
+  justify-self: end;
+  text-align: right;
+}
+
+.bs-dateline {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 3px double var(--rule);
+  padding: 6px 2px;
+  margin-bottom: 28px;
+  font-family: var(--sans-label);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* ---------- Columns ---------- */
+
+#content {
+  font-size: 16px;
+}
+
+.date-section {
+  column-count: 3;
+  column-gap: 36px;
+  column-rule: 1px solid var(--rule);
+  margin-bottom: 40px;
+}
+
+/* Day header: a ruled band across every column */
+.date-widget,
+.date-widget.sticky,
+.date-widget.sticky.at-bottom {
+  column-span: all;
+  position: static !important;
+  float: none;
+  margin: 0 0 20px;
+  width: auto;
+  height: auto;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: baseline;
+  gap: 10px;
+  background: none;
+  border: none;
+  border-top: 3px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  box-shadow: none !important;
+  transform: none !important;
+  font-family: var(--sans-label);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink);
+}
+
+.date-meta {
+  display: contents;
+}
+
+.date-day,
+.date-month,
+.date-year,
+.date-number {
+  font-family: var(--sans-label);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  opacity: 1;
+  line-height: 1.4;
+}
+
+.date-day { order: 1; }
+.date-month { order: 2; }
+.date-number { order: 3; }
+.date-year { order: 4; }
+
+.date-day::after,
+.date-number::after {
+  content: " ·";
+}
+
+.item {
+  break-inside: avoid;
+  padding: 0 0 18px;
+  margin: 0 0 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 35%, transparent);
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+/* Lead story: the first item of each day spans the page */
+.date-widget + .item {
+  column-span: all;
+  padding-bottom: 26px;
+  margin-bottom: 26px;
+  border-bottom: 3px double var(--rule);
+}
+
+/* ---------- Link stories ---------- */
+
+.link-card-wrapper,
+.link-card-wrapper:hover {
+  max-width: none;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  overflow: visible;
+}
+
+.link-header {
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.link a,
+.link-header .link a {
+  font-family: var(--serif-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.link a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.date-widget + .item .link a {
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 900;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.link-url {
+  font-family: var(--sans-label);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
+/* Byline */
+.link-header .author,
+.author {
+  display: block;
+  text-align: left;
+  margin-top: 6px;
+  padding: 0;
+  font-family: var(--sans-label);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.link-header .author::before {
+  content: "By ";
+}
+
+.date-widget + .item .author {
+  text-align: center;
+}
+
+/* Dead links read as corrections */
+.http-error-badge {
+  font-size: 0;
+  background: none;
+  padding: 0;
+}
+
+.http-error-badge::after {
+  content: "Correction";
+  display: block;
+  font-family: var(--sans-label);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--kicker);
+  margin-bottom: 4px;
+}
+
+.missing-link,
+.link a.missing-link {
+  font-family: var(--serif-body);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
+.missing-link::before {
+  content: "An earlier edition linked to ";
+  text-decoration: none;
+  display: inline;
+}
+
+/* ---------- Previews: dek and photo ---------- */
+
+.og-preview,
+.og-card {
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: 10px;
+}
+
+.og-site-info {
+  padding: 0;
+  font-family: var(--sans-label);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kicker);
+}
+
+.og-content {
+  padding: 0;
+}
+
+.og-title {
+  display: none;
+}
+
+.og-description {
+  font-family: var(--serif-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 0;
+}
+
+.date-widget + .item .og-description {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 18px;
+  font-style: italic;
+}
+
+.og-image,
+.item .og-image {
+  position: relative;
+  border-radius: 0;
+  border: 1px solid var(--rule);
+  margin: 8px 0;
+  overflow: hidden;
+}
+
+.og-image img,
+.item img,
+.kitten-image,
+.direct-image,
+.imgur-image,
+.flickr-image {
+  filter: grayscale(1) contrast(1.25) brightness(1.02);
+  border-radius: 0;
+}
+
+/* Halftone screen over every photo */
+.og-image::after,
+.kitten-card::after,
+.direct-image-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(var(--halftone) 30%, transparent 31%);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+}
+
+.direct-image-wrapper {
+  position: relative;
+  display: block;
+}
+
+.item img {
+  max-width: 100%;
+}
+
+/* ---------- Photo of the day ---------- */
+
+.kitten-card,
+.kitten-card:hover {
+  position: relative;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+  margin: 0;
+}
+
+.kitten-header,
+.kitten-header:hover {
+  background: none;
+  border: none;
+  padding: 0 0 8px;
+  font-size: 0;
+  opacity: 1;
+}
+
+.kitten-header::after {
+  content: "Photograph of the Day";
+  font-family: var(--sans-label);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--kicker);
+}
+
+.item .kitten-image {
+  padding: 0;
+  max-height: 520px;
+  width: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+.kitten-card::after {
+  top: 26px;
+}
+
+.date-widget + .item .kitten-image {
+  max-height: 440px;
+  object-position: center 22%;
+}
+
+/* ---------- Pull quotes ---------- */
+
+.quote-link {
+  text-decoration: none;
+}
+
+.quote-card,
+.quote-card:hover,
+[data-theme="dark"] .quote-card {
+  background: none;
+  border: none;
+  border-top: 2px solid var(--rule);
+  border-bottom: 2px solid var(--rule);
+  border-radius: 0;
+  box-shadow: none;
+  margin: 6px 0;
+  padding: 18px 4px 14px;
+  text-align: center;
+}
+
+.quote-card::before {
+  content: "\201C";
+  position: static;
+  display: block;
+  font-family: var(--serif-display);
+  font-size: 64px;
+  line-height: 0.6;
+  color: var(--kicker);
+}
+
+.quote-text {
+  font-family: var(--serif-display);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--ink);
+  padding: 0;
+}
+
+.quote-author,
+[data-theme="dark"] .quote-author {
+  margin-top: 10px;
+  padding: 0;
+  font-family: var(--sans-label);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.quote-author::before {
+  content: "\2014\00a0";
+}
+
+/* ---------- Embeds ---------- */
+
+.twitter-tweet,
+.embed-media iframe {
+  max-width: 100% !important;
+}
+
+/* ---------- Pagination and footer ---------- */
+
+#navigation,
+#navigation-top {
+  font-family: var(--sans-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+
+#navigation::before {
+  content: "Continued on the next page ";
+  font-weight: 700;
+}
+
+#footer {
+  background: var(--paper);
+  border-top: 3px double var(--rule);
+  font-family: var(--sans-label);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+#footer a {
+  color: var(--ink);
+}
+
+#footer svg {
+  fill: var(--ink);
+}
+
+/* ---------- Smaller screens ---------- */
+
+@media (max-width: 1000px) {
+  .date-section {
+    column-count: 2;
+  }
+
+  .bs-ear {
+    display: none;
+  }
+
+  #masthead.bs-nameplate {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .date-section {
+    column-count: 1;
+  }
+
+  #page {
+    padding: 12px 16px 40px;
+  }
+
+  #masthead.bs-nameplate {
+    display: grid;
+  }
+
+  .bs-dateline {
+    font-size: 9px;
+  }
+}

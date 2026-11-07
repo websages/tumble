@@ -1,0 +1,23 @@
+{{define "masthead"}}
+      <div id="masthead" class="bs-nameplate">
+        <div class="bs-ear bs-ear-left">&ldquo;All the links<br />that fit, we print.&rdquo;</div>
+        <a href="/" class="bs-title" onclick="event.preventDefault(); window.location = window.location.origin + '/';">The {{siteName}}</a>
+        <div class="bs-ear bs-ear-right">Late Edition<br /><span>Weather: links scattered, kittens likely</span></div>
+      </div>
+      <div class="bs-dateline">
+        <span id="bs-issue">No. 1</span>
+        <span id="bs-date"></span>
+        <span>Free of charge</span>
+      </div>
+      <script>
+        (function () {
+          var now = new Date();
+          var start = new Date(now.getFullYear(), 0, 0);
+          var day = Math.floor((now - start) / 86400000);
+          document.getElementById("bs-issue").textContent = "Vol. " + (now.getFullYear() - 2000) + " · No. " + day;
+          document.getElementById("bs-date").textContent = now.toLocaleDateString("en-US", {
+            weekday: "long", year: "numeric", month: "long", day: "numeric"
+          });
+        })();
+      </script>
+{{end}}

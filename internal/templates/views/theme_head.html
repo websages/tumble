@@ -1,0 +1,3 @@
+{{define "theme_head"}}{{with themeStylesheet}}
+    <link rel="stylesheet" href="{{.}}" media="screen" />{{end}}{{with themeScript}}
+    <script src="{{.}}" defer></script>{{end}}{{end}}

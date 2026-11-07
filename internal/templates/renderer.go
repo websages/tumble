@@ -7,9 +7,13 @@ import (
 	"html"
 	"html/template"
 	"io"
+	"io/fs"
+	"path"
+	"path/filepath"
 	"strings"
 	texttemplate "text/template"
 
+	"tumble/internal/assets"
 	"tumble/internal/config"
 )
 
@@ -97,7 +101,51 @@ func (r *Renderer) htmlFuncMap() template.FuncMap {
 	fm["siteName"] = func() string {
 		return r.cfg.SiteName
 	}
+	// themeName is the configured theme, or empty for the default look.
+	fm["themeName"] = func() string {
+		return r.cfg.Theme
+	}
+	// themeStylesheet is the URL of the theme's CSS, loaded after
+	// screen.css. Empty when no theme is set, so the default look is used.
+	fm["themeStylesheet"] = func() string {
+		return r.themeFile("theme.css")
+	}
+	// themeScript is the URL of the theme's optional JavaScript.
+	fm["themeScript"] = func() string {
+		return r.themeFile("theme.js")
+	}
 	return fm
+}
+
+// themeFile returns the URL of a file shipped by the configured theme, or
+// empty if there is no theme or it doesn't ship that file.
+func (r *Renderer) themeFile(file string) string {
+	if !assets.ThemeHasFile(r.cfg.Theme, file) {
+		return ""
+	}
+	return "/" + path.Join(assets.ThemeDir, r.cfg.Theme, file)
+}
+
+// parseThemeViews overrides base HTML templates with the configured
+// theme's views/*.html, matched by file name.
+func (r *Renderer) parseThemeViews() error {
+	if r.cfg.Theme == "" {
+		return nil
+	}
+	if r.cfg.EmbedAssets {
+		pattern := path.Join(assets.ThemeDir, r.cfg.Theme, "views", "*.html")
+		if matches, _ := fs.Glob(assets.StaticFS, pattern); len(matches) == 0 {
+			return nil
+		}
+		_, err := r.htmlTmpls.ParseFS(assets.StaticFS, pattern)
+		return err
+	}
+	pattern := filepath.Join("internal", "assets", assets.ThemeDir, r.cfg.Theme, "views", "*.html")
+	if matches, _ := filepath.Glob(pattern); len(matches) == 0 {
+		return nil
+	}
+	_, err := r.htmlTmpls.ParseGlob(pattern)
+	return err
 }
 
 func (r *Renderer) parseTemplates() error {
@@ -126,7 +174,7 @@ func (r *Renderer) parseTemplates() error {
 			return err
 		}
 	}
-	return nil
+	return r.parseThemeViews()
 }
 
 func (r *Renderer) Render(w io.Writer, name string, data interface{}) error {

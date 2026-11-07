@@ -341,6 +341,11 @@ body {
   letter-spacing: -1px;
 }
 
+/* Theme hook: item timestamps are hidden in the default look */
+.item-time {
+  display: none;
+}
+
 .item img {
   max-width: 800px;
   max-height: 600px;

@@ -257,6 +257,12 @@ func main() {
 	logger := slog.New(logHandler)
 	slog.SetDefault(logger)
 
+	// Fall back to the default look if the configured theme doesn't exist
+	if cfg.Theme != "" && !assets.ThemeExists(cfg.Theme) {
+		slog.Warn("Unknown theme, using default", "theme", cfg.Theme, "available", assets.Themes())
+		cfg.Theme = ""
+	}
+
 	// Init DB
 	store, err := data.NewStore(cfg)
 	if err != nil {
@@ -320,6 +326,7 @@ func main() {
 	fileServer := http.FileServer(http.FS(assets.StaticFS))
 	mux.Handle("/css/", fileServer)
 	mux.Handle("/img/", fileServer)
+	mux.Handle("/themes/", fileServer)
 	mux.Handle("/favicon.ico", fileServer)
 	// Legacy static files
 	mux.Handle("/apple-touch-icon.png", fileServer)
