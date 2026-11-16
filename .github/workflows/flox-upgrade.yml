@@ -12,19 +12,21 @@ permissions:
 
 jobs:
   upgrade:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Install Flox
       uses: flox/install-flox-action@v2
 
     - name: Upgrade Flox environment
       run: flox upgrade
+      env:
+        FLOX_FLOXHUB_TOKEN: ${{ secrets.FLOX_FLOXHUB_TOKEN }}
 
     - name: Create pull request
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v8
       with:
         branch: chore/flox-upgrade
         delete-branch: true
