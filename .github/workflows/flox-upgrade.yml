@@ -22,6 +22,8 @@ jobs:
 
     - name: Upgrade Flox environment
       run: flox upgrade
+      env:
+        FLOX_FLOXHUB_TOKEN: ${{ secrets.FLOX_FLOXHUB_TOKEN }}
 
     - name: Create pull request
       uses: peter-evans/create-pull-request@v7
