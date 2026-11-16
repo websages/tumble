@@ -327,10 +327,13 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find related links from the archive (best-effort)
-	candidates, relErr := h.Store.FindRelatedLinks(ctx, req.URL, req.URL, linkID, maxRelatedLinks*10)
+	candidates, relErr := h.Store.FindRelatedLinks(ctx, title, req.URL, linkID, maxRelatedLinks*10)
 	if relErr == nil && len(candidates) > 0 {
 		tagMap := h.buildTagMap(ctx, candidates)
-		scored := scoreRelatedLinks(candidates, req.URL, req.URL, tagMap)
+		if len(tagStrings) > 0 {
+			tagMap[0] = tagStrings
+		}
+		scored := scoreRelatedLinks(candidates, title, req.URL, tagMap)
 		for _, s := range scored {
 			resp.Related = append(resp.Related, APIRelatedLinkResponse{
 				ID:        s.ID,

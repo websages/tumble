@@ -29,6 +29,8 @@ type mockAPIStore struct {
 	insertLinkFn       func(link *data.IRCLink) (int, error)
 	lastInsertedLink   *data.IRCLink
 	deleteLinkFn       func(id int) error
+	findRelatedFn      func(title, url string) []data.RelatedLink
+	tagsByResourceFn   func(resourceID int) []data.Tag
 	err                error
 }
 
@@ -87,10 +89,16 @@ func (m *mockAPIStore) DeleteIRCLink(ctx context.Context, id int) error {
 }
 
 func (m *mockAPIStore) FindRelatedLinks(ctx context.Context, title string, url string, excludeID int, limit int) ([]data.RelatedLink, error) {
+	if m.findRelatedFn != nil {
+		return m.findRelatedFn(title, url), nil
+	}
 	return nil, nil
 }
 
 func (m *mockAPIStore) GetTagsByResource(ctx context.Context, resourceType string, resourceID int) ([]data.Tag, error) {
+	if m.tagsByResourceFn != nil {
+		return m.tagsByResourceFn(resourceID), nil
+	}
 	return nil, nil
 }
 
@@ -1594,4 +1602,51 @@ func TestAPIv1_LinkResponse_ClientOmitEmpty(t *testing.T) {
 			t.Error("expected client_user_name in JSON response body")
 		}
 	})
+}
+
+func TestAPIv1_CreateLink_RelatedUsesTitleAndTags(t *testing.T) {
+	const newLinkID = 42
+	var gotTitle string
+	store := &mockAPIStore{
+		linksByURL:     []data.IRCLink{},
+		insertedLinkID: newLinkID,
+		findRelatedFn: func(title, url string) []data.RelatedLink {
+			gotTitle = title
+			// Different domain, no title overlap, no clicks, brand new:
+			// only a shared tag can push this over the minimum score.
+			return []data.RelatedLink{
+				{ID: 7, Title: "Zzz Qqq", URL: "https://other.test/x", Timestamp: time.Now()},
+			}
+		},
+		tagsByResourceFn: func(resourceID int) []data.Tag {
+			if resourceID == newLinkID || resourceID == 7 {
+				return []data.Tag{{Tag: "kubernetes"}}
+			}
+			return nil
+		},
+	}
+	handler := &Handler{Store: store, Config: &config.Config{}}
+
+	body := `{"url":"https://unreachable.invalid/post","user":"testuser","tags":["kubernetes"]}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/links", strings.NewReader(body))
+	req.RemoteAddr = "127.0.0.1:12345"
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	handler.APIv1LinksHandler(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected status %d, got %d: %s", http.StatusCreated, w.Code, w.Body.String())
+	}
+	if store.lastInsertedLink == nil || gotTitle != store.lastInsertedLink.Title {
+		t.Errorf("FindRelatedLinks title = %q, want stored link title", gotTitle)
+	}
+
+	var resp APILinkCreateResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+	if len(resp.Related) != 1 || resp.Related[0].ID != 7 {
+		t.Errorf("expected related link 7 via shared tag, got %+v", resp.Related)
+	}
 }
