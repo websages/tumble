@@ -168,9 +168,8 @@ body::before {
 }
 
 :root .nav-header .dropdown-content {
-  background: var(--slop-surface-hover);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* Nearly opaque: backdrop blur doesn't apply inside the blurred navbar */
+  background: color-mix(in srgb, var(--slop-bg) 94%, var(--slop-purple));
   border: 1px solid var(--slop-border);
   border-radius: 0.875rem;
   box-shadow: var(--slop-shadow), var(--slop-glow);

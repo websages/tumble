@@ -167,6 +167,11 @@
         display: block;
     }
 
+    /* Clicking the theme picker pins it open */
+    .dropdown.open .dropdown-content {
+        display: block;
+    }
+
     /* Custom scrollbar */
     .dropdown-content::-webkit-scrollbar {
         width: 8px;
@@ -245,7 +250,7 @@
         {{with userThemes}}
         <!-- Theme picker (allow_user_themes) -->
         <div class="dropdown theme-picker">
-            <span class="dropdown-trigger">Theme &#9662;</span>
+            <span class="dropdown-trigger" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">Theme &#9662;</span>
             <div class="dropdown-content">
                 <div class="link"><a href="#" data-pick-theme="default">{{if not themeName}}&#10003; {{end}}default</a></div>
                 {{range .}}<div class="link"><a href="#" data-pick-theme="{{.}}">{{if eq . themeName}}&#10003; {{end}}{{.}}</a></div>
@@ -413,6 +418,32 @@
                 updateCompactIcon(true);
             }
         });
+    }
+
+    // Theme picker: click the trigger to pin the menu open; click
+    // elsewhere or press Escape to close it
+    var picker = document.querySelector(".theme-picker");
+    if (picker) {
+      var pickerTrigger = picker.querySelector(".dropdown-trigger");
+      var setPickerOpen = function (open) {
+        picker.classList.toggle("open", open);
+        pickerTrigger.setAttribute("aria-expanded", open ? "true" : "false");
+      };
+      pickerTrigger.addEventListener("click", function () {
+        setPickerOpen(!picker.classList.contains("open"));
+      });
+      pickerTrigger.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setPickerOpen(!picker.classList.contains("open"));
+        }
+      });
+      document.addEventListener("click", function (e) {
+        if (!picker.contains(e.target)) setPickerOpen(false);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") setPickerOpen(false);
+      });
     }
 
     // Theme picker: remember the choice in a cookie and reload

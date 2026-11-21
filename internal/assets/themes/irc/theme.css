@@ -167,7 +167,7 @@ body {
   flex-wrap: wrap;
   gap: 4px;
   margin-top: auto;
-  padding: 10px 10px 52px;
+  padding: 10px 10px 76px; /* clear the footer, which wraps to three lines */
   border-top: 1px solid var(--irc-border);
 }
 
@@ -245,6 +245,54 @@ body {
   content: "@";
   color: var(--irc-notice);
   margin-right: 2px;
+}
+
+/* The theme picker stays a button in the channel sidebar and pops
+ * up above it, instead of becoming a second panel over Hot Shit. */
+:root .nav-header .dropdown.theme-picker {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  overflow: visible;
+  background: none;
+  border: none;
+}
+
+:root .nav-header .dropdown.theme-picker .dropdown-trigger {
+  height: auto;
+  padding: 6px 10px;
+  background: none;
+  color: var(--irc-muted);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+:root .nav-header .dropdown.theme-picker .dropdown-trigger:hover {
+  background: var(--irc-line-hover);
+  color: var(--irc-text);
+}
+
+:root .nav-header .dropdown.theme-picker .dropdown-content {
+  display: none;
+  position: absolute;
+  top: auto;
+  bottom: 100%;
+  left: 0;
+  right: auto;
+  min-width: 160px;
+  background: var(--irc-pane);
+  border: 1px solid var(--irc-border);
+}
+
+:root .nav-header .dropdown.theme-picker:hover .dropdown-content,
+:root .nav-header .dropdown.theme-picker.open .dropdown-content {
+  display: block;
+}
+
+:root .nav-header .dropdown.theme-picker .dropdown-content .link a::before {
+  content: "/theme ";
 }
 
 /* ---------- Topic bar, status bar, input line ---------- */
