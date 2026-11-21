@@ -20,3 +20,8 @@ bin/
 quotes.sql
 foo
 code-review.md
+
+# Local secrets (never send to the builder)
+.env
+fly.secrets
+f
