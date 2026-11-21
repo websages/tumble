@@ -26,6 +26,7 @@ primary_region = "iad"
   TUMBLE_SITE_TITLE = "stahnma slack feed"
   TUMBLE_THEME = "corkboard"
   TUMBLE_ALLOW_USER_THEMES = "true"
+  TUMBLE_DAILY_KITTEN = "false"
 
 # Persistent volume for the SQLite database. Create it once with:
 #   fly volumes create tumble_data --region iad --size 1
