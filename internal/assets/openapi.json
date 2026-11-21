@@ -2429,7 +2429,7 @@
     "/api/v1/preview": {
       "get": {
         "summary": "Get OpenGraph Preview",
-        "description": "Fetches OpenGraph metadata for a URL. Returns cached data if available, otherwise fetches fresh metadata. Supports special handling for YouTube, Reddit, Twitter, Flickr, and OEmbed providers.",
+        "description": "Fetches OpenGraph metadata for a URL. Returns cached data if available, otherwise fetches fresh metadata. Supports special handling for YouTube, Reddit, Twitter, Flickr, and OEmbed providers. Pages are tried with several user agents before giving up; 404 and 410 are treated as definitive. Non-HTML resources (PDFs, images) return a basic file card. If the site blocks the server (403, 429, 5xx) but archive.org has a snapshot, the preview is built from the snapshot and includes `archive_url`. Error responses include `error` and, when the site answered, `status`; an error without `status` means the site was unreachable (DNS failure, timeout).",
         "tags": [
           "Preview"
         ],
@@ -2470,7 +2470,7 @@
                     },
                     "type": {
                       "type": "string",
-                      "description": "Content type (e.g. video, rich)"
+                      "description": "Content type (e.g. video, rich, file)"
                     },
                     "html": {
                       "type": "string",
@@ -2479,6 +2479,10 @@
                     "status": {
                       "type": "integer",
                       "description": "HTTP status code from fetching the URL"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Present when the preview could not be built"
                     }
                   }
                 },
@@ -2496,6 +2500,164 @@
           },
           "404": {
             "description": "Could not fetch preview for the URL"
+          }
+        }
+      }
+    },
+    "/api/v1/preview/diagnose": {
+      "get": {
+        "summary": "Diagnose a Link Preview",
+        "description": "Investigates a link that shows as broken. Probes the URL with HEAD and GET using each scraper user agent (browser, plain, crawler) and reports status, content type, redirects and timing for each. Then clears the cached preview and fetches a fresh one, so a false error is corrected immediately. Requires an API key (localhost is always allowed).",
+        "tags": [
+          "Preview"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "description": "Absolute http(s) URL to diagnose",
+            "schema": {
+              "type": "string"
+            },
+            "example": "https://www.textualapp.com/news/a-new-chapter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagnosis results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "cached_entry": {
+                      "type": "object",
+                      "description": "Preview that was cached before this call, if any"
+                    },
+                    "cached_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "attempts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "method": {
+                            "type": "string",
+                            "example": "GET"
+                          },
+                          "user_agent": {
+                            "type": "string",
+                            "enum": [
+                              "browser",
+                              "plain",
+                              "crawler"
+                            ],
+                            "description": "Which scraper identity was used"
+                          },
+                          "status": {
+                            "type": "integer",
+                            "description": "HTTP status, omitted if no response was received",
+                            "example": 503
+                          },
+                          "content_type": {
+                            "type": "string",
+                            "example": "text/html"
+                          },
+                          "final_url": {
+                            "type": "string",
+                            "description": "URL after following redirects"
+                          },
+                          "redirects": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "duration_ms": {
+                            "type": "integer",
+                            "example": 212
+                          },
+                          "error": {
+                            "type": "string",
+                            "description": "Network error (DNS, timeout, TLS), if any"
+                          }
+                        }
+                      }
+                    },
+                    "preview": {
+                      "type": "object",
+                      "description": "Fresh result from /api/v1/preview after clearing the cache"
+                    }
+                  }
+                },
+                "example": {
+                  "url": "https://www.textualapp.com/news/a-new-chapter",
+                  "cached_entry": {
+                    "error": "HTTP Error",
+                    "status": "503"
+                  },
+                  "cached_at": "2026-11-20T18:00:00Z",
+                  "attempts": [
+                    {
+                      "method": "HEAD",
+                      "user_agent": "browser",
+                      "status": 503,
+                      "content_type": "text/html",
+                      "final_url": "https://www.textualapp.com/news/a-new-chapter",
+                      "duration_ms": 180
+                    },
+                    {
+                      "method": "GET",
+                      "user_agent": "browser",
+                      "status": 503,
+                      "content_type": "text/html",
+                      "final_url": "https://www.textualapp.com/news/a-new-chapter",
+                      "duration_ms": 190
+                    },
+                    {
+                      "method": "HEAD",
+                      "user_agent": "plain",
+                      "status": 200,
+                      "content_type": "text/html; charset=utf-8",
+                      "final_url": "https://www.textualapp.com/news/a-new-chapter",
+                      "duration_ms": 150
+                    },
+                    {
+                      "method": "GET",
+                      "user_agent": "plain",
+                      "status": 200,
+                      "content_type": "text/html; charset=utf-8",
+                      "final_url": "https://www.textualapp.com/news/a-new-chapter",
+                      "duration_ms": 160
+                    }
+                  ],
+                  "preview": {
+                    "title": "A New Chapter",
+                    "icon": "https://www.textualapp.com/favicon.ico"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid url parameter"
+          },
+          "403": {
+            "description": "Invalid or missing API key"
+          },
+          "405": {
+            "description": "Method not allowed"
           }
         }
       }

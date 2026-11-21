@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +23,30 @@ const (
 	errorCacheTTLRecent = 24 * time.Hour      // Error for links < 10 days old: 24h
 	errorCacheTTLOld    = 60 * 24 * time.Hour // Error for links > 10 days old: 60 days
 	linkAgeCutoff       = 10 * 24 * time.Hour // Boundary between "recent" and "old"
+	errorCacheTTLRetry  = time.Hour           // Possibly-transient error on a recent link
+	maxScrapeBodyBytes  = 2 << 20             // Stop parsing HTML after 2MB
 )
+
+// scrapeUserAgent is one identity the scraper presents to a site.
+type scrapeUserAgent struct {
+	Name  string
+	Value string // empty means Go's default User-Agent
+}
+
+// scrapeUserAgents are tried in order until one succeeds. No single
+// identity works everywhere: some sites block a Chrome UA that lacks
+// real browser headers, others block known crawlers.
+var scrapeUserAgents = []scrapeUserAgent{
+	{"browser", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+	{"plain", ""},
+	{"crawler", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"},
+}
+
+// isDefinitiveStatus reports whether an HTTP status means the resource is
+// really gone, as opposed to blocked, rate limited, or temporarily broken.
+func isDefinitiveStatus(code int) bool {
+	return code == http.StatusNotFound || code == http.StatusGone
+}
 
 // OEmbed Providers Configuration
 var oembedProviders = []struct {
@@ -67,6 +93,7 @@ type OEmbedResponse struct {
 // isPreviewExpired checks whether a cached link preview has exceeded its TTL.
 // Error previews use a tiered TTL based on link age: recent links get a short
 // TTL (24h) so errors are retried quickly, while old links get a long TTL (60d).
+// A recent link whose error may be transient (403, 429, 5xx) gets 1h.
 func isPreviewExpired(cached *data.LinkPreview, linkTimestamp time.Time) bool {
 	if !strings.Contains(string(cached.Data), `"error":`) {
 		return time.Since(cached.UpdatedAt) > previewCacheTTL
@@ -74,6 +101,12 @@ func isPreviewExpired(cached *data.LinkPreview, linkTimestamp time.Time) bool {
 	ttl := errorCacheTTLOld
 	if !linkTimestamp.IsZero() && time.Since(linkTimestamp) < linkAgeCutoff {
 		ttl = errorCacheTTLRecent
+		var meta map[string]string
+		if json.Unmarshal(cached.Data, &meta) == nil {
+			if code, err := strconv.Atoi(meta["status"]); err == nil && !isDefinitiveStatus(code) {
+				ttl = errorCacheTTLRetry
+			}
+		}
 	}
 	return time.Since(cached.UpdatedAt) > ttl
 }
@@ -131,7 +164,16 @@ func (h *Handler) TryServeCachedOGPreview(w http.ResponseWriter, r *http.Request
 	return true
 }
 
-// OGPreviewHandler handles /ogpreview.cgi
+// PreviewHandler serves /api/v1/preview, answering from the cache when it
+// can and fetching a fresh preview otherwise.
+func (h *Handler) PreviewHandler(w http.ResponseWriter, r *http.Request) {
+	if h.TryServeCachedOGPreview(w, r) {
+		return
+	}
+	h.OGPreviewHandler(w, r)
+}
+
+// OGPreviewHandler fetches a fresh preview, bypassing the cache.
 func (h *Handler) OGPreviewHandler(w http.ResponseWriter, r *http.Request) {
 	urlParam := r.URL.Query().Get("url")
 	w.Header().Set("Content-Type", "application/json")
@@ -398,16 +440,17 @@ func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
 }
 
 func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam string) {
-	// Try with browser UA first
-	browserUA := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-	// Facebook's crawler UA - widely whitelisted for OpenGraph fetching
-	crawlerUA := "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+	meta, err := h.scrapeWithFallbacks(urlParam)
 
-	meta, err := h.scrapeOpenGraph(urlParam, browserUA)
+	// Bot protection (DataDome, Cloudflare, etc.) blocks servers but not
+	// browsers, so a 403/429/5xx usually means "alive, but not to us".
+	// Build the preview from the latest Wayback snapshot instead.
 	if err != nil {
-		// If we got a 403, retry with crawler UA (many sites whitelist known bots)
-		if strings.Contains(err.Error(), "status 403") {
-			meta, err = h.scrapeOpenGraph(urlParam, crawlerUA)
+		var status int
+		if n, _ := fmt.Sscanf(err.Error(), "status %d", &status); n == 1 && !isDefinitiveStatus(status) {
+			if archived, aerr := h.scrapeArchivedSnapshot(r.Context(), urlParam); aerr == nil {
+				meta, err = archived, nil
+			}
 		}
 	}
 
@@ -430,6 +473,8 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam
 			}
 			json.NewEncoder(w).Encode(resp)
 		} else {
+			// No HTTP status: DNS failure, timeout, connection refused, etc.
+			// The frontend shows these as "unreachable", not as a 404.
 			json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch metadata"})
 		}
 		return
@@ -438,12 +483,42 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam
 	h.cacheAndRespond(w, r, urlParam, meta)
 }
 
+// scrapeWithFallbacks tries each scrape user agent in turn. It stops early
+// on success or on a definitive "gone" status (404/410). Otherwise it
+// returns the first HTTP status error it saw, or the last error if none of
+// the attempts got an HTTP response.
+func (h *Handler) scrapeWithFallbacks(targetURL string) (map[string]string, error) {
+	var firstStatusErr, lastErr error
+	for _, ua := range scrapeUserAgents {
+		meta, err := h.scrapeOpenGraph(targetURL, ua.Value)
+		if err == nil {
+			return meta, nil
+		}
+		lastErr = err
+		var code int
+		if n, _ := fmt.Sscanf(err.Error(), "status %d", &code); n == 1 {
+			if isDefinitiveStatus(code) {
+				return nil, err
+			}
+			if firstStatusErr == nil {
+				firstStatusErr = err
+			}
+		}
+	}
+	if firstStatusErr != nil {
+		return nil, firstStatusErr
+	}
+	return nil, lastErr
+}
+
 func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]string, error) {
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", userAgent)
+	if userAgent != "" {
+		req.Header.Set("User-Agent", userAgent)
+	}
 
 	client := &http.Client{
 		Timeout: h.Config.RequestTimeout,
@@ -458,8 +533,14 @@ func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]strin
 		return nil, fmt.Errorf("status %d", resp.StatusCode)
 	}
 
+	// Non-HTML resources (PDFs, images, archives) are alive but have no
+	// OpenGraph tags. Describe them from the URL instead of parsing bytes.
+	if ct := resp.Header.Get("Content-Type"); ct != "" && !isHTMLContentType(ct) {
+		return fileMetadata(resp.Request.URL, ct), nil
+	}
+
 	// Parse HTML
-	doc, err := html.Parse(resp.Body)
+	doc, err := html.Parse(io.LimitReader(resp.Body, maxScrapeBodyBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -591,4 +672,56 @@ func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]strin
 	}
 
 	return metadata, nil
+}
+
+// waybackSnapshotPrefix matches the timestamp part of a Wayback URL.
+var waybackSnapshotPrefix = regexp.MustCompile(`^(https?://web\.archive\.org/web/\d+)/`)
+
+// rawSnapshotURL turns a Wayback URL into its "id_" form, which serves the
+// original page without the Wayback toolbar or rewritten links.
+func rawSnapshotURL(archiveURL string) string {
+	return waybackSnapshotPrefix.ReplaceAllString(archiveURL, "${1}id_/")
+}
+
+// scrapeArchivedSnapshot builds a preview from the closest archive.org
+// snapshot of targetURL. The icon still points at the original site.
+func (h *Handler) scrapeArchivedSnapshot(ctx context.Context, targetURL string) (map[string]string, error) {
+	archived := h.attachArchiveData(ctx, targetURL)
+	if archived["archive_url"] == "" {
+		return nil, fmt.Errorf("no archive snapshot")
+	}
+	meta, err := h.scrapeOpenGraph(rawSnapshotURL(archived["archive_url"]), scrapeUserAgents[0].Value)
+	if err != nil {
+		return nil, err
+	}
+	if meta["title"] == "" {
+		return nil, fmt.Errorf("archive snapshot has no title")
+	}
+	if u, err := url.Parse(targetURL); err == nil {
+		meta["icon"] = fmt.Sprintf("https://www.google.com/s2/favicons?domain=%s://%s&sz=32", u.Scheme, u.Host)
+	}
+	for k, v := range archived {
+		meta[k] = v
+	}
+	return meta, nil
+}
+
+func isHTMLContentType(ct string) bool {
+	ct = strings.ToLower(ct)
+	return strings.Contains(ct, "text/html") || strings.Contains(ct, "application/xhtml")
+}
+
+// fileMetadata builds a minimal preview for a non-HTML resource.
+func fileMetadata(u *url.URL, contentType string) map[string]string {
+	mediaType := strings.TrimSpace(strings.SplitN(contentType, ";", 2)[0])
+	name := path.Base(u.Path)
+	if name == "/" || name == "." {
+		name = u.Host
+	}
+	return map[string]string{
+		"title":       name,
+		"description": fmt.Sprintf("%s file on %s", mediaType, u.Host),
+		"type":        "file",
+		"icon":        fmt.Sprintf("https://www.google.com/s2/favicons?domain=%s://%s&sz=32", u.Scheme, u.Host),
+	}
 }

@@ -212,7 +212,9 @@
 
              // Handle Errors
              if (data.error || (data.status && data.status >= 400)) {
-                var status = data.status || 404;
+                // No status means we never got an HTTP answer (DNS, timeout),
+                // which is not the same as the site saying 404.
+                var status = data.status || 'unreachable';
                 var linkSpan = item.querySelector(".link");
                 if (linkSpan && !imgurCard) {
                      var statusPrefix = '<span class="http-error-badge">' + status + '</span> ';
