@@ -95,6 +95,16 @@ theme: "broadsheet"   # or "irc", "corkboard", "slop"
 | `corkboard` | A pinboard: label-maker masthead, pinned index cards, sticky-note quotes, taped polaroids, tear-off calendar dates |
 | `slop` | A vibecoded AI landing page after [Slopstrap](https://slopstrap.mikelacher.com/): gradient orbs over a grid, glowing glass cards, fat colored left borders, pulsing status pills, sparkles |
 
+Set `allow_user_themes: true` to add a **Theme** menu to the nav bar so
+visitors can pick any bundled theme (or the default look) for themselves.
+The choice is kept in a `tumble_theme` cookie; visitors who haven't picked
+one get `theme`. It is off by default.
+
+```yaml
+theme: "corkboard"
+allow_user_themes: true
+```
+
 Every theme supports the dark mode toggle. Scott Mode is only available on
 the default look; its buttons are hidden when a theme is set. An unknown
 theme name logs a warning and falls back to the default look.
@@ -225,6 +235,7 @@ present** — useful for container platforms.
 | `TUMBLE_THEME` | Visual theme (`broadsheet`, `irc`, `corkboard`, `slop`) | default look |
 | `TUMBLE_FAVICON` | Site icon and Apple touch icon (URL or path) | theme icon, else built-in |
 | `TUMBLE_DAILY_KITTEN` | Post a daily cataas.com kitten at 10 AM Central | `true` |
+| `TUMBLE_ALLOW_USER_THEMES` | Let visitors pick a theme from the nav bar | `false` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |

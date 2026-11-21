@@ -205,7 +205,7 @@ func (h *Handler) IRCLinkHandler(w http.ResponseWriter, r *http.Request) {
 			templateData["PreviousUser"] = existingLinks[0].User
 			templateData["PreviousTimestamp"] = existingLinks[0].Timestamp.Format("2006-01-02 15:04:05")
 		}
-		if err := h.Renderer.Render(w, "link_posted.html", templateData); err != nil {
+		if err := h.Renderer.Render(r.Context(), w, "link_posted.html", templateData); err != nil {
 			log.Printf("Error rendering link_posted template: %v", err)
 			// Fallback to simple response
 			fmt.Fprintf(w, "Link posted! Redirecting...")

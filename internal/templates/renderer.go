@@ -2,6 +2,7 @@ package templates
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"fmt"
 	"html"
@@ -11,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	texttemplate "text/template"
 
 	"tumble/internal/assets"
@@ -21,9 +23,10 @@ import (
 var viewsFS embed.FS
 
 type Renderer struct {
-	cfg       *config.Config
-	htmlTmpls *template.Template
-	xmlTmpls  *texttemplate.Template
+	cfg      *config.Config
+	mu       sync.RWMutex
+	html     map[string]*template.Template // keyed by theme name; "" is the default look
+	xmlTmpls *texttemplate.Template
 }
 
 // templateFuncs provides helper functions for templates
@@ -89,9 +92,19 @@ func NewRenderer(cfg *config.Config) (*Renderer, error) {
 	return r, nil
 }
 
+// themes returns the themes this renderer serves: just the configured
+// theme, or every theme plus the default look when users may pick one.
+func (r *Renderer) themes() []string {
+	if !r.cfg.AllowUserThemes {
+		return []string{r.cfg.Theme}
+	}
+	return append([]string{""}, assets.Themes()...)
+}
+
 // htmlFuncMap returns the HTML template funcs plus config-backed helpers that
-// need to close over the renderer's config (e.g. siteName).
-func (r *Renderer) htmlFuncMap() template.FuncMap {
+// need to close over the renderer's config (e.g. siteName) and the theme the
+// template set is parsed for.
+func (r *Renderer) htmlFuncMap(theme string) template.FuncMap {
 	fm := template.FuncMap{}
 	for k, v := range templateFuncs {
 		fm[k] = v
@@ -101,29 +114,37 @@ func (r *Renderer) htmlFuncMap() template.FuncMap {
 	fm["siteName"] = func() string {
 		return r.cfg.SiteName
 	}
-	// themeName is the configured theme, or empty for the default look.
+	// themeName is the active theme, or empty for the default look.
 	fm["themeName"] = func() string {
-		return r.cfg.Theme
+		return theme
 	}
 	// themeStylesheet is the URL of the theme's CSS, loaded after
 	// screen.css. Empty when no theme is set, so the default look is used.
 	fm["themeStylesheet"] = func() string {
-		return r.themeFile("theme.css")
+		return themeFile(theme, "theme.css")
 	}
 	// themeScript is the URL of the theme's optional JavaScript.
 	fm["themeScript"] = func() string {
-		return r.themeFile("theme.js")
+		return themeFile(theme, "theme.js")
+	}
+	// userThemes lists the themes a visitor can pick from, or nothing when
+	// user theme selection is disabled.
+	fm["userThemes"] = func() []string {
+		if !r.cfg.AllowUserThemes {
+			return nil
+		}
+		return assets.Themes()
 	}
 	// faviconURL and touchIconURL are the site icons: the configured
 	// favicon, else the theme's favicon.png, else the built-in files.
 	fm["faviconURL"] = func() string {
-		if u := assets.IconURL(r.cfg.Favicon, r.cfg.Theme); u != "" {
+		if u := assets.IconURL(r.cfg.Favicon, theme); u != "" {
 			return u
 		}
 		return "/favicon.ico"
 	}
 	fm["touchIconURL"] = func() string {
-		if u := assets.IconURL(r.cfg.Favicon, r.cfg.Theme); u != "" {
+		if u := assets.IconURL(r.cfg.Favicon, theme); u != "" {
 			return u
 		}
 		return "/apple-touch-icon.png"
@@ -131,67 +152,78 @@ func (r *Renderer) htmlFuncMap() template.FuncMap {
 	return fm
 }
 
-// themeFile returns the URL of a file shipped by the configured theme, or
-// empty if there is no theme or it doesn't ship that file.
-func (r *Renderer) themeFile(file string) string {
-	if !assets.ThemeHasFile(r.cfg.Theme, file) {
+// themeFile returns the URL of a file shipped by the theme, or empty if
+// there is no theme or it doesn't ship that file.
+func themeFile(theme, file string) string {
+	if !assets.ThemeHasFile(theme, file) {
 		return ""
 	}
-	return "/" + path.Join(assets.ThemeDir, r.cfg.Theme, file)
+	return "/" + path.Join(assets.ThemeDir, theme, file)
 }
 
-// parseThemeViews overrides base HTML templates with the configured
+// parseHTML parses the base HTML templates, then overrides them with the
 // theme's views/*.html, matched by file name.
-func (r *Renderer) parseThemeViews() error {
-	if r.cfg.Theme == "" {
-		return nil
-	}
+func (r *Renderer) parseHTML(theme string) (*template.Template, error) {
+	t := template.New("").Funcs(r.htmlFuncMap(theme))
+	var err error
 	if r.cfg.EmbedAssets {
-		pattern := path.Join(assets.ThemeDir, r.cfg.Theme, "views", "*.html")
-		if matches, _ := fs.Glob(assets.StaticFS, pattern); len(matches) == 0 {
-			return nil
+		// Use embedded FS (default for production deployments)
+		if t, err = t.ParseFS(viewsFS, "views/*.html"); err != nil {
+			return nil, err
 		}
-		_, err := r.htmlTmpls.ParseFS(assets.StaticFS, pattern)
-		return err
+		if theme == "" {
+			return t, nil
+		}
+		pattern := path.Join(assets.ThemeDir, theme, "views", "*.html")
+		if matches, _ := fs.Glob(assets.StaticFS, pattern); len(matches) == 0 {
+			return t, nil
+		}
+		return t.ParseFS(assets.StaticFS, pattern)
 	}
-	pattern := filepath.Join("internal", "assets", assets.ThemeDir, r.cfg.Theme, "views", "*.html")
+	// Parse from local filesystem for hot-reload during development
+	// Assumes running from project root
+	if t, err = t.ParseGlob("internal/templates/views/*.html"); err != nil {
+		return nil, err
+	}
+	if theme == "" {
+		return t, nil
+	}
+	pattern := filepath.Join("internal", "assets", assets.ThemeDir, theme, "views", "*.html")
 	if matches, _ := filepath.Glob(pattern); len(matches) == 0 {
-		return nil
+		return t, nil
 	}
-	_, err := r.htmlTmpls.ParseGlob(pattern)
-	return err
+	return t.ParseGlob(pattern)
 }
 
 func (r *Renderer) parseTemplates() error {
-	var err error
-	htmlFuncs := r.htmlFuncMap()
-	// Determine source: Embed or Filesystem based on embed_assets config
-	if r.cfg.EmbedAssets {
-		// Use embedded FS (default for production deployments)
-		r.htmlTmpls, err = template.New("").Funcs(htmlFuncs).ParseFS(viewsFS, "views/*.html")
+	html := map[string]*template.Template{}
+	for _, theme := range r.themes() {
+		t, err := r.parseHTML(theme)
 		if err != nil {
-			return err
+			return fmt.Errorf("theme %q: %w", theme, err)
 		}
-		r.xmlTmpls, err = texttemplate.New("").Funcs(textTemplateFuncs).ParseFS(viewsFS, "views/*.xml")
-		if err != nil {
-			return err
-		}
-	} else {
-		// Parse from local filesystem for hot-reload during development
-		// Assumes running from project root
-		r.htmlTmpls, err = template.New("").Funcs(htmlFuncs).ParseGlob("internal/templates/views/*.html")
-		if err != nil {
-			return err
-		}
-		r.xmlTmpls, err = texttemplate.New("").Funcs(textTemplateFuncs).ParseGlob("internal/templates/views/*.xml")
-		if err != nil {
-			return err
-		}
+		html[theme] = t
 	}
-	return r.parseThemeViews()
+
+	var xmlTmpls *texttemplate.Template
+	var err error
+	if r.cfg.EmbedAssets {
+		xmlTmpls, err = texttemplate.New("").Funcs(textTemplateFuncs).ParseFS(viewsFS, "views/*.xml")
+	} else {
+		xmlTmpls, err = texttemplate.New("").Funcs(textTemplateFuncs).ParseGlob("internal/templates/views/*.xml")
+	}
+	if err != nil {
+		return err
+	}
+
+	r.mu.Lock()
+	r.html, r.xmlTmpls = html, xmlTmpls
+	r.mu.Unlock()
+	return nil
 }
 
-func (r *Renderer) Render(w io.Writer, name string, data interface{}) error {
+// execute renders name with the theme carried by ctx.
+func (r *Renderer) execute(ctx context.Context, w io.Writer, name string, data interface{}) error {
 	if !r.cfg.EmbedAssets {
 		// Re-parse on every request when using filesystem (for hot-reload)
 		if err := r.parseTemplates(); err != nil {
@@ -199,29 +231,30 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}) error {
 		}
 	}
 
-	if strings.HasSuffix(name, ".xml") {
-		return r.xmlTmpls.ExecuteTemplate(w, name, data)
+	r.mu.RLock()
+	xmlTmpls := r.xmlTmpls
+	htmlTmpls, ok := r.html[r.Theme(ctx)]
+	if !ok {
+		htmlTmpls = r.html[r.cfg.Theme]
 	}
-	return r.htmlTmpls.ExecuteTemplate(w, name, data)
+	r.mu.RUnlock()
+
+	if strings.HasSuffix(name, ".xml") {
+		return xmlTmpls.ExecuteTemplate(w, name, data)
+	}
+	return htmlTmpls.ExecuteTemplate(w, name, data)
 }
 
-func (r *Renderer) RenderToString(name string, data interface{}) (string, error) {
-	if !r.cfg.EmbedAssets {
-		// Re-parse when using filesystem (for hot-reload)
-		if err := r.parseTemplates(); err != nil {
-			return "", err
-		}
-	}
+// Render writes the named template using the theme carried by ctx (see
+// UserTheme), or the configured theme.
+func (r *Renderer) Render(ctx context.Context, w io.Writer, name string, data interface{}) error {
+	return r.execute(ctx, w, name, data)
+}
 
+// RenderToString is Render into a string.
+func (r *Renderer) RenderToString(ctx context.Context, name string, data interface{}) (string, error) {
 	var buf bytes.Buffer
-	var err error
-	if strings.HasSuffix(name, ".xml") {
-		err = r.xmlTmpls.ExecuteTemplate(&buf, name, data)
-	} else {
-		err = r.htmlTmpls.ExecuteTemplate(&buf, name, data)
-	}
-
-	if err != nil {
+	if err := r.execute(ctx, &buf, name, data); err != nil {
 		return "", err
 	}
 	return buf.String(), nil

@@ -27,6 +27,7 @@ type Config struct {
 	Theme           string        `yaml:"theme" mapstructure:"theme"`
 	Favicon         string        `yaml:"favicon" mapstructure:"favicon"`
 	DailyKitten     bool          `yaml:"daily_kitten" mapstructure:"daily_kitten"`
+	AllowUserThemes bool          `yaml:"allow_user_themes" mapstructure:"allow_user_themes"`
 	SiteTitle       string        `yaml:"site_title" mapstructure:"site_title"`
 	SiteDescription string        `yaml:"site_description" mapstructure:"site_description"`
 	ManagingEditor  string        `yaml:"managing_editor" mapstructure:"managing_editor"`
@@ -65,6 +66,7 @@ func Load(path string) (*Config, error) {
 	v.SetDefault("site_name", "tumblefish")
 	v.SetDefault("theme", "")
 	v.SetDefault("daily_kitten", true)
+	v.SetDefault("allow_user_themes", false)
 	v.SetDefault("activitypub.enabled", false)
 	v.SetDefault("activitypub.actor_name", "tumble")
 	v.SetDefault("activitypub.avatar_url", "https://github.com/websages.png")

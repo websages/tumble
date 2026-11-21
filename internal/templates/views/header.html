@@ -242,6 +242,18 @@
             </div>
         </div>
 
+        {{with userThemes}}
+        <!-- Theme picker (allow_user_themes) -->
+        <div class="dropdown theme-picker">
+            <span class="dropdown-trigger">Theme &#9662;</span>
+            <div class="dropdown-content">
+                <div class="link"><a href="#" data-pick-theme="default">{{if not themeName}}&#10003; {{end}}default</a></div>
+                {{range .}}<div class="link"><a href="#" data-pick-theme="{{.}}">{{if eq . themeName}}&#10003; {{end}}{{.}}</a></div>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
         <form action="/search" method="get" style="margin: 0;">
             <input type="text" name="search" placeholder="search..." />
         </form>
@@ -293,6 +305,16 @@
             {{end}}
         </div>
     </div>
+    {{with userThemes}}
+    <div class="mobile-drawer-section">
+        <div class="mobile-drawer-section-title">Theme</div>
+        <div class="mobile-drawer-hot">
+            <div class="link"><a href="#" data-pick-theme="default">{{if not themeName}}&#10003; {{end}}default</a></div>
+            {{range .}}<div class="link"><a href="#" data-pick-theme="{{.}}">{{if eq . themeName}}&#10003; {{end}}{{.}}</a></div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
     <div class="mobile-drawer-toggles">
         <button class="mobile-drawer-toggle-btn" id="mobile-theme-toggle">
             <span class="material-symbols-rounded">contrast</span>
@@ -392,6 +414,16 @@
             }
         });
     }
+
+    // Theme picker: remember the choice in a cookie and reload
+    document.querySelectorAll("[data-pick-theme]").forEach(function (a) {
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        document.cookie = "tumble_theme=" + encodeURIComponent(a.getAttribute("data-pick-theme")) +
+          "; path=/; max-age=31536000; SameSite=Lax";
+        window.location.reload();
+      });
+    });
 
     // Scott Mode Toggle (Enter)
     var scottToggle = document.getElementById("scott-mode-toggle");
