@@ -93,7 +93,7 @@ theme: "broadsheet"   # or "irc", "corkboard", "slop"
 | `broadsheet` | A newspaper front page: blackletter nameplate and dateline, three ruled columns, a lead story each day, halftone photos, pull quotes |
 | `irc` | An IRC client: channel sidebar, topic bar, timestamped log lines with colored nicks, a Hot Shit panel, and an input line that searches |
 | `corkboard` | A pinboard: label-maker masthead, pinned index cards, sticky-note quotes, taped polaroids, tear-off calendar dates |
-| `slop` | A vibecoded AI landing page after [Slopstrap](https://slopstrap.mikelacher.com/): gradient orbs over a grid, glowing glass cards, fat colored left borders, pulsing status pills, sparkles |
+| `slop` | A seed-stage AI landing page after [Slopstrap](https://slopstrap.mikelacher.com/): funding-announcement hero with live metrics, a vibe-level dial and logo marquee; glass cards with a trending beam, AI summarize chips and five-star testimonial quotes; a Cmd-K "Ask AI" bar that searches; features, a self-typing terminal and pricing under the feed |
 
 Set `allow_user_themes: true` to add a **Theme** menu to the nav bar so
 visitors can pick any bundled theme (or the default look) for themselves.
@@ -137,7 +137,7 @@ When overriding item templates, keep the `.item[data-url]`, `.og-preview`,
 `.link-header .link`, `.date-section` and `.date-widget` hooks if you want link
 previews and date grouping to keep working. See the bundled themes for
 examples: `corkboard` is CSS only, `broadsheet` overrides the masthead, and
-`irc` overrides the masthead and adds `theme.js`.
+`irc` and `slop` override the masthead and add `theme.js`.
 
 ### Daily Kitten
 

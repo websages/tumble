@@ -1,13 +1,15 @@
 /*
  * Theme: slop
- * A vibecoded AI landing page, after Slopstrap
- * (https://slopstrap.mikelacher.com/): blurred gradient orbs over a
- * grid, frosted glass cards with glowing hover lifts, a
- * purple-indigo-cyan gradient on everything, fat colored left
- * borders, pulsing status dots, and sparkles. Light mode is the
- * pastel SaaS version; dark mode is the full midnight launch page.
- *
- * No template overrides: this layout is CSS on the base markup.
+ * A seed-stage AI landing page, after Slopstrap
+ * (https://slopstrap.mikelacher.com/). The masthead is a hero: funding
+ * announcement, status pill, vibe-level dial, gradient headline, CTAs,
+ * social proof, live metrics and a logo marquee. The feed is glass
+ * cards with cursor spotlights, a rotating-beam "trending" card, an AI
+ * summarize chip, and quotes as five-star testimonials. Below the feed
+ * (theme.js): bento features, a self-typing terminal, pricing, and a
+ * closing CTA. Plus a Cmd-K "Ask AI" bar, social-proof toasts and
+ * sparkles. Light mode is the pastel SaaS version; dark mode is the
+ * midnight launch page.
  */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;600&display=swap");
 
@@ -29,10 +31,13 @@
 
   --slop-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%);
   --slop-gradient-hot: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%);
+  --slop-gradient-cyber: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #6366f1 100%);
   --slop-gradient-rainbow: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #f59e0b, #10b981, #06b6d4, #6366f1);
+  --slop-conic-rainbow: conic-gradient(from var(--slop-angle), #6366f1, #a855f7, #ec4899, #f59e0b, #10b981, #06b6d4, #6366f1);
   --slop-text-gradient: linear-gradient(135deg, #312e81 0%, #9333ea 45%, #0891b2 100%);
 
   --slop-bg: #f7f5ff;
+  --slop-solid: #ffffff;
   --slop-surface: rgba(255, 255, 255, 0.66);
   --slop-surface-hover: rgba(255, 255, 255, 0.85);
   --slop-border: rgba(99, 102, 241, 0.16);
@@ -43,10 +48,15 @@
   --slop-link: #7c3aed;
   --slop-link-hover: #0891b2;
   --slop-grid-line: rgba(99, 102, 241, 0.07);
-  --slop-orb-opacity: 0.22;
+  --slop-orb-base: 0.22;
   --slop-shadow: 0 20px 40px -18px rgba(76, 29, 149, 0.28);
-  --slop-glow: 0 0 28px rgba(139, 92, 246, 0.22);
   --slop-accent: var(--slop-purple);
+
+  /* Vibe level 2 (theme.js sets data-slop-level on <html>) */
+  --slop-glow-strength: 0.85;
+  --slop-orb-mult: 1;
+  --slop-ping-speed: 1.8s;
+  --slop-border-width: 4px;
 
   --slop-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --slop-font-serif: "Instrument Serif", "Playfair Display", Georgia, serif;
@@ -74,6 +84,7 @@
 [data-theme="dark"] {
   --slop-text-gradient: linear-gradient(135deg, #ffffff 0%, #c084fc 45%, #38bdf8 100%);
   --slop-bg: #030712;
+  --slop-solid: #0b1120;
   --slop-surface: rgba(15, 23, 42, 0.68);
   --slop-surface-hover: rgba(30, 41, 59, 0.78);
   --slop-border: rgba(255, 255, 255, 0.1);
@@ -84,10 +95,13 @@
   --slop-link: #c084fc;
   --slop-link-hover: #38bdf8;
   --slop-grid-line: rgba(148, 163, 184, 0.06);
-  --slop-orb-opacity: 0.32;
+  --slop-orb-base: 0.32;
   --slop-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.65);
-  --slop-glow: 0 0 28px rgba(139, 92, 246, 0.22);
 }
+
+[data-slop-level="1"] { --slop-glow-strength: 0.45; --slop-orb-mult: 0.45; --slop-ping-speed: 2.6s; --slop-border-width: 3px; }
+[data-slop-level="3"] { --slop-glow-strength: 1.2; --slop-orb-mult: 1.15; --slop-ping-speed: 1.35s; --slop-border-width: 4px; }
+[data-slop-level="4"] { --slop-glow-strength: 1.8; --slop-orb-mult: 1.6; --slop-ping-speed: 0.75s; --slop-border-width: 6px; }
 
 body {
   background-color: var(--slop-bg);
@@ -108,7 +122,7 @@ body::before {
   inset: -20%;
   z-index: -1;
   pointer-events: none;
-  opacity: var(--slop-orb-opacity);
+  opacity: calc(var(--slop-orb-base) * var(--slop-orb-mult));
   filter: blur(90px);
   background:
     radial-gradient(circle 300px at 15% 10%, #a855f7, #6366f1 60%, transparent 100%),
@@ -116,6 +130,10 @@ body::before {
     radial-gradient(circle 250px at 45% 92%, #ec4899, #8b5cf6 60%, transparent 100%),
     radial-gradient(circle 200px at 10% 65%, #10b981, #06b6d4 60%, transparent 100%);
   animation: slop-float-orb 16s ease-in-out infinite alternate;
+}
+
+[data-slop-level="4"] body::before {
+  animation-duration: 6s;
 }
 
 ::selection {
@@ -168,69 +186,522 @@ body::before {
 }
 
 :root .nav-header .dropdown-content {
-  background: var(--slop-surface-hover);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* Nearly opaque: backdrop blur doesn't apply inside the blurred navbar */
+  background: color-mix(in srgb, var(--slop-bg) 94%, var(--slop-purple));
   border: 1px solid var(--slop-border);
   border-radius: 0.875rem;
-  box-shadow: var(--slop-shadow), var(--slop-glow);
+  box-shadow: var(--slop-shadow), 0 0 28px rgba(139, 92, 246, 0.22);
 }
 
-/* ---------- Hero masthead ---------- */
+/* ---------- Shared bits: badges, pills, dots, buttons ---------- */
 
-#masthead {
-  flex-direction: column;
-  justify-content: center;
+.slop-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 18px;
-  border: none;
-  margin: 36px 0 56px;
-  text-align: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 9999px;
+  background: rgba(168, 85, 247, 0.16);
+  color: var(--slop-text);
+  font-family: var(--slop-font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* Eyebrow pill with a shimmer */
-#masthead::before {
-  content: "\2728  Introducing tumble AI \2014  now 10x more synergistic";
+.slop-badge-hot,
+.slop-badge-popular {
+  border-color: transparent;
+  background: var(--slop-gradient-hot);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(236, 72, 153, calc(0.5 * var(--slop-glow-strength)));
+}
+
+.slop-badge-cyan {
+  border-color: rgba(6, 182, 212, 0.45);
+  background: rgba(6, 182, 212, 0.16);
+}
+
+.slop-badge-verified {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.16);
+  color: #059669;
+}
+
+[data-theme="dark"] .slop-badge-verified {
+  color: #34d399;
+}
+
+.slop-pill {
   position: relative;
+  display: inline-block;
   overflow: hidden;
+  margin-bottom: 16px;
   padding: 6px 16px;
   border: 1px solid rgba(168, 85, 247, 0.4);
   border-radius: 9999px;
-  background:
-    linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.35) 50%, transparent 75%) -200% 0 / 200% 100% no-repeat,
-    rgba(139, 92, 246, 0.14);
-  box-shadow: 0 0 24px rgba(168, 85, 247, 0.2);
+  background: rgba(139, 92, 246, 0.14);
+  box-shadow: 0 0 24px rgba(168, 85, 247, calc(0.2 * var(--slop-glow-strength)));
   color: var(--slop-link);
-  font-family: var(--slop-font-sans);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0;
-  white-space: pre;
-  animation: slop-shimmer 3s ease-in-out infinite;
 }
 
-#masthead a {
+.slop-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--slop-emerald);
+  box-shadow: 0 0 10px var(--slop-emerald);
+  animation: slop-ping var(--slop-ping-speed) ease-out infinite;
+}
+
+.slop-serif {
+  font-family: var(--slop-font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.12em;
+  letter-spacing: -0.01em;
+}
+
+/* A marker swoosh under a phrase */
+.slop-underline {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.slop-underline::after {
+  content: "";
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: -0.08em;
+  height: 0.32em;
+  border-radius: 9999px;
+  background: var(--slop-gradient-rainbow);
+  background-size: 200% 100%;
+  opacity: 0.85;
+  transform: skewX(-12deg) rotate(-1deg);
+  filter: drop-shadow(0 0 calc(8px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.75));
+  z-index: -1;
+  animation: slop-gradient-shift 6s linear infinite;
+}
+
+.slop-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 13px 24px;
+  border: 1px solid transparent;
+  border-radius: 0.875rem;
   font-family: var(--slop-font-sans);
-  font-size: clamp(48px, 9vw, 88px);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.slop-btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.slop-btn-primary,
+.slop-btn-primary:hover,
+#masthead .slop-btn-primary {
+  background: var(--slop-gradient);
+  color: #fff;
+  box-shadow:
+    0 0 calc(26px * var(--slop-glow-strength)) rgba(139, 92, 246, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* Sheen sweep */
+.slop-btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform 0.65s ease;
+}
+
+.slop-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 calc(38px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.72),
+    0 10px 24px -6px rgba(6, 182, 212, 0.4);
+}
+
+.slop-btn-primary:hover::after {
+  transform: translateX(120%);
+}
+
+.slop-btn-ghost {
+  background: var(--slop-surface);
+  border-color: var(--slop-border);
+  color: var(--slop-text);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.slop-btn-ghost:hover {
+  border-color: rgba(168, 85, 247, 0.55);
+  color: var(--slop-text);
+  transform: translateY(-2px);
+  box-shadow: 0 0 calc(22px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.22);
+}
+
+/* Rotating rainbow border */
+.slop-btn-rainbow {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    var(--slop-conic-rainbow) border-box;
+  color: var(--slop-text);
+  animation: slop-rotate-beam 3.5s linear infinite;
+}
+
+.slop-btn-rainbow:hover {
+  color: var(--slop-text);
+  transform: translateY(-2px);
+  box-shadow: 0 0 calc(30px * var(--slop-glow-strength)) rgba(236, 72, 153, 0.35);
+}
+
+/* ---------- Hero masthead (views/masthead.html) ---------- */
+
+#masthead.slop-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 28px 0 64px;
+  padding: 0;
+  border: none;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.slop-announce,
+#masthead .slop-announce {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 22px;
+  padding: 6px 16px 6px 6px;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    var(--slop-conic-rainbow) border-box;
+  color: var(--slop-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 0 calc(24px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.25);
+  animation: slop-rotate-beam 4s linear infinite;
+}
+
+.slop-announce-cta {
+  color: var(--slop-link);
+}
+
+.slop-announce:hover .slop-announce-cta {
+  color: var(--slop-link-hover);
+}
+
+.slop-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.slop-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--slop-border);
+  border-radius: 9999px;
+  background: var(--slop-surface);
+  color: var(--slop-text-muted);
+  font-family: var(--slop-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Vibe-level dial */
+.slop-vibe {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--slop-border);
+  border-radius: 9999px;
+  background: var(--slop-surface);
+  font-family: var(--slop-font-mono);
+  font-size: 12px;
+}
+
+.slop-vibe-label {
+  padding: 0 8px 0 10px;
+  color: var(--slop-text-muted);
+  font-weight: 600;
+}
+
+.slop-vibe button {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: none;
+  color: var(--slop-text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.slop-vibe button:hover {
+  color: var(--slop-text);
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.slop-vibe button[aria-pressed="true"] {
+  background: var(--slop-gradient);
+  color: #fff;
+  box-shadow: 0 0 calc(14px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.6);
+}
+
+.slop-h1 {
+  margin: 0 0 14px;
+  font-family: var(--slop-font-sans);
+  font-size: clamp(48px, 9vw, 96px);
   font-weight: 800;
-  line-height: 1.06;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+.slop-h1 a,
+#masthead .slop-h1 a {
+  background: var(--slop-text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+}
+
+[data-slop-level="4"] .slop-h1 a {
+  background: var(--slop-gradient-rainbow);
+  background-size: 260% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: slop-gradient-shift 4s linear infinite;
+}
+
+.slop-h1-dot {
+  color: var(--slop-cyan);
+  -webkit-text-fill-color: var(--slop-cyan);
+  text-shadow: 0 0 calc(24px * var(--slop-glow-strength)) rgba(6, 182, 212, 0.8);
+}
+
+.slop-tagline {
+  position: relative;
+  z-index: 0;
+  margin: 0 0 16px;
+  color: var(--slop-text);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+}
+
+.slop-lead {
+  max-width: 40rem;
+  margin: 0 0 28px;
+  color: var(--slop-text-muted);
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.6;
+}
+
+.slop-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.slop-proof {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 44px;
+  color: var(--slop-text-muted);
+  font-size: 14px;
+}
+
+.slop-proof b {
+  color: var(--slop-text);
+}
+
+.slop-avatars {
+  display: inline-flex;
+}
+
+.slop-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin-left: -8px;
+  border: 2px solid var(--slop-solid);
+  border-radius: 50%;
+  background: var(--slop-gradient);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 0 calc(12px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.45);
+}
+
+.slop-avatar:first-child { margin-left: 0; }
+.slop-avatar-1 { background: var(--slop-gradient-hot); }
+.slop-avatar-2 { background: var(--slop-gradient-cyber); }
+.slop-avatar-3 { background: linear-gradient(135deg, #f59e0b, #ec4899); }
+.slop-avatar-4 { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+
+.slop-stars,
+.slop-quote-stars {
+  color: #fbbf24;
+  letter-spacing: 2px;
+  text-shadow: 0 0 calc(10px * var(--slop-glow-strength)) rgba(251, 191, 36, 0.6);
+}
+
+/* Metrics */
+.slop-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 44px;
+}
+
+.slop-stat {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 14px 18px;
+  border: 1px solid var(--slop-border);
+  border-radius: 1.25rem;
+  background: var(--slop-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.slop-stat:hover {
+  transform: translateY(-4px);
+  border-color: var(--slop-border-bright);
+  box-shadow: var(--slop-shadow), 0 0 calc(28px * var(--slop-glow-strength)) rgba(139, 92, 246, 0.22);
+}
+
+.slop-stat-num {
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 800;
+  line-height: 1.1;
   letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
   background: var(--slop-text-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-#masthead::after {
-  content: "The world's first agentic, AI-native, blockchain-ready link log.";
-  max-width: 40rem;
+.slop-stat-label {
+  margin: 4px 0 10px;
   color: var(--slop-text-muted);
-  font-family: var(--slop-font-serif);
-  font-style: italic;
-  font-size: clamp(18px, 2vw, 24px);
-  font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.slop-delta {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  font-family: var(--slop-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .slop-delta {
+  color: #34d399;
+}
+
+/* Logo marquee */
+.slop-marquee {
+  width: 100%;
+}
+
+.slop-marquee-label {
+  margin-bottom: 14px;
+  color: var(--slop-text-dim);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.slop-marquee-window {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.slop-marquee-track {
+  display: flex;
+  gap: 48px;
+  width: max-content;
+  animation: slop-marquee 28s linear infinite;
+}
+
+.slop-marquee-track span {
+  color: var(--slop-text-dim);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.slop-marquee-track span:hover {
+  color: var(--slop-text);
+}
+
+.slop-marquee:hover .slop-marquee-track {
+  animation-play-state: paused;
 }
 
 /* ---------- Feed items: glass cards ---------- */
@@ -257,7 +728,7 @@ body::before {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--slop-border);
-  border-left: 4px solid var(--slop-accent);
+  border-left: var(--slop-border-width) solid var(--slop-accent);
   border-radius: 1.25rem;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
@@ -265,6 +736,10 @@ body::before {
 
 [data-theme="dark"] .quote-card {
   border-left-color: var(--slop-accent);
+}
+
+[data-slop-level="4"] .item[data-item-type] {
+  animation: slop-hue-spin 8s linear infinite;
 }
 
 .link-card-wrapper:hover,
@@ -276,7 +751,47 @@ body::before {
   border-left-color: var(--slop-accent);
   box-shadow:
     var(--slop-shadow),
-    0 0 28px color-mix(in srgb, var(--slop-accent) 30%, transparent);
+    0 0 calc(28px * var(--slop-glow-strength)) color-mix(in srgb, var(--slop-accent) 30%, transparent);
+}
+
+/* Cursor spotlight (theme.js tracks --mouse-x/y) */
+.link-card-wrapper::before,
+.quote-card::after,
+.slop-card::before,
+.slop-stat::before,
+.slop-price::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--mouse-x, 50%) var(--mouse-y, 0%), rgba(168, 85, 247, 0.16), rgba(6, 182, 212, 0.06) 40%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.link-card-wrapper:hover::before,
+.quote-card:hover::after,
+.slop-card:hover::before,
+.slop-stat:hover::before,
+.slop-price:hover::before {
+  opacity: 1;
+}
+
+/* Trending: the day's first link gets a rotating beam border */
+.slop-trending .link-card-wrapper,
+.slop-trending .link-card-wrapper:hover {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    conic-gradient(from var(--slop-angle), transparent 15%, #6366f1 35%, #a855f7 50%, #06b6d4 65%, transparent 85%) border-box;
+  box-shadow: 0 0 calc(32px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.25);
+  animation: slop-rotate-beam 4s linear infinite;
+}
+
+.slop-trending-badge {
+  float: left;
+  margin: 2px 10px 6px 0;
 }
 
 .link-header {
@@ -300,7 +815,7 @@ body::before {
   color: var(--slop-link);
 }
 
-/* Timestamps become a live status pill with a pinging dot */
+/* Timestamps become a live status pill */
 .link-header .item-time {
   display: inline-flex;
   align-items: center;
@@ -326,13 +841,13 @@ body::before {
   border-radius: 50%;
   background: var(--slop-emerald);
   box-shadow: 0 0 10px var(--slop-emerald);
-  animation: slop-ping 1.5s ease-out infinite;
+  animation: slop-ping var(--slop-ping-speed) ease-out infinite;
 }
 
 /* Posters are badges */
 .link-header .author,
 .author {
-  display: block;
+  display: inline-block;
   margin-top: 10px;
 }
 
@@ -355,6 +870,28 @@ body::before {
 .author a::before {
   content: "\2728  ";
   white-space: pre;
+}
+
+/* AI summarize chip */
+.slop-ai-chip {
+  float: right;
+  clear: right;
+  margin-top: 10px;
+  padding: 3px 10px;
+  border: 1px solid var(--slop-border);
+  border-radius: 9999px;
+  background: var(--slop-surface);
+  color: var(--slop-link);
+  font-family: var(--slop-font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.slop-ai-chip:hover {
+  border-color: var(--slop-border-bright);
+  box-shadow: 0 0 calc(16px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.35);
 }
 
 /* Dead links */
@@ -426,14 +963,14 @@ body::before {
   border-radius: 0.875rem;
 }
 
-/* ---------- Quotes ---------- */
+/* ---------- Quotes: five-star testimonials ---------- */
 
 .quote-link {
   text-decoration: none;
 }
 
 .quote-card {
-  padding: 26px 28px 22px;
+  padding: 22px 28px 20px;
 }
 
 .quote-card::before {
@@ -449,6 +986,11 @@ body::before {
   background-clip: text;
   color: transparent;
   opacity: 0.55;
+}
+
+.slop-quote-stars {
+  margin-bottom: 8px;
+  font-size: 15px;
 }
 
 .quote-text {
@@ -475,6 +1017,40 @@ body::before {
   white-space: pre;
 }
 
+.slop-quote-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--slop-border);
+}
+
+.slop-quote-person .slop-avatar {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  font-size: 16px;
+}
+
+.slop-quote-who {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+  line-height: 1.3;
+}
+
+.slop-quote-name {
+  color: var(--slop-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.slop-quote-title {
+  color: var(--slop-text-muted);
+  font-size: 12px;
+}
+
 /* ---------- Kitten ---------- */
 
 .kitten-card {
@@ -490,6 +1066,12 @@ body::before {
   color: var(--slop-text);
 }
 
+.slop-kitten-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
 /* ---------- Dates: glowing squircles ---------- */
 
 .date-widget,
@@ -500,7 +1082,7 @@ body::before {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(168, 85, 247, 0.4);
   border-radius: 1.25rem;
-  box-shadow: 0 0 24px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 calc(24px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.3);
 }
 
 .date-number {
@@ -534,6 +1116,432 @@ body::before {
   border-radius: 1.25rem;
 }
 
+/* ---------- Below the feed: features, terminal, pricing, CTA ---------- */
+
+.slop-sections {
+  margin-top: 40px;
+}
+
+.slop-section {
+  margin: 0 0 96px;
+  text-align: center;
+}
+
+.slop-h2 {
+  position: relative;
+  z-index: 0;
+  margin: 0 0 12px;
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 800;
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  color: var(--slop-text);
+}
+
+.slop-section-lead {
+  max-width: 36rem;
+  margin: 0 auto 36px;
+  color: var(--slop-text-muted);
+  font-size: 17px;
+}
+
+.slop-bento {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 32px;
+  text-align: left;
+}
+
+.slop-bento-wide {
+  grid-column: span 2;
+}
+
+.slop-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid var(--slop-border);
+  border-radius: 1.25rem;
+  background: var(--slop-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--slop-text);
+  text-decoration: none;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+a.slop-card:hover {
+  color: var(--slop-text);
+}
+
+.slop-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--slop-border-bright);
+  box-shadow: var(--slop-shadow), 0 0 calc(28px * var(--slop-glow-strength)) rgba(139, 92, 246, 0.22);
+}
+
+.slop-card h3 {
+  margin: 16px 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.slop-card p {
+  margin: 0;
+  color: var(--slop-text-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.slop-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.slop-card:hover .slop-arrow {
+  transform: translateX(4px);
+}
+
+.slop-card-beam {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    conic-gradient(from var(--slop-angle), transparent 15%, #6366f1 35%, #a855f7 50%, #06b6d4 65%, transparent 85%) border-box;
+  animation: slop-rotate-beam 4s linear infinite;
+}
+
+.slop-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: 0.85rem;
+  background: rgba(168, 85, 247, 0.14);
+  box-shadow: 0 0 calc(18px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.25);
+  font-size: 22px;
+}
+
+.slop-icon-cyan { border-color: rgba(6, 182, 212, 0.35); background: rgba(6, 182, 212, 0.14); box-shadow: 0 0 calc(18px * var(--slop-glow-strength)) rgba(6, 182, 212, 0.25); }
+.slop-icon-pink { border-color: rgba(236, 72, 153, 0.35); background: rgba(236, 72, 153, 0.14); box-shadow: 0 0 calc(18px * var(--slop-glow-strength)) rgba(236, 72, 153, 0.25); }
+.slop-icon-emerald { border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.14); box-shadow: 0 0 calc(18px * var(--slop-glow-strength)) rgba(16, 185, 129, 0.25); }
+.slop-icon-amber { border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.14); box-shadow: 0 0 calc(18px * var(--slop-glow-strength)) rgba(245, 158, 11, 0.25); }
+
+/* Terminal (dark in both modes) */
+.slop-terminal {
+  max-width: 680px;
+  margin: 32px auto 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  background: rgba(2, 6, 23, 0.94);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6), 0 0 calc(40px * var(--slop-glow-strength)) rgba(139, 92, 246, 0.25);
+  text-align: left;
+}
+
+.slop-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #64748b;
+  font-family: var(--slop-font-mono);
+  font-size: 12px;
+}
+
+.slop-terminal-bar i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.slop-terminal-bar i:nth-child(2) { background: #f59e0b; }
+.slop-terminal-bar i:nth-child(3) { background: #10b981; }
+
+.slop-terminal-bar span {
+  margin-left: 10px;
+}
+
+.slop-terminal-body {
+  min-height: 190px;
+  margin: 0;
+  padding: 18px 20px 22px;
+  color: #e2e8f0;
+  font-family: var(--slop-font-mono);
+  font-size: 13.5px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.slop-prompt { color: #c084fc; }
+.slop-ok { color: #a7f3d0; }
+.slop-warn { color: #fbbf24; }
+
+.slop-caret {
+  color: #38bdf8;
+  animation: slop-blink 1s steps(1) infinite;
+}
+
+/* Pricing */
+.slop-pricing {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  align-items: center;
+  text-align: left;
+}
+
+.slop-price {
+  position: relative;
+  padding: 28px 24px;
+  border: 1px solid var(--slop-border);
+  border-radius: 1.25rem;
+  background: var(--slop-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.slop-price h3 {
+  margin: 0 0 8px;
+  color: var(--slop-text-muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.slop-price-amt {
+  margin-bottom: 18px;
+  color: var(--slop-text);
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.slop-price-amt span {
+  color: var(--slop-text-muted);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.slop-price ul {
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  color: var(--slop-text-muted);
+  font-size: 14px;
+}
+
+.slop-price li {
+  padding: 5px 0;
+}
+
+.slop-price li::before {
+  content: "\2713  ";
+  white-space: pre;
+  color: var(--slop-emerald);
+  font-weight: 700;
+}
+
+.slop-price .slop-btn {
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.slop-price-popular {
+  padding: 40px 24px;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    var(--slop-gradient) border-box;
+  box-shadow: 0 0 calc(45px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.32);
+  transform: scale(1.03);
+}
+
+.slop-badge-popular {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.slop-cta-band {
+  padding: 56px 24px;
+  border: 1px solid var(--slop-border);
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(168, 85, 247, 0.25), transparent 50%),
+    radial-gradient(circle at 80% 100%, rgba(6, 182, 212, 0.22), transparent 50%),
+    var(--slop-surface);
+}
+
+/* ---------- Ask AI: floating button and Cmd-K bar ---------- */
+
+.slop-ai-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 56px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px 10px 16px;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    var(--slop-conic-rainbow) border-box;
+  color: var(--slop-text);
+  font-family: var(--slop-font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4), 0 0 calc(26px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.4);
+  cursor: pointer;
+  animation: slop-rotate-beam 3.5s linear infinite;
+}
+
+.slop-ai-fab:hover {
+  transform: translateY(-2px);
+}
+
+.slop-ai-fab kbd,
+.slop-ai-bar kbd {
+  padding: 2px 6px;
+  border: 1px solid var(--slop-border);
+  border-radius: 6px;
+  background: var(--slop-surface);
+  color: var(--slop-text-muted);
+  font-family: var(--slop-font-mono);
+  font-size: 11px;
+}
+
+.slop-ai-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18vh 16px 0;
+  background: rgba(3, 7, 18, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.slop-ai-modal[hidden] {
+  display: none;
+}
+
+.slop-ai-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: min(640px, 100%);
+  padding: 14px 18px;
+  border: 2px solid transparent;
+  border-radius: 1.1rem;
+  background:
+    linear-gradient(var(--slop-solid), var(--slop-solid)) padding-box,
+    var(--slop-conic-rainbow) border-box;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6), 0 0 calc(50px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.45);
+  animation: slop-rotate-beam 3s linear infinite;
+}
+
+.slop-ai-bar-icon {
+  font-size: 20px;
+}
+
+.slop-ai-bar input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--slop-text);
+  font-family: var(--slop-font-sans);
+  font-size: 18px;
+}
+
+.slop-ai-hint {
+  margin-top: 12px;
+  color: #cbd5e1;
+  font-family: var(--slop-font-mono);
+  font-size: 12px;
+}
+
+/* ---------- Toasts ---------- */
+
+.slop-toasts {
+  position: fixed;
+  left: 20px;
+  bottom: 56px;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(340px, calc(100vw - 40px));
+}
+
+.slop-toast {
+  position: relative;
+  padding: 12px 36px 12px 14px;
+  border: 1px solid var(--slop-border);
+  border-left: 4px solid var(--slop-purple);
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--slop-solid) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--slop-shadow), 0 0 calc(24px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.25);
+  animation: slop-toast-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.slop-toast-out {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.slop-toast-title {
+  color: var(--slop-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.slop-toast-body {
+  margin-top: 2px;
+  color: var(--slop-text-muted);
+  font-size: 13px;
+}
+
+.slop-toast-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: none;
+  color: var(--slop-text-dim);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ---------- Sparkle particles ---------- */
+
+.slop-particle {
+  position: fixed;
+  z-index: 3000;
+  pointer-events: none;
+  font-size: 16px;
+  transform: translate(-50%, -50%);
+  animation: slop-sparkle-fly 0.9s ease-out forwards;
+}
+
 /* ---------- API docs: on a readable sheet ----------
  * docs.html styles #swagger-ui inline after this file, so use :root. */
 
@@ -562,7 +1570,7 @@ body::before {
   font-family: var(--slop-font-sans);
   font-size: 15px;
   font-weight: 600;
-  box-shadow: 0 0 26px rgba(139, 92, 246, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 calc(26px * var(--slop-glow-strength)) rgba(139, 92, 246, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.28);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -571,7 +1579,7 @@ body::before {
   background: var(--slop-gradient);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 0 38px rgba(168, 85, 247, 0.72), 0 10px 24px -6px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 calc(38px * var(--slop-glow-strength)) rgba(168, 85, 247, 0.72), 0 10px 24px -6px rgba(6, 182, 212, 0.4);
 }
 
 #navigation .nav-link:active,
@@ -596,7 +1604,7 @@ body::before {
 }
 
 #footer::after {
-  content: "  \00B7  \2728  Built with AI";
+  content: "  \00B7  \2728  Built with AI \00B7  Backed by Hockey Stick Ventures";
   white-space: pre;
 }
 
@@ -607,25 +1615,83 @@ body::before {
   100% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0), 0 0 10px var(--slop-emerald); }
 }
 
-@keyframes slop-shimmer {
-  0%, 40% { background-position: -200% 0, 0 0; }
-  100% { background-position: 200% 0, 0 0; }
-}
-
 @keyframes slop-float-orb {
   0% { transform: translate3d(0, 0, 0) scale(1); }
   100% { transform: translate3d(3%, -4%, 0) scale(1.08); }
 }
 
+@keyframes slop-rotate-beam {
+  to { --slop-angle: 360deg; }
+}
+
+@keyframes slop-gradient-shift {
+  from { background-position: 0% 50%; }
+  to { background-position: 260% 50%; }
+}
+
+@keyframes slop-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - 24px)); }
+}
+
+@keyframes slop-hue-spin {
+  to { filter: hue-rotate(360deg); }
+}
+
+@keyframes slop-blink {
+  50% { opacity: 0; }
+}
+
+@keyframes slop-toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slop-sparkle-fly {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.35) rotate(180deg); }
+}
+
 /* ---------- Smaller screens ---------- */
 
-@media (max-width: 768px) {
-  #masthead {
-    margin: 20px 0 36px;
+@media (max-width: 900px) {
+  .slop-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  #masthead::before {
-    white-space: normal;
-    font-size: 12px;
+  .slop-bento,
+  .slop-pricing {
+    grid-template-columns: 1fr;
+  }
+
+  .slop-bento-wide {
+    grid-column: auto;
+  }
+
+  .slop-price-popular {
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  #masthead.slop-hero {
+    margin: 16px 0 40px;
+  }
+
+  .slop-announce-cta {
+    display: none;
+  }
+
+  .slop-ai-fab {
+    right: 12px;
+    padding: 10px;
+  }
+
+  .slop-ai-fab kbd {
+    display: none;
+  }
+
+  .slop-toasts {
+    display: none;
   }
 }
