@@ -85,7 +85,7 @@ If `favicon` is unset, the theme's icon is used when it ships one
 `theme` picks a site-wide visual theme. Leave it unset for the default look.
 
 ```yaml
-theme: "broadsheet"   # or "irc", "corkboard"
+theme: "broadsheet"   # or "irc", "corkboard", "slop"
 ```
 
 | Theme | Look |
@@ -93,6 +93,17 @@ theme: "broadsheet"   # or "irc", "corkboard"
 | `broadsheet` | A newspaper front page: blackletter nameplate and dateline, three ruled columns, a lead story each day, halftone photos, pull quotes |
 | `irc` | An IRC client: channel sidebar, topic bar, timestamped log lines with colored nicks, a Hot Shit panel, and an input line that searches |
 | `corkboard` | A pinboard: label-maker masthead, pinned index cards, sticky-note quotes, taped polaroids, tear-off calendar dates |
+| `slop` | A vibecoded AI landing page after [Slopstrap](https://slopstrap.mikelacher.com/): gradient orbs over a grid, glowing glass cards, fat colored left borders, pulsing status pills, sparkles |
+
+Set `allow_user_themes: true` to add a **Theme** menu to the nav bar so
+visitors can pick any bundled theme (or the default look) for themselves.
+The choice is kept in a `tumble_theme` cookie; visitors who haven't picked
+one get `theme`. It is off by default.
+
+```yaml
+theme: "corkboard"
+allow_user_themes: true
+```
 
 Every theme supports the dark mode toggle. Scott Mode is only available on
 the default look; its buttons are hidden when a theme is set. An unknown
@@ -221,9 +232,10 @@ present** — useful for container platforms.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `TUMBLE_SITE_NAME` | Wordmark in masthead and page titles | `tumblefish` |
-| `TUMBLE_THEME` | Visual theme (`broadsheet`, `irc`, `corkboard`) | default look |
+| `TUMBLE_THEME` | Visual theme (`broadsheet`, `irc`, `corkboard`, `slop`) | default look |
 | `TUMBLE_FAVICON` | Site icon and Apple touch icon (URL or path) | theme icon, else built-in |
 | `TUMBLE_DAILY_KITTEN` | Post a daily cataas.com kitten at 10 AM Central | `true` |
+| `TUMBLE_ALLOW_USER_THEMES` | Let visitors pick a theme from the nav bar | `false` |
 | `TUMBLE_SITE_TITLE` | RSS feed title | `tumble` |
 | `TUMBLE_SITE_DESCRIPTION` | RSS feed description | same as title |
 | `TUMBLE_MANAGING_EDITOR` | RSS managingEditor field | omitted |

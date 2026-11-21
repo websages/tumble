@@ -2,6 +2,9 @@ package templates
 
 import (
 	"bytes"
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -14,7 +17,7 @@ func renderMasthead(t *testing.T, theme string) string {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	out, err := r.RenderToString("masthead", nil)
+	out, err := r.RenderToString(context.Background(), "masthead", nil)
 	if err != nil {
 		t.Fatalf("render masthead: %v", err)
 	}
@@ -35,19 +38,78 @@ func TestThemeOverridesViews(t *testing.T) {
 }
 
 func TestThemeFiles(t *testing.T) {
-	r, err := NewRenderer(&config.Config{EmbedAssets: true, Theme: "irc"})
+	if got := themeFile("irc", "theme.css"); got != "/themes/irc/theme.css" {
+		t.Errorf("theme.css URL = %q", got)
+	}
+	if got := themeFile("irc", "theme.js"); got != "/themes/irc/theme.js" {
+		t.Errorf("theme.js URL = %q", got)
+	}
+	if got := themeFile("corkboard", "theme.js"); got != "" {
+		t.Errorf("corkboard has no theme.js, got %q", got)
+	}
+	if got := themeFile("", "theme.css"); got != "" {
+		t.Errorf("default look has no theme.css, got %q", got)
+	}
+}
+
+// themeFor runs a request with the given theme cookie through UserTheme
+// and returns the theme the renderer would use for it.
+func themeFor(t *testing.T, r *Renderer, cookie string) string {
+	t.Helper()
+	req := httptest.NewRequest("GET", "/", nil)
+	if cookie != "" {
+		req.AddCookie(&http.Cookie{Name: ThemeCookie, Value: cookie})
+	}
+	var got string
+	r.UserTheme(http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
+		got = r.Theme(req.Context())
+	})).ServeHTTP(httptest.NewRecorder(), req)
+	return got
+}
+
+func TestUserThemeDisabled(t *testing.T) {
+	r, err := NewRenderer(&config.Config{EmbedAssets: true, Theme: "corkboard"})
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	if got := r.themeFile("theme.css"); got != "/themes/irc/theme.css" {
-		t.Errorf("theme.css URL = %q", got)
+	if got := themeFor(t, r, "irc"); got != "corkboard" {
+		t.Errorf("cookie should be ignored when disabled, got %q", got)
 	}
-	if got := r.themeFile("theme.js"); got != "/themes/irc/theme.js" {
-		t.Errorf("theme.js URL = %q", got)
+}
+
+func TestUserThemeEnabled(t *testing.T) {
+	r, err := NewRenderer(&config.Config{EmbedAssets: true, Theme: "corkboard", AllowUserThemes: true})
+	if err != nil {
+		t.Fatalf("NewRenderer: %v", err)
 	}
-	r.cfg.Theme = "corkboard"
-	if got := r.themeFile("theme.js"); got != "" {
-		t.Errorf("corkboard has no theme.js, got %q", got)
+	tests := map[string]string{
+		"":        "corkboard",
+		"irc":     "irc",
+		"default": "",
+		"nope":    "corkboard",
+		"../css":  "corkboard",
+	}
+	for cookie, want := range tests {
+		if got := themeFor(t, r, cookie); got != want {
+			t.Errorf("cookie %q: theme = %q, want %q", cookie, got, want)
+		}
+	}
+
+	// Each theme renders with its own view overrides.
+	ctx := WithTheme(context.Background(), "broadsheet")
+	out, err := r.RenderToString(ctx, "masthead", nil)
+	if err != nil {
+		t.Fatalf("render masthead: %v", err)
+	}
+	if !strings.Contains(out, "bs-nameplate") {
+		t.Errorf("broadsheet override not applied for chosen theme:\n%s", out)
+	}
+	out, err = r.RenderToString(context.Background(), "masthead", nil)
+	if err != nil {
+		t.Fatalf("render masthead: %v", err)
+	}
+	if strings.Contains(out, "bs-nameplate") {
+		t.Errorf("configured theme should not use broadsheet override:\n%s", out)
 	}
 }
 
@@ -70,7 +132,7 @@ func TestIconsPartial(t *testing.T) {
 				t.Fatalf("NewRenderer: %v", err)
 			}
 			var buf bytes.Buffer
-			if err := r.htmlTmpls.ExecuteTemplate(&buf, "icons", nil); err != nil {
+			if err := r.html[cfg.Theme].ExecuteTemplate(&buf, "icons", nil); err != nil {
 				t.Fatalf("render icons: %v", err)
 			}
 			out := buf.String()

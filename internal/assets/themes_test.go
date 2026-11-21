@@ -7,7 +7,7 @@ import (
 
 func TestThemes(t *testing.T) {
 	themes := Themes()
-	for _, want := range []string{"broadsheet", "corkboard", "irc"} {
+	for _, want := range []string{"broadsheet", "corkboard", "irc", "slop"} {
 		if !slices.Contains(themes, want) {
 			t.Errorf("expected theme %q in %v", want, themes)
 		}
@@ -22,6 +22,7 @@ func TestThemeExists(t *testing.T) {
 		{"broadsheet", true},
 		{"corkboard", true},
 		{"irc", true},
+		{"slop", true},
 		{"", false},
 		{"nope", false},
 		{"..", false},

@@ -373,7 +373,7 @@ func main() {
 		addr = ":8080"
 	}
 	slog.Info("Starting tumble server", "addr", addr)
-	if err := http.ListenAndServe(addr, trailingSlashMiddleware(securityHeadersMiddleware(loggingMiddleware(cfg.Mode)(mux)))); err != nil {
+	if err := http.ListenAndServe(addr, trailingSlashMiddleware(securityHeadersMiddleware(loggingMiddleware(cfg.Mode)(renderer.UserTheme(mux))))); err != nil {
 		slog.Error("Server failed", "error", err)
 		os.Exit(1)
 	}

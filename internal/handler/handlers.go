@@ -160,7 +160,7 @@ func (h *Handler) getHotHTML(ctx context.Context) template.HTML {
 
 	hotHTML := ""
 	for _, link := range hotLinks {
-		s, _ := h.Renderer.RenderToString("tumble_item_top5.html", link)
+		s, _ := h.Renderer.RenderToString(ctx, "tumble_item_top5.html", link)
 		hotHTML += s
 	}
 	return template.HTML(hotHTML)
@@ -385,7 +385,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 					"Month": item.DateMonth,
 					"Year":  item.DateYear,
 				}
-				dateHTML, err := h.Renderer.RenderToString("tumble_date.html", dateData)
+				dateHTML, err := h.Renderer.RenderToString(ctx, "tumble_date.html", dateData)
 				if err == nil {
 					containerHTML += dateHTML
 				}
@@ -393,7 +393,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		html, err := h.Renderer.RenderToString(tmplName, item)
+		html, err := h.Renderer.RenderToString(ctx, tmplName, item)
 		if err != nil {
 			slog.Debug("Render Error", "type", item.Type, "id", item.ID, "error", err)
 			continue
@@ -457,7 +457,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", contentType)
-	if err := h.Renderer.Render(w, templateName, viewData); err != nil {
+	if err := h.Renderer.Render(r.Context(), w, templateName, viewData); err != nil {
 		slog.Error("Error rendering template", "template", templateName, "error", err)
 	}
 }
@@ -613,14 +613,14 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 					"Month": item.DateMonth,
 					"Year":  item.DateYear,
 				}
-				dateHTML, err := h.Renderer.RenderToString("tumble_date.html", dateData)
+				dateHTML, err := h.Renderer.RenderToString(ctx, "tumble_date.html", dateData)
 				if err == nil {
 					containerHTML += dateHTML
 				}
 				lastDate = item.FullDate
 			}
 
-			s, err := h.Renderer.RenderToString(tmplName, item)
+			s, err := h.Renderer.RenderToString(ctx, tmplName, item)
 			if err != nil {
 				slog.Debug("Render Error", "type", item.Type, "id", item.ID, "error", err)
 				continue
@@ -635,7 +635,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"Query": query,
 		}
-		containerHTML, _ = h.Renderer.RenderToString("no_search_results.html", data)
+		containerHTML, _ = h.Renderer.RenderToString(ctx, "no_search_results.html", data)
 	}
 
 	hotHTML := h.getHotHTML(ctx)
@@ -652,7 +652,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	h.Renderer.Render(w, "index.html", viewData)
+	h.Renderer.Render(r.Context(), w, "index.html", viewData)
 }
 
 func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
@@ -780,7 +780,7 @@ func (h *Handler) Stats(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.Renderer.Render(w, "stats.html", data); err != nil {
+	if err := h.Renderer.Render(r.Context(), w, "stats.html", data); err != nil {
 		slog.Error("Error rendering stats", "error", err)
 	}
 }

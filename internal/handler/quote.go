@@ -177,7 +177,7 @@ func (h *Handler) handleQuotePermalink(w http.ResponseWriter, r *http.Request, i
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.Renderer.Render(w, "quote_permalink.html", templateData); err != nil {
+	if err := h.Renderer.Render(r.Context(), w, "quote_permalink.html", templateData); err != nil {
 		log.Printf("Error rendering quote_permalink template: %v", err)
 		// Fallback to plain text
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")

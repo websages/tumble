@@ -32,7 +32,7 @@ func (h *Handler) DocsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	if err := h.Renderer.Render(w, "docs.html", data); err != nil {
+	if err := h.Renderer.Render(r.Context(), w, "docs.html", data); err != nil {
 		slog.Error("Error rendering docs", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
