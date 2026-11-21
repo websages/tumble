@@ -362,7 +362,8 @@ func main() {
 	mux.HandleFunc("/api/v1/search", h.APIv1SearchHandler)
 	mux.HandleFunc("/api/v1/cache", h.APIv1CacheHandler)
 	mux.HandleFunc("/api/v1/kittens/", h.APIv1KittensDailyHandler)
-	mux.HandleFunc("/api/v1/preview", h.OGPreviewHandler)
+	mux.HandleFunc("/api/v1/preview", h.PreviewHandler)
+	mux.HandleFunc("/api/v1/preview/diagnose", h.APIv1PreviewDiagnoseHandler)
 
 	// Public redirect shortlink
 	mux.HandleFunc("/go/", h.APIv1RedirectHandler)
