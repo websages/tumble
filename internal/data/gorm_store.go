@@ -36,7 +36,7 @@ func (s *GormStore) Close() error {
 }
 
 func (s *GormStore) Bootstrap(ctx context.Context) error {
-	if err := s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{}, &ActivityPubKey{}, &ActivityPubFollower{}, &ActivityPubDelivery{}); err != nil {
+	if err := s.db.AutoMigrate(&IRCLink{}, &Image{}, &Quote{}, &LinkPreview{}, &Tag{}, &ArchiveLookup{}, &ActivityPubKey{}, &ActivityPubFollower{}, &ActivityPubDelivery{}, &Channel{}); err != nil {
 		return err
 	}
 
@@ -462,15 +462,18 @@ func (s *GormStore) GetGlobalTimeline(ctx context.Context, limit int, offset int
 
 	query := `
 		SELECT
-			'link' as type, ircLinkID as id, timestamp, title, url, '' as content, user as author, '' as md5sum
+			'link' as type, ircLinkID as id, timestamp, title, url, '' as content, user as author, '' as md5sum,
+			client_type, client_network, client_channel
 		FROM ircLink
 		UNION ALL
 		SELECT
-			'quote' as type, quoteID as id, timestamp, '' as title, '' as url, quote as content, author as author, '' as md5sum
+			'quote' as type, quoteID as id, timestamp, '' as title, '' as url, quote as content, author as author, '' as md5sum,
+			client_type, client_network, client_channel
 		FROM quote
 		UNION ALL
 		SELECT
-			'image' as type, imageID as id, timestamp, title, url, '' as content, '' as author, md5sum
+			'image' as type, imageID as id, timestamp, title, url, '' as content, '' as author, md5sum,
+			client_type, client_network, client_channel
 		FROM image
 		ORDER BY timestamp DESC
 		LIMIT ? OFFSET ?
@@ -590,6 +593,27 @@ func (s *GormStore) UpsertArchiveLookup(ctx context.Context, lookup *ArchiveLook
 		Columns:   []clause.Column{{Name: "url"}},
 		DoUpdates: clause.AssignmentColumns([]string{"archive_url", "snapshot_at", "status", "checked_at"}),
 	}).Create(lookup).Error
+}
+
+func (s *GormStore) UpsertChannel(ctx context.Context, channel *Channel) error {
+	return s.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "client_type"}, {Name: "client_network"}, {Name: "client_channel"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "updated_at"}),
+	}).Create(channel).Error
+}
+
+func (s *GormStore) GetChannelNames(ctx context.Context) (ChannelNames, error) {
+	var channels []Channel
+	if err := s.db.WithContext(ctx).Find(&channels).Error; err != nil {
+		return nil, err
+	}
+	names := make(ChannelNames, len(channels))
+	for _, c := range channels {
+		names[[3]string{c.ClientType, c.ClientNetwork, c.ClientChannel}] = c.Name
+	}
+	return names, nil
 }
 
 func (s *GormStore) GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, error) {

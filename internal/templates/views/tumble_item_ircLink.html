@@ -65,7 +65,7 @@
                         <a href="{{linkURL .BaseURL .ID .ClickSig}}" target="_blank">{{if .DisplayTitle}}{{.DisplayTitle}}{{else}}{{.Title}}{{end}}</a>
                     {{end}}
                 </span>
-                <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a></span>
+                <span class="author"><a href="/?poster={{.User}}" data-tooltip="{{.FormattedDate}}">{{.User}}</a>{{if .ChannelName}}<span class="item-channel">#{{.ChannelName}}</span>{{end}}</span>
             </div>
             {{if not .SuppressOG}}<div class="og-preview" id="og-preview-{{.ID}}"></div>{{end}}
         </div>

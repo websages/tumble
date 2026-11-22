@@ -588,6 +588,23 @@ body {
   content: "— ";
 }
 
+/* Source channel (e.g. Slack channel) for links and quotes */
+.item-channel {
+  margin-left: 0.3em;
+  opacity: 0.8;
+}
+
+.item-channel::before {
+  content: "in ";
+}
+
+.quote-channel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  padding-left: var(--space-4);
+  margin-top: var(--space-1);
+}
+
 /* Quote permalink link wrapper */
 .quote-link {
   text-decoration: none;

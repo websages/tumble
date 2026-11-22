@@ -148,14 +148,15 @@ func (h *Handler) apiV1ListLinks(w http.ResponseWriter, r *http.Request) {
 
 // APILinkCreateRequest is the request body for POST /api/v1/links.
 type APILinkCreateRequest struct {
-	URL            string   `json:"url"`
-	User           string   `json:"user"`
-	Tags           []string `json:"tags,omitempty"`
-	ClientType     *string  `json:"client_type,omitempty"`
-	ClientNetwork  *string  `json:"client_network,omitempty"`
-	ClientChannel  *string  `json:"client_channel,omitempty"`
-	ClientUserID   *string  `json:"client_user_id,omitempty"`
-	ClientUserName *string  `json:"client_user_name,omitempty"`
+	URL               string   `json:"url"`
+	User              string   `json:"user"`
+	Tags              []string `json:"tags,omitempty"`
+	ClientType        *string  `json:"client_type,omitempty"`
+	ClientNetwork     *string  `json:"client_network,omitempty"`
+	ClientChannel     *string  `json:"client_channel,omitempty"`
+	ClientChannelName *string  `json:"client_channel_name,omitempty"`
+	ClientUserID      *string  `json:"client_user_id,omitempty"`
+	ClientUserName    *string  `json:"client_user_name,omitempty"`
 }
 
 // apiV1CreateLink handles POST /api/v1/links
@@ -248,6 +249,7 @@ func (h *Handler) apiV1CreateLink(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create link")
 		return
 	}
+	h.recordChannelName(ctx, req.ClientType, req.ClientNetwork, req.ClientChannel, req.ClientChannelName)
 
 	// Build response
 	isDuplicate := len(existingLinks) > 0
