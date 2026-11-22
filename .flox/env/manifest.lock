@@ -31,6 +31,9 @@
       "sqlite-interactive": {
         "pkg-path": "sqlite-interactive",
         "outputs": "all"
+      },
+      "wrangler": {
+        "pkg-path": "wrangler"
       }
     },
     "vars": {
@@ -810,6 +813,93 @@
         "doc": "/nix/store/3526dkb1c0dgzma4ib2dlqnskzz0gy0l-sqlite-interactive-3.54.0-doc",
         "man": "/nix/store/9whmaqsa8f8l91x2zd8r2vnb0dw9jpdq-sqlite-interactive-3.54.0-man",
         "out": "/nix/store/snd39d93z2d3inn55jkh0hw4y5j6821a-sqlite-interactive-3.54.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "wrangler",
+      "broken": false,
+      "derivation": "/nix/store/l0b6nn7qm9fbjqp5jxbk41lygzyllxv3-wrangler-4.156.0.drv",
+      "description": "Command-line interface for all things Cloudflare Workers",
+      "install_id": "wrangler",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+      "name": "wrangler-4.156.0",
+      "pname": "wrangler",
+      "rev": "0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+      "rev_count": 1124497,
+      "rev_date": "2026-11-19T10:51:41Z",
+      "scrape_date": "2026-11-21T05:47:34.745037Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.156.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/6h905rgda3asaqpi5fznmbw1hhsvnlln-wrangler-4.156.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "wrangler",
+      "broken": false,
+      "derivation": "/nix/store/i663hfy9na3zlpnqfx9bajnlp6vsqq9k-wrangler-4.156.0.drv",
+      "description": "Command-line interface for all things Cloudflare Workers",
+      "install_id": "wrangler",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+      "name": "wrangler-4.156.0",
+      "pname": "wrangler",
+      "rev": "0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+      "rev_count": 1124497,
+      "rev_date": "2026-11-19T10:51:41Z",
+      "scrape_date": "2026-11-21T06:14:30.753292Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.156.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/881y809njahyjfz1p1ff4091aq2pjc5k-wrangler-4.156.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "wrangler",
+      "broken": false,
+      "derivation": "/nix/store/l0y7m0hw2r3hcz9gmvdvszzhm31p67iz-wrangler-4.156.0.drv",
+      "description": "Command-line interface for all things Cloudflare Workers",
+      "install_id": "wrangler",
+      "license": "[ MIT, Apache-2.0 ]",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+      "name": "wrangler-4.156.0",
+      "pname": "wrangler",
+      "rev": "0bb8272318b4ca41bf0edc6224df3e3e3046b70d",
+      "rev_count": 1124497,
+      "rev_date": "2026-11-19T10:51:41Z",
+      "scrape_date": "2026-11-21T06:43:09.698571Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "4.156.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/saxhkhq63ynkb0lzrggcfid4ak2h2yic-wrangler-4.156.0"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
