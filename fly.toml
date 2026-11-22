@@ -1,5 +1,9 @@
 # fly.toml — Tumble deployment
 # Docs: https://fly.io/docs/reference/configuration/
+#
+# The live config for the tumble2 app (feed.stahnma.us) is on the stahnma
+# branch, which deploys automatically on push. main deploys elsewhere
+# (tumble.wcyd.org); `make deploy` refuses to run outside stahnma.
 
 app = "tumble2"
 primary_region = "iad"

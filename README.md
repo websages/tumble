@@ -381,6 +381,22 @@ fly secrets set TUMBLE_UNFURL_WORKER_URL="https://tumble-unfurl.<subdomain>.work
 make deploy
 ```
 
+Branches and where they deploy:
+
+| Branch | Target | How |
+|--------|--------|-----|
+| `main` | tumble.wcyd.org | `deploy.yml` on push |
+| `stahnma` | Fly app `tumble2` (feed.stahnma.us) | `deploy-fly.yml` on push, or `make deploy` |
+
+`stahnma` is `main` plus commits that only change `fly.toml`. Code goes
+to `main` by PR; then rebase `stahnma` onto `main` and push. `make
+deploy` refuses to run on any other branch. The workflow needs a
+`FLY_API_TOKEN` repo secret:
+
+```bash
+fly tokens create deploy -a tumble2 | gh secret set FLY_API_TOKEN
+```
+
 **Custom domain:**
 
 ```bash

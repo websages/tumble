@@ -1,0 +1,35 @@
+name: Deploy to Fly
+
+# The stahnma branch is main plus fly.toml config for the tumble2 app
+# (feed.stahnma.us). main itself deploys to tumble.wcyd.org (deploy.yml).
+on:
+  push:
+    branches:
+      - stahnma
+
+concurrency:
+  group: deploy-fly
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests
+        run: make test
+
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: make deploy FLY=flyctl
