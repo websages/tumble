@@ -19,6 +19,7 @@ libxml2.outputs = "all"
 sqlite-interactive.pkg-path = "sqlite-interactive"
 sqlite-interactive.outputs = "all"
 gum.pkg-path = "gum"
+flyctl.pkg-path = "flyctl"
 
 
 ## Environment Variables ---------------------------------------------
