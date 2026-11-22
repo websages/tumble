@@ -297,18 +297,24 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 				switch item.Type {
 				case "link":
 					ircLinks = append(ircLinks, data.IRCLink{
-						ID:        item.ID,
-						Timestamp: item.Timestamp,
-						User:      item.Author,
-						Title:     item.Title,
-						URL:       item.URL,
+						ID:            item.ID,
+						Timestamp:     item.Timestamp,
+						User:          item.Author,
+						Title:         item.Title,
+						URL:           item.URL,
+						ClientType:    item.ClientType,
+						ClientNetwork: item.ClientNetwork,
+						ClientChannel: item.ClientChannel,
 					})
 				case "quote":
 					quotes = append(quotes, data.Quote{
-						ID:        item.ID,
-						Timestamp: item.Timestamp,
-						Author:    item.Author,
-						Quote:     item.Content,
+						ID:            item.ID,
+						Timestamp:     item.Timestamp,
+						Author:        item.Author,
+						Quote:         item.Content,
+						ClientType:    item.ClientType,
+						ClientNetwork: item.ClientNetwork,
+						ClientChannel: item.ClientChannel,
 					})
 				case "image":
 					images = append(images, data.Image{
@@ -328,15 +334,20 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// Process all items into DisplayItems
 	var allItems []service.DisplayItem
+	channelNames := h.channelNames(ctx)
 
 	for _, item := range ircLinks {
-		allItems = append(allItems, h.Service.ProcessIRCLink(item))
+		d := h.Service.ProcessIRCLink(item)
+		d.ChannelName = channelNames.Lookup(item.ClientType, item.ClientNetwork, item.ClientChannel)
+		allItems = append(allItems, d)
 	}
 	for _, item := range images {
 		allItems = append(allItems, h.Service.ProcessImage(item))
 	}
 	for _, item := range quotes {
-		allItems = append(allItems, h.Service.ProcessQuote(item))
+		d := h.Service.ProcessQuote(item)
+		d.ChannelName = channelNames.Lookup(item.ClientType, item.ClientNetwork, item.ClientChannel)
+		allItems = append(allItems, d)
 	}
 
 	// Sort items by timestamp descending
@@ -576,11 +587,16 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	if len(links) > 0 || len(quotes) > 0 {
 		// Process all items into DisplayItems
 		var allItems []service.DisplayItem
+		channelNames := h.channelNames(ctx)
 		for _, item := range links {
-			allItems = append(allItems, h.Service.ProcessIRCLink(item))
+			d := h.Service.ProcessIRCLink(item)
+			d.ChannelName = channelNames.Lookup(item.ClientType, item.ClientNetwork, item.ClientChannel)
+			allItems = append(allItems, d)
 		}
 		for _, item := range quotes {
-			allItems = append(allItems, h.Service.ProcessQuote(item))
+			d := h.Service.ProcessQuote(item)
+			d.ChannelName = channelNames.Lookup(item.ClientType, item.ClientNetwork, item.ClientChannel)
+			allItems = append(allItems, d)
 		}
 
 		// Sort by timestamp descending (newest first)

@@ -63,6 +63,34 @@ func (Quote) TableName() string {
 	return "quote"
 }
 
+// Channel maps a client channel ID to its current display name.
+// Names are refreshed whenever a client reports one, so channel
+// renames are reflected on every past item from that channel.
+type Channel struct {
+	ClientType    string    `json:"client_type" gorm:"column:client_type;type:varchar(50);primaryKey"`
+	ClientNetwork string    `json:"client_network" gorm:"column:client_network;type:varchar(255);primaryKey"`
+	ClientChannel string    `json:"client_channel" gorm:"column:client_channel;type:varchar(255);primaryKey"`
+	Name          string    `json:"name" gorm:"column:name;type:varchar(255)"`
+	UpdatedAt     time.Time `json:"updated_at" gorm:"column:updated_at"`
+}
+
+// TableName overrides the table name to `channels`
+func (Channel) TableName() string {
+	return "channels"
+}
+
+// ChannelNames is a lookup of channel display names keyed by
+// client type, network and channel ID.
+type ChannelNames map[[3]string]string
+
+// Lookup returns the display name for a channel, or "" if unknown.
+func (n ChannelNames) Lookup(clientType, clientNetwork, clientChannel *string) string {
+	if clientType == nil || clientNetwork == nil || clientChannel == nil {
+		return ""
+	}
+	return n[[3]string{*clientType, *clientNetwork, *clientChannel}]
+}
+
 type UserStat struct {
 	User       string `json:"user"`
 	LinkCount  int    `json:"link_count"`
@@ -243,6 +271,10 @@ type Store interface {
 	UpsertArchiveLookup(ctx context.Context, lookup *ArchiveLookup) error
 	GetUncheckedDeadLinkURLs(ctx context.Context) ([]string, error)
 	GetStaleArchiveLookups(ctx context.Context, status string, recheckAfter time.Duration) ([]string, error)
+
+	// Channel display names
+	UpsertChannel(ctx context.Context, channel *Channel) error
+	GetChannelNames(ctx context.Context) (ChannelNames, error)
 
 	// Tag operations
 	CreateTag(ctx context.Context, tag Tag) (*Tag, error)

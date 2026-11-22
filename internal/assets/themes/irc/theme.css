@@ -456,6 +456,23 @@ body {
   color: var(--irc-muted);
 }
 
+/* Show the channel IRC-log style: "#channel <nick>" */
+.author:has(.item-channel) {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.author .item-channel {
+  order: -1;
+  margin: 0 0.5em 0 0;
+  color: var(--irc-muted);
+  opacity: 1;
+}
+
+.author .item-channel::before {
+  content: none;
+}
+
 .author a {
   font-weight: 700;
 }

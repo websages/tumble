@@ -614,6 +614,11 @@
             "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
             "example": "C67890"
           },
+          "client_channel_name": {
+            "type": "string",
+            "description": "Display name of the channel (e.g., Slack channel name, with or without a leading #). Stored as the current name for client_channel and shown on the web view; sending a new name updates it for all items from that channel.",
+            "example": "general"
+          },
           "client_user_id": {
             "type": "string",
             "description": "Platform-specific user ID",
@@ -764,6 +769,11 @@
             "type": "string",
             "description": "Client channel identifier (e.g., IRC channel, Slack channel ID)",
             "example": "C67890"
+          },
+          "client_channel_name": {
+            "type": "string",
+            "description": "Display name of the channel (e.g., Slack channel name, with or without a leading #). Stored as the current name for client_channel and shown on the web view; sending a new name updates it for all items from that channel.",
+            "example": "general"
           },
           "client_user_id": {
             "type": "string",

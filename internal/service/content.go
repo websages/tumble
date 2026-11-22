@@ -78,6 +78,9 @@ type DisplayItem struct {
 	// OG preview control
 	SuppressOG bool `json:"suppress_og"`
 
+	// Display name of the channel the item was posted from, if known
+	ChannelName string `json:"channel_name,omitempty"`
+
 	// Click signature for verified click tracking (computed at render time, not stored)
 	ClickSig string `json:"click_sig,omitempty"`
 }

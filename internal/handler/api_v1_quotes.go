@@ -131,15 +131,16 @@ func (h *Handler) apiV1ListQuotes(w http.ResponseWriter, r *http.Request) {
 
 // APIQuoteCreateRequest is the request body for POST /api/v1/quotes.
 type APIQuoteCreateRequest struct {
-	Quote          string   `json:"quote"`
-	Author         string   `json:"author"`
-	Poster         string   `json:"poster"`
-	Tags           []string `json:"tags,omitempty"`
-	ClientType     *string  `json:"client_type,omitempty"`
-	ClientNetwork  *string  `json:"client_network,omitempty"`
-	ClientChannel  *string  `json:"client_channel,omitempty"`
-	ClientUserID   *string  `json:"client_user_id,omitempty"`
-	ClientUserName *string  `json:"client_user_name,omitempty"`
+	Quote             string   `json:"quote"`
+	Author            string   `json:"author"`
+	Poster            string   `json:"poster"`
+	Tags              []string `json:"tags,omitempty"`
+	ClientType        *string  `json:"client_type,omitempty"`
+	ClientNetwork     *string  `json:"client_network,omitempty"`
+	ClientChannel     *string  `json:"client_channel,omitempty"`
+	ClientChannelName *string  `json:"client_channel_name,omitempty"`
+	ClientUserID      *string  `json:"client_user_id,omitempty"`
+	ClientUserName    *string  `json:"client_user_name,omitempty"`
 }
 
 // apiV1CreateQuote handles POST /api/v1/quotes
@@ -180,6 +181,7 @@ func (h *Handler) apiV1CreateQuote(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Failed to create quote")
 		return
 	}
+	h.recordChannelName(ctx, req.ClientType, req.ClientNetwork, req.ClientChannel, req.ClientChannelName)
 	if h.ActivityPub.Enabled() {
 		newQuote.ID = quoteID
 		h.ActivityPub.PublishNote(ctx, h.ActivityPub.NoteForQuote(newQuote))
