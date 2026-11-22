@@ -34,6 +34,15 @@ type Config struct {
 	WebMaster       string        `yaml:"webmaster" mapstructure:"webmaster"`
 	Copyright       string        `yaml:"copyright" mapstructure:"copyright"`
 	ActivityPub     ActivityPub   `yaml:"activitypub" mapstructure:"activitypub"`
+	UnfurlWorker    UnfurlWorker  `yaml:"unfurl_worker" mapstructure:"unfurl_worker"`
+}
+
+// UnfurlWorker is an optional Cloudflare Worker that fetches pages for the
+// preview scraper when a site serves the server a Cloudflare challenge.
+// See cloudflare/unfurl/. Both fields must be set to enable it.
+type UnfurlWorker struct {
+	URL string `yaml:"url" mapstructure:"url"`
+	Key string `yaml:"key" mapstructure:"key"`
 }
 
 type ActivityPub struct {
@@ -86,6 +95,7 @@ func Load(path string) (*Config, error) {
 		"favicon",
 		"site_title", "site_description",
 		"managing_editor", "webmaster", "copyright",
+		"unfurl_worker.url", "unfurl_worker.key",
 	} {
 		_ = v.BindEnv(key)
 	}

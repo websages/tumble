@@ -226,6 +226,8 @@ present** — useful for container platforms.
 |----------|-------------|---------|
 | `TUMBLE_ADMIN_SECRET` | Secret for admin API operations | |
 | `TUMBLE_CLICK_SIGNING_KEY` | Secret for signed click tracking | |
+| `TUMBLE_UNFURL_WORKER_URL` | Cloudflare Worker that fetches pages which challenge the server (see `cloudflare/unfurl/`) | |
+| `TUMBLE_UNFURL_WORKER_KEY` | Shared secret for the unfurl worker | |
 
 **Site & RSS feed metadata**
 
@@ -356,6 +358,21 @@ fly storage create                                   # Tigris bucket; sets BUCKE
 # App secrets (never stored in fly.toml)
 fly secrets set TUMBLE_ADMIN_SECRET="$(openssl rand -hex 32)"
 fly secrets set TUMBLE_CLICK_SIGNING_KEY="$(openssl rand -hex 32)"  # optional
+```
+
+**Optional: unfurl worker.** Some sites behind Cloudflare challenge
+requests from hosting providers, so previews for them fail from Fly.
+A small Cloudflare Worker in `cloudflare/unfurl/` fetches those pages
+instead. tumble only calls it after it sees a challenge. Without it,
+those links show as plain links without a preview card.
+
+```bash
+key="$(openssl rand -hex 32)"
+cd cloudflare/unfurl
+wrangler deploy                                   # prints the workers.dev URL
+echo "$key" | wrangler secret put UNFURL_KEY
+fly secrets set TUMBLE_UNFURL_WORKER_URL="https://tumble-unfurl.<subdomain>.workers.dev" \
+  TUMBLE_UNFURL_WORKER_KEY="$key"
 ```
 
 **Deploy** (stamps the current git commit into the version banner):

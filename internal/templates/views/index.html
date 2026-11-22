@@ -210,6 +210,13 @@
                   return;
               }
 
+             // The site blocks our server but works in a browser: keep the
+             // plain link, with no error badge and no card.
+             if (data.blocked === "true") {
+                 if (previewDiv) previewDiv.remove();
+                 return;
+             }
+
              // Handle Errors
              if (data.error || (data.status && data.status >= 400)) {
                 // No status means we never got an HTTP answer (DNS, timeout),

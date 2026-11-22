@@ -2429,7 +2429,7 @@
     "/api/v1/preview": {
       "get": {
         "summary": "Get OpenGraph Preview",
-        "description": "Fetches OpenGraph metadata for a URL. Returns cached data if available, otherwise fetches fresh metadata. Supports special handling for YouTube, Reddit, Twitter, Flickr, and OEmbed providers. Pages are tried with several user agents before giving up; 404 and 410 are treated as definitive. Non-HTML resources (PDFs, images) return a basic file card. If the site blocks the server (403, 429, 5xx) but archive.org has a snapshot, the preview is built from the snapshot and includes `archive_url`. Error responses include `error` and, when the site answered, `status`; an error without `status` means the site was unreachable (DNS failure, timeout).",
+        "description": "Fetches OpenGraph metadata for a URL. Returns cached data if available, otherwise fetches fresh metadata. Supports special handling for YouTube, Reddit, Twitter, Flickr, and OEmbed providers. Pages are tried with several user agents before giving up; 404 and 410 are treated as definitive. Non-HTML resources (PDFs, images) return a basic file card. If the site blocks the server (403, 429, 5xx) but archive.org has a snapshot, the preview is built from the snapshot and includes `archive_url`. If the site serves a Cloudflare challenge and the optional unfurl worker cannot fetch it either, the response is `{\"blocked\": \"true\"}`: the link works in a browser but no preview could be built, and it is not treated as broken. Error responses include `error` and, when the site answered, `status`; an error without `status` means the site was unreachable (DNS failure, timeout).",
         "tags": [
           "Preview"
         ],
@@ -2483,6 +2483,11 @@
                     "error": {
                       "type": "string",
                       "description": "Present when the preview could not be built"
+                    },
+                    "blocked": {
+                      "type": "string",
+                      "enum": ["true"],
+                      "description": "Present when the site blocks the server with a Cloudflare challenge. The link is alive; show it without a card or error badge."
                     }
                   }
                 },
