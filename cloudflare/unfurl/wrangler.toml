@@ -1,0 +1,5 @@
+# Deploy: wrangler deploy (from this directory, inside the flox env)
+# Secret: wrangler secret put UNFURL_KEY
+name = "tumble-unfurl"
+main = "src/index.js"
+compatibility_date = "2026-11-01"

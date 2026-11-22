@@ -20,6 +20,7 @@ sqlite-interactive.pkg-path = "sqlite-interactive"
 sqlite-interactive.outputs = "all"
 gum.pkg-path = "gum"
 flyctl.pkg-path = "flyctl"
+wrangler.pkg-path = "wrangler"
 
 
 ## Environment Variables ---------------------------------------------

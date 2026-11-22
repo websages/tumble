@@ -3,8 +3,10 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -46,6 +48,19 @@ var scrapeUserAgents = []scrapeUserAgent{
 // really gone, as opposed to blocked, rate limited, or temporarily broken.
 func isDefinitiveStatus(code int) bool {
 	return code == http.StatusNotFound || code == http.StatusGone
+}
+
+// challengeError means the site answered with a Cloudflare challenge page
+// (cf-mitigated: challenge). The page is alive; it just will not serve a
+// client that cannot run the challenge's JavaScript. Its message matches
+// the plain "status %d" errors so existing status parsing keeps working.
+type challengeError struct{ status int }
+
+func (e *challengeError) Error() string { return fmt.Sprintf("status %d", e.status) }
+
+func isChallenged(err error) bool {
+	var c *challengeError
+	return errors.As(err, &c)
 }
 
 // OEmbed Providers Configuration
@@ -95,6 +110,10 @@ type OEmbedResponse struct {
 // TTL (24h) so errors are retried quickly, while old links get a long TTL (60d).
 // A recent link whose error may be transient (403, 429, 5xx) gets 1h.
 func isPreviewExpired(cached *data.LinkPreview, linkTimestamp time.Time) bool {
+	// Blocked links are retried daily in case the block or the worker changes.
+	if strings.Contains(string(cached.Data), `"blocked":`) {
+		return time.Since(cached.UpdatedAt) > errorCacheTTLRecent
+	}
 	if !strings.Contains(string(cached.Data), `"error":`) {
 		return time.Since(cached.UpdatedAt) > previewCacheTTL
 	}
@@ -442,6 +461,17 @@ func (h *Handler) tryOEmbed(targetURL string) (map[string]string, error) {
 func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam string) {
 	meta, err := h.scrapeWithFallbacks(urlParam)
 
+	// A Cloudflare challenge usually means the site blocks our hosting
+	// provider's IPs. Fetching from inside Cloudflare often gets through.
+	blocked := isChallenged(err)
+	if blocked {
+		if viaWorker, werr := h.scrapeViaWorker(urlParam); werr == nil {
+			meta, err, blocked = viaWorker, nil, false
+		} else if h.Config.UnfurlWorker.URL != "" {
+			log.Printf("preview: unfurl worker failed for %s: %v", urlParam, werr)
+		}
+	}
+
 	// Bot protection (DataDome, Cloudflare, etc.) blocks servers but not
 	// browsers, so a 403/429/5xx usually means "alive, but not to us".
 	// Build the preview from the latest Wayback snapshot instead.
@@ -449,9 +479,16 @@ func (h *Handler) fetchOGScrape(w http.ResponseWriter, r *http.Request, urlParam
 		var status int
 		if n, _ := fmt.Sscanf(err.Error(), "status %d", &status); n == 1 && !isDefinitiveStatus(status) {
 			if archived, aerr := h.scrapeArchivedSnapshot(r.Context(), urlParam); aerr == nil {
-				meta, err = archived, nil
+				meta, err, blocked = archived, nil, false
 			}
 		}
+	}
+
+	// Still challenged: the link works in a browser, so do not report it
+	// as broken. The frontend shows it as a plain link without a card.
+	if blocked {
+		h.cacheAndRespond(w, r, urlParam, map[string]string{"blocked": "true"})
+		return
 	}
 
 	if err != nil {
@@ -519,7 +556,33 @@ func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]strin
 	if userAgent != "" {
 		req.Header.Set("User-Agent", userAgent)
 	}
+	return h.scrapeRequest(req, targetURL, false)
+}
 
+// scrapeViaWorker fetches targetURL through the configured unfurl worker,
+// which relays the page's status, Content-Type and body unchanged.
+func (h *Handler) scrapeViaWorker(targetURL string) (map[string]string, error) {
+	cfg := h.Config.UnfurlWorker
+	if cfg.URL == "" || cfg.Key == "" {
+		return nil, errors.New("unfurl worker not configured")
+	}
+	u, err := url.Parse(cfg.URL)
+	if err != nil {
+		return nil, err
+	}
+	u.RawQuery = url.Values{"url": {targetURL}}.Encode()
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("X-Unfurl-Key", cfg.Key)
+	return h.scrapeRequest(req, targetURL, true)
+}
+
+// scrapeRequest performs req and extracts preview metadata for targetURL.
+// viaWorker means req went to the unfurl worker, so the response URL is
+// the worker's and not the page's.
+func (h *Handler) scrapeRequest(req *http.Request, targetURL string, viaWorker bool) (map[string]string, error) {
 	client := &http.Client{
 		Timeout: h.Config.RequestTimeout,
 	}
@@ -530,13 +593,22 @@ func (h *Handler) scrapeOpenGraph(targetURL, userAgent string) (map[string]strin
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
+		if resp.Header.Get("Cf-Mitigated") == "challenge" {
+			return nil, &challengeError{resp.StatusCode}
+		}
 		return nil, fmt.Errorf("status %d", resp.StatusCode)
 	}
 
 	// Non-HTML resources (PDFs, images, archives) are alive but have no
 	// OpenGraph tags. Describe them from the URL instead of parsing bytes.
 	if ct := resp.Header.Get("Content-Type"); ct != "" && !isHTMLContentType(ct) {
-		return fileMetadata(resp.Request.URL, ct), nil
+		fileURL := resp.Request.URL
+		if viaWorker {
+			if fileURL, err = url.Parse(targetURL); err != nil {
+				return nil, err
+			}
+		}
+		return fileMetadata(fileURL, ct), nil
 	}
 
 	// Parse HTML

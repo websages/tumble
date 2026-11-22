@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -25,6 +27,18 @@ func TestIsPreviewExpired(t *testing.T) {
 			name:     "fresh normal preview (1 day old)",
 			data:     `{"title":"Example","description":"A page"}`,
 			age:      24 * time.Hour,
+			expected: false,
+		},
+		{
+			name:     "blocked preview retried after a day",
+			data:     `{"blocked":"true"}`,
+			age:      25 * time.Hour,
+			expected: true,
+		},
+		{
+			name:     "blocked preview kept within a day",
+			data:     `{"blocked":"true"}`,
+			age:      12 * time.Hour,
 			expected: false,
 		},
 		{
@@ -215,5 +229,79 @@ func TestRawSnapshotURL(t *testing.T) {
 	want := "http://web.archive.org/web/20261106053822id_/https://www.surfer.com/news/x"
 	if got := rawSnapshotURL(in); got != want {
 		t.Errorf("rawSnapshotURL() = %q, want %q", got, want)
+	}
+}
+
+type mockArchiveStore struct {
+	data.Store
+}
+
+func (mockArchiveStore) GetArchiveLookup(ctx context.Context, u string) (*data.ArchiveLookup, error) {
+	return nil, nil
+}
+
+func TestFetchOGScrapeChallenge(t *testing.T) {
+	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cf-Mitigated", "challenge")
+		w.WriteHeader(http.StatusForbidden)
+		io.WriteString(w, "<title>Just a moment...</title>")
+	}))
+	defer site.Close()
+	target := site.URL + "/beer"
+
+	newWorker := func(challenged bool) *httptest.Server {
+		return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Header.Get("X-Unfurl-Key") != "k" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			if r.URL.Query().Get("url") != target {
+				t.Errorf("worker got url %q, want %q", r.URL.Query().Get("url"), target)
+			}
+			if challenged {
+				w.Header().Set("Cf-Mitigated", "challenge")
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
+			w.Header().Set("Content-Type", "text/html")
+			io.WriteString(w, `<html><head><meta property="og:title" content="Dark Lord"></head></html>`)
+		}))
+	}
+
+	tests := []struct {
+		name   string
+		worker *httptest.Server
+		key    string
+		want   map[string]string
+	}{
+		{"worker gets through", newWorker(false), "k", map[string]string{"title": "Dark Lord"}},
+		{"worker challenged too", newWorker(true), "k", map[string]string{"blocked": "true"}},
+		{"worker rejects key", newWorker(false), "wrong", map[string]string{"blocked": "true"}},
+		{"no worker configured", nil, "", map[string]string{"blocked": "true"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &config.Config{RequestTimeout: 5 * time.Second}
+			if tt.worker != nil {
+				defer tt.worker.Close()
+				cfg.UnfurlWorker = config.UnfurlWorker{URL: tt.worker.URL, Key: tt.key}
+			}
+			h := &Handler{Store: mockArchiveStore{}, Config: cfg}
+			w := httptest.NewRecorder()
+			h.fetchOGScrape(w, httptest.NewRequest(http.MethodGet, "/api/v1/preview", nil), target)
+
+			var got map[string]string
+			if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
+				t.Fatalf("bad JSON %q: %v", w.Body.String(), err)
+			}
+			for k, v := range tt.want {
+				if got[k] != v {
+					t.Errorf("%s = %q, want %q (response %v)", k, got[k], v, got)
+				}
+			}
+			if _, isErr := got["error"]; isErr {
+				t.Errorf("challenged link reported as error: %v", got)
+			}
+		})
 	}
 }
