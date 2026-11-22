@@ -758,7 +758,9 @@ body {
 /* ---------- Narrow screens: just the buffer ---------- */
 
 @media (max-width: 1100px) {
-  :root .nav-header .dropdown {
+  /* Hide the Hot Shit panel, but keep the theme picker so visitors
+   * can still switch away from this theme. */
+  :root .nav-header .dropdown:not(.theme-picker) {
     display: none;
   }
 
