@@ -79,8 +79,19 @@ run-test: kill build ## Run the application with the test database
 test-db: kill build ## Create a fresh test database with fixtures
 	./tests/setup_test_db.sh
 
-deploy: ## Deploy to Fly.io (Docker build, stamps git commit)
-	fly deploy --build-arg GIT_COMMIT="$(GIT_COMMIT)"
+# Only the stahnma branch carries the fly.toml config for the tumble2 app
+# (feed.stahnma.us). main deploys to tumble.wcyd.org via GitHub Actions.
+FLY_DEPLOY_BRANCH=stahnma
+FLY ?= fly
+
+deploy: ## Deploy to Fly.io from the stahnma branch (stamps git commit)
+	@branch="$${GITHUB_REF_NAME:-$$(git rev-parse --abbrev-ref HEAD)}"; \
+	if [ "$$branch" != "$(FLY_DEPLOY_BRANCH)" ]; then \
+		echo "make deploy only runs on the $(FLY_DEPLOY_BRANCH) branch (this is $$branch)."; \
+		echo "main deploys to tumble.wcyd.org via GitHub Actions on push."; \
+		exit 1; \
+	fi
+	$(FLY) deploy --build-arg GIT_COMMIT="$(GIT_COMMIT)"
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
