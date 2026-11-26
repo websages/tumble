@@ -79,18 +79,19 @@ run-test: kill build ## Run the application with the test database
 test-db: kill build ## Create a fresh test database with fixtures
 	./tests/setup_test_db.sh
 
-# Only the stahnma branch carries the fly.toml config for the tumble2 app
-# (feed.stahnma.us). main deploys to tumble.wcyd.org via GitHub Actions.
-FLY_DEPLOY_BRANCH=stahnma
+# Each deploy branch carries its own fly.toml: main is the tumble-wcyd app
+# (tumble.wcyd.org), stahnma is the tumble2 app (feed.stahnma.us). Both
+# deploy via GitHub Actions on push.
+FLY_DEPLOY_BRANCHES=main stahnma
 FLY ?= fly
 
-deploy: ## Deploy to Fly.io from the stahnma branch (stamps git commit)
+deploy: ## Deploy to Fly.io from main or stahnma (stamps git commit)
 	@branch="$${GITHUB_REF_NAME:-$$(git rev-parse --abbrev-ref HEAD)}"; \
-	if [ "$$branch" != "$(FLY_DEPLOY_BRANCH)" ]; then \
-		echo "make deploy only runs on the $(FLY_DEPLOY_BRANCH) branch (this is $$branch)."; \
-		echo "main deploys to tumble.wcyd.org via GitHub Actions on push."; \
-		exit 1; \
-	fi
+	case " $(FLY_DEPLOY_BRANCHES) " in \
+		*" $$branch "*) ;; \
+		*) echo "make deploy only runs on: $(FLY_DEPLOY_BRANCHES) (this is $$branch)."; \
+		   exit 1 ;; \
+	esac
 	$(FLY) deploy --build-arg GIT_COMMIT="$(GIT_COMMIT)"
 
 help: ## Show this help message

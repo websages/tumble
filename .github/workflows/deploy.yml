@@ -1,9 +1,17 @@
 name: Deploy
 
+# main deploys the tumble-wcyd Fly app (tumble.wcyd.org, behind the
+# websages/tumble-edge Caddy app). The stahnma branch deploys tumble2
+# via deploy-fly.yml.
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-wcyd
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -17,32 +25,18 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Build for Linux amd64
-        run: make build-linux
+      - name: Run tests
+        run: make test
 
-      - name: Deploy to server
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: tumble.wcyd.org
-          DEPLOY_USER: tumble
-          DEPLOY_PATH: /srv/tumble/bin/tumble
-        run: |
-          # Set up SSH
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
-
-          # Copy binary to server
-          scp -i ~/.ssh/id_deploy bin/tumble-linux-amd64 ${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/tumble.new
-
-          # Replace binary and restart
-          ssh -i ~/.ssh/id_deploy ${DEPLOY_USER}@${DEPLOY_HOST} << 'EOF'
-            mv /srv/tumble/bin/tumble /srv/tumble/bin/tumble.old
-            mv /tmp/tumble.new /srv/tumble/bin/tumble
-            chmod +x /srv/tumble/bin/tumble
-            sudo systemctl restart tumble
-          EOF
+          # Deploy token scoped to this app:
+          #   fly tokens create deploy -a tumble-wcyd
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WCYD }}
+        run: make deploy FLY=flyctl
 
       - name: Notify IRC
         if: success()

@@ -385,17 +385,22 @@ Branches and where they deploy:
 
 | Branch | Target | How |
 |--------|--------|-----|
-| `main` | tumble.wcyd.org | `deploy.yml` on push |
+| `main` | Fly app `tumble-wcyd` (tumble.wcyd.org) | `deploy.yml` on push, or `make deploy` |
 | `stahnma` | Fly app `tumble2` (feed.stahnma.us) | `deploy-fly.yml` on push, or `make deploy` |
 
 `stahnma` is `main` plus commits that only change `fly.toml`. Code goes
 to `main` by PR; then rebase `stahnma` onto `main` and push. `make
-deploy` refuses to run on any other branch. The workflow needs a
-`FLY_API_TOKEN` repo secret:
+deploy` refuses to run on any other branch. Each workflow needs a
+deploy token scoped to its app:
 
 ```bash
+fly tokens create deploy -a tumble-wcyd | gh secret set FLY_API_TOKEN_WCYD
 fly tokens create deploy -a tumble2 | gh secret set FLY_API_TOKEN
 ```
+
+`tumble-wcyd` has no public IPs. It's reached through the shared Caddy
+edge ([websages/tumble-edge](https://github.com/websages/tumble-edge)),
+which holds its hostnames, certificates and bot filtering.
 
 **Custom domain:**
 
