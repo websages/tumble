@@ -1,11 +1,15 @@
 # fly.toml — Tumble deployment
 # Docs: https://fly.io/docs/reference/configuration/
 #
-# The live config for the tumble2 app (feed.stahnma.us) is on the stahnma
-# branch, which deploys automatically on push. main deploys elsewhere
-# (tumble.wcyd.org); `make deploy` refuses to run outside stahnma.
+# main deploys the tumble-wcyd app (tumble.wcyd.org) on push. The app is
+# private: it has only a Flycast address and is reached through the
+# shared Caddy edge (websages/tumble-edge), which holds the public
+# hostnames, TLS certificates and bot filtering.
+#
+# The stahnma branch carries its own fly.toml for the tumble2 app
+# (feed.stahnma.us).
 
-app = "tumble2"
+app = "tumble-wcyd"
 primary_region = "iad"
 
 # Built from the Dockerfile, which bundles tumble + the Litestream binary.
@@ -14,28 +18,37 @@ primary_region = "iad"
 [build]
 
 # All non-secret configuration is supplied via TUMBLE_* env vars.
-# Object-storage credentials for Litestream (BUCKET_NAME, AWS_*) are
-# provisioned as secrets by `fly storage create`; do not put them here.
+# Secrets (set with `fly secrets set`): TUMBLE_ADMIN_SECRET,
+# TUMBLE_CLICK_SIGNING_KEY, TUMBLE_UNFURL_WORKER_URL/_KEY. Object-storage
+# credentials for Litestream (BUCKET_NAME, AWS_*) are provisioned by
+# `fly storage create`; do not put them here.
 [env]
   TUMBLE_DRIVER = "sqlite"
   TUMBLE_DATABASE = "/data/tumble.sqlite"
-  TUMBLE_BASEURL = "https://tumble2.wcyd.org"
+  TUMBLE_BASEURL = "https://tumble.wcyd.org"
   TUMBLE_PORT = "8080"
   TUMBLE_MODE = "production"
   TUMBLE_LOGGING_LEVEL = "info"
   TUMBLE_LOGGING_OUTPUT = "stdout"
   TUMBLE_CACHING_ENABLED = "true"
   TUMBLE_REQUEST_TIMEOUT = "10s"
+  TUMBLE_SITE_TITLE = "tumblefish."
+  TUMBLE_SITE_DESCRIPTION = "tumblefish."
+  TUMBLE_MANAGING_EDITOR = "scott@loserfish.org (Scott)"
+  TUMBLE_WEBMASTER = "scott@loserfish.org (Scott)"
+  TUMBLE_COPYRIGHT = "http://creativecommons.org/licenses/by-sa/1.0"
 
 # Persistent volume for the SQLite database. Create it once with:
-#   fly volumes create tumble_data --region iad --size 1
+#   fly volumes create tumble_data --region iad --size 3
 [[mounts]]
   source = "tumble_data"
   destination = "/data"
 
 [http_service]
   internal_port = 8080
-  force_https = true
+  # The edge reaches this app over Flycast with plain HTTP and enforces
+  # HTTPS itself; redirecting here would loop.
+  force_https = false
   # The scheduler runs daily background jobs, so keep one machine alive
   # rather than scaling to zero.
   auto_stop_machines = false
