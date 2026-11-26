@@ -1,15 +1,15 @@
 # fly.toml — Tumble deployment
 # Docs: https://fly.io/docs/reference/configuration/
 #
-# main deploys the tumble-wcyd app (tumble.wcyd.org) on push. The app is
-# private: it has only a Flycast address and is reached through the
-# shared Caddy edge (websages/tumble-edge), which holds the public
-# hostnames, TLS certificates and bot filtering.
+# The stahnma branch is main plus this file: the tumble2 app
+# (feed.stahnma.us), deployed by deploy-fly.yml on push. Unlike main's
+# tumble-wcyd, tumble2 has its own public IPs and terminates TLS itself
+# (not behind websages-edge), so it keeps force_https = true.
 #
-# The stahnma branch carries its own fly.toml for the tumble2 app
-# (feed.stahnma.us).
+# main's fly.toml is the tumble-wcyd app (tumble.wcyd.org). When
+# rebasing onto main, keep this version of the file.
 
-app = "tumble-wcyd"
+app = "tumble2"
 primary_region = "iad"
 
 # Built from the Dockerfile, which bundles tumble + the Litestream binary.
@@ -25,30 +25,28 @@ primary_region = "iad"
 [env]
   TUMBLE_DRIVER = "sqlite"
   TUMBLE_DATABASE = "/data/tumble.sqlite"
-  TUMBLE_BASEURL = "https://tumble.wcyd.org"
+  TUMBLE_BASEURL = "https://feed.stahnma.us"
   TUMBLE_PORT = "8080"
   TUMBLE_MODE = "production"
   TUMBLE_LOGGING_LEVEL = "info"
   TUMBLE_LOGGING_OUTPUT = "stdout"
   TUMBLE_CACHING_ENABLED = "true"
   TUMBLE_REQUEST_TIMEOUT = "10s"
-  TUMBLE_SITE_TITLE = "tumblefish."
-  TUMBLE_SITE_DESCRIPTION = "tumblefish."
-  TUMBLE_MANAGING_EDITOR = "scott@loserfish.org (Scott)"
-  TUMBLE_WEBMASTER = "scott@loserfish.org (Scott)"
-  TUMBLE_COPYRIGHT = "http://creativecommons.org/licenses/by-sa/1.0"
+  TUMBLE_SITE_NAME = "stahnma slack"
+  TUMBLE_SITE_TITLE = "stahnma slack feed"
+  TUMBLE_THEME = "corkboard"
+  TUMBLE_ALLOW_USER_THEMES = "true"
+  TUMBLE_DAILY_KITTEN = "false"
 
 # Persistent volume for the SQLite database. Create it once with:
-#   fly volumes create tumble_data --region iad --size 3
+#   fly volumes create tumble_data --region iad --size 1
 [[mounts]]
   source = "tumble_data"
   destination = "/data"
 
 [http_service]
   internal_port = 8080
-  # The edge reaches this app over Flycast with plain HTTP and enforces
-  # HTTPS itself; redirecting here would loop.
-  force_https = false
+  force_https = true
   # The scheduler runs daily background jobs, so keep one machine alive
   # rather than scaling to zero.
   auto_stop_machines = false
