@@ -177,43 +177,58 @@ Give it **no public IPs**: `fly ips list -a tumble-wcyd` must show only
 the private address. The first `fly deploy` can allocate public ones on
 its own; release them if it does.
 
-**Don't deploy until the bucket is seeded (Phase 4).** On an empty
+**Don't deploy until the volume is seeded (Phase 4).** On an empty
 volume with an empty bucket, tumble creates a blank database and
 Litestream replicates it.
 
 ### Phase 4: Rehearsal (repeatable; this is also the cutover procedure)
 
-Seed the bucket so the first boot restores the real data through the
-same path a disaster recovery would use.
+Fly secrets can't be read back, so the Tigris keys aren't available
+on the laptop. Instead, the snapshot goes onto the volume directly.
+Litestream uploads it on first boot, and the restore path is then
+tested separately. (Rehearsed 2026-11-25; every check passed.)
 
-1. Snapshot on the Linode host (safe while tumble is running):
-   `sqlite3 /srv/tumble/tumble.sqlite ".backup /tmp/tumble-snap.sqlite"`,
-   then copy it to the laptop and run `PRAGMA integrity_check`.
-2. Seed Tigris from the laptop with **Litestream 0.5.14** (it must
-   match the image): run `litestream replicate` with a config pointing
-   at the snapshot and the app's bucket credentials, wait for the
-   snapshot upload, then stop it.
-3. Verify: `litestream restore -o check.sqlite` from the bucket;
-   integrity check; compare `count(*)` on `ircLink`, `quote`, `image`
-   against the snapshot.
-4. `fly deploy -a tumble-wcyd` (with `GIT_COMMIT` build arg). The
-   entrypoint restores onto the empty volume and starts.
-5. Smoke test.
-   - **Backend directly:** `fly proxy 8080 -a tumble-wcyd`, then hit
-     `localhost:8080`. Note that the tunnel counts as localhost, so the
-     admin bypass applies there and you can't test the key this way.
-   - **Through the edge**, once the certificates exist (Phase 5.2):
-     `curl --resolve tumble.wcyd.org:443:<edge v4> https://tumble.wcyd.org/`
-   - **Checks:** front page, a permalink, a signed click link copied
-     from production (checks the signing key), search, RSS,
-     `/api/docs`, a POST to `/api/v1/links`, a DELETE without the key
-     (must be 403) and then with it, a bot UA (blocked by the edge),
-     the log showing the real client IP, and `fly logs` for the
-     scheduler start line.
+1. Snapshot on the Linode host (safe while tumble is running), as the
+   `tumble` user:
+   `sudo -u tumble sqlite3 /srv/tumble/tumble.sqlite ".backup /tmp/tumble-snap.sqlite"`.
+   `scp` it to the laptop, check `PRAGMA integrity_check` and the
+   sha256, then delete the host copy (`sudo -u tumble rm`).
+2. Put it on the empty volume with a throwaway machine:
+   ```sh
+   fly machine run alpine:3.20 sleep infinity -a tumble-wcyd -r iad \
+     -v <vol_id>:/data --name seed --restart no
+   fly ssh sftp put tumble.sqlite /data/tumble.sqlite -a tumble-wcyd --machine <seed_id>
+   fly ssh console -a tumble-wcyd --machine <seed_id> -C 'sha256sum /data/tumble.sqlite'
+   fly machine destroy <seed_id> -a tumble-wcyd --force
+   ```
+3. Deploy: `fly deploy -a tumble-wcyd --no-public-ips --ha=false
+   --build-arg GIT_COMMIT=$(git rev-parse --short HEAD)`. The logs should
+   show `database already exists, skipping` and then `ltx file uploaded`.
+   On boot tumble also fetches the daily kitten (if it's missing) and
+   runs an archive batch. That's expected.
+4. Smoke test through the edge. Before DNS moves, the edge routes by
+   Host header: `curl -H 'Host: tumble.wcyd.org' https://websages-edge.fly.dev/...`.
+   - Front page, `/search`, `/stats`, `/sitemap.xml`, `/api/docs`,
+     `/api/openapi.json`, `/robots.txt`, `/api/v1/stats`: same status
+     as prod.
+   - A `/link/<id>?sig=...` URL from the prod front page: the same
+     signature appears on the Fly page and redirects to the same target
+     (checks the signing key).
+   - POST `/api/v1/links` gets 201; DELETE without a key 403; with
+     `X-API-Key` 204.
+   - A GPTBot user agent gets 403 from the edge, and the
+     `tumble.mandatoryfun.dev` host gets 200.
+   - The tumble log `remote_addr` is the real client IP.
+5. Test a restore from Tigris:
+   `fly ssh console -C 'litestream restore -config /etc/litestream.yml -o /tmp/check.sqlite /data/tumble.sqlite'`,
+   `fly ssh sftp get` it, then check integrity and row counts against
+   the snapshot.
 
-To reset for another rehearsal or for the real cutover:
-`fly machine destroy`, `fly volumes destroy`, delete the `tumble/` prefix
-in the bucket, `fly volumes create`, and seed again.
+**Reset for the real cutover:** start clean rather than overwriting a
+replicated database. Destroy the machine and the volume, then create a
+new volume. Run `fly storage destroy` on the rehearsal bucket and
+`fly storage create` a fresh one (this re-stages the `AWS_*`/`BUCKET_NAME`
+secrets). Then repeat steps 1-5.
 
 ### Phase 5: Pre-cutover (a day before)
 
@@ -240,9 +255,10 @@ in the bucket, `fly volumes create`, and seed again.
 
 1. On Linode: `sudo systemctl stop tumble`. Writes stop here, and Hubot
    posts made during the window are lost.
-2. Snapshot, then reset and seed (Phase 4, steps 1-4) with this final copy.
-3. Smoke test via `--resolve` to the edge; row counts must match the
-   final snapshot exactly.
+2. Reset (see the end of Phase 4), then repeat Phase 4 steps 1-3 with
+   this final snapshot.
+3. Smoke test through the edge (Phase 4, step 4). Row counts must match
+   the final snapshot exactly.
 4. Swap the old Caddy to the proxy config (`caddy reload`). Stragglers
    on stale DNS now reach Fly.
 5. Change the A/AAAA records for both hostnames to the **edge** IPs.
