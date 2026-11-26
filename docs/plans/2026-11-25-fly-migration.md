@@ -1,6 +1,6 @@
 # Migrate tumble.wcyd.org to Fly.io
 
-Status: draft, 2026-11-25
+Status: done. Cut over 2026-11-26; Linode cleanup (Phase 8) due 2026-12-10.
 
 ## Goal
 
