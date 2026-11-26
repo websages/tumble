@@ -1,6 +1,9 @@
 # Tumble
 
-The canonical installation of tumble is found at [http://tumble.wcyd.org](http://tumble.wcyd.org).
+The canonical installation of tumble is found at [https://tumble.wcyd.org](https://tumble.wcyd.org).
+It runs on [Fly.io](https://fly.io) (SQLite + Litestream, behind the shared
+[websages/tumble-edge](https://github.com/websages/tumble-edge) Caddy app) and
+deploys from `main` on every push. See [Deployment](#deployment).
 
 ## History
 
@@ -270,8 +273,9 @@ This setting is independent of `TUMBLE_MODE`.
 
 Tumble supports both **MySQL** and **SQLite** databases.
 
-- **SQLite**: Recommended for development, testing, and small deployments. No separate database server required.
-- **MySQL**: Recommended for production deployments with higher traffic.
+- **SQLite**: Recommended. No separate database server required. Production
+  (tumble.wcyd.org) runs on SQLite, replicated with Litestream.
+- **MySQL**: Still supported, for setups that already have a MySQL server.
 
 ### Migrations
 
@@ -325,17 +329,21 @@ Set `TUMBLE_MODE=development` or `TUMBLE_LOGGING_LEVEL=debug` for verbose output
 
 ## Deployment
 
-See the systemd unit files in the `contrib/` directory for production deployment examples.
+Production runs on Fly.io; see [Fly.io](#flyio) below. Pushes to `main`
+deploy tumble.wcyd.org automatically.
 
-The recommended approach:
+### Your own server
 
 1. Build the binary with `make build` (or `make build-linux` for Linux targets).
 2. Create a `config.yaml` with your production settings.
 3. Run the binary: `bin/tumble config.yaml`
 
 With `embed_assets: true` (the default), only the binary and config file are needed on the server.
+Example systemd units are in `contrib/`.
 
-The production systemd units in `contrib/` use Flox to manage the MySQL service (`tumble-db.service` runs `flox activate --start-services`). See `contrib/README` for details.
+Requests from localhost skip the API key / admin secret check. If you put
+a reverse proxy on the same host, every request will look like it comes
+from localhost, so don't rely on that check there.
 
 ### Fly.io
 
@@ -388,8 +396,9 @@ Branches and where they deploy:
 | `main` | Fly app `tumble-wcyd` (tumble.wcyd.org) | `deploy.yml` on push, or `make deploy` |
 | `stahnma` | Fly app `tumble2` (feed.stahnma.us) | `deploy-fly.yml` on push, or `make deploy` |
 
-`stahnma` is `main` plus commits that only change `fly.toml`. Code goes
-to `main` by PR; then rebase `stahnma` onto `main` and push. `make
+`stahnma` is `main` plus a single commit that only changes `fly.toml`.
+Code goes to `main` by PR; then rebase `stahnma` onto `main` (on a
+`fly.toml` conflict, keep stahnma's side) and push. `make
 deploy` refuses to run on any other branch. Each workflow needs a
 deploy token scoped to its app:
 
@@ -402,11 +411,14 @@ fly tokens create deploy -a tumble2 | gh secret set FLY_API_TOKEN
 edge ([websages/tumble-edge](https://github.com/websages/tumble-edge)),
 which holds its hostnames, certificates and bot filtering.
 
-**Custom domain:**
+**Custom domain:** for an app with its own public IPs (like `tumble2`):
 
 ```bash
-fly certs create tumble2.wcyd.org   # then add the DNS record Fly prints
+fly certs add feed.example.com -a <app>   # then add the DNS records Fly prints
 ```
+
+For `tumble-wcyd`, hostnames and certificates live on the edge app
+(`fly certs add <host> -a websages-edge`); see the tumble-edge README.
 
 Notes:
 
